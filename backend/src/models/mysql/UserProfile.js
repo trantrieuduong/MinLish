@@ -25,7 +25,7 @@ UserProfile.init(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    avatarUrl: {
+    avatarName: {
       type: DataTypes.STRING,
       allowNull: true,
     },
