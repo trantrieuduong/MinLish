@@ -31,6 +31,16 @@ export const register = async (req, res, next) => {
   }
 };
 
+export const verifyOtp = async (req, res, next) => {
+  try {
+    const data = await authService.verifyOtp(req.body);
+    res.status(200).json(successResponse('Kích hoạt tài khoản thành công', data));
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 export const refreshToken = async (req, res, next) => {
   try {
     const token = req.cookies.refreshToken;

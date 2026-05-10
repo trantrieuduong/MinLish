@@ -34,7 +34,7 @@ User.init(
     },
     status: {
       type: DataTypes.ENUM('ACTIVE', 'INACTIVE', 'BANNED', 'DELETED'),
-      defaultValue: 'ACTIVE',
+      defaultValue: 'INACTIVE',
       allowNull: false,
     },
   },

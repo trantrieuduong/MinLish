@@ -1,15 +1,16 @@
 import bcrypt from 'bcrypt';
 import AppError from '../../utils/AppError.js';
-import { User, UserProfile } from '../../models/mysql/index.js';
+import { User, UserProfile, Otp } from '../../models/mysql/index.js';
 import { generateToken } from '../../utils/jwt.js';
 import { config } from '../../config/env.js';
+import { sendOtpEmail } from '../../utils/mail.util.js';
 
 export const loginUser = async (data) => {
   const { email, password } = data;
 
-  const user = await User.findOne({ 
+  const user = await User.findOne({
     where: { email },
-    include: [{ model: UserProfile, as: 'profile' }] 
+    include: [{ model: UserProfile, as: 'profile' }]
   });
 
   if (!user) {
@@ -49,6 +50,97 @@ export const loginUser = async (data) => {
 };
 
 export const registerUser = async (data) => {
-  // Skeleton for future use
-  return {};
+  const { username, email, password } = data;
+
+  // Kiểm tra email hoặc username đã tồn tại chưa
+  const existingUser = await User.findOne({
+    where: {
+      [User.sequelize.Sequelize.Op.or]: [{ email }, { username }]
+    }
+  });
+
+  if (existingUser) {
+    if (existingUser.email === email) {
+      throw new AppError('Email đã được sử dụng', 400);
+    }
+    throw new AppError('Tên đăng nhập đã được sử dụng', 400);
+  }
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(password, salt);
+
+  // Tạo user
+  const user = await User.create({
+    username,
+    email,
+    passwordHash,
+    role: 'USER'
+  });
+
+  // Tạo profile trống
+  await UserProfile.create({ userId: user.id });
+
+  // Tạo OTP (6 chữ số ngẫu nhiên)
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 phút sau
+
+  await Otp.create({
+    otpCode,
+    type: 'REGISTER',
+    userId: user.id,
+    expiresAt
+  });
+
+  // Gửi email OTP
+  try {
+    await sendOtpEmail(email, otpCode);
+  } catch (error) {
+    console.error('Lỗi gửi mail OTP:', error);
+    await user.destroy();
+    throw new AppError('Lỗi gửi email OTP, vui lòng thử lại sau', 500);
+  }
+
+  return {
+    message: 'Đăng ký thành công. Vui lòng kiểm tra email để lấy mã kích hoạt.',
+    email: user.email
+  };
 };
+
+export const verifyOtp = async (data) => {
+  const { email, otpCode } = data;
+
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new AppError('Người dùng không tồn tại', 404);
+  }
+
+  if (user.status === 'ACTIVE') {
+    throw new AppError('Tài khoản đã được kích hoạt trước đó', 400);
+  }
+
+  const otp = await Otp.findOne({
+    where: {
+      userId: user.id,
+      otpCode,
+      type: 'REGISTER',
+      isUsed: false,
+      expiresAt: {
+        [User.sequelize.Sequelize.Op.gt]: new Date()
+      }
+    }
+  });
+
+  if (!otp) {
+    throw new AppError('Mã OTP không hợp lệ hoặc đã hết hạn', 400);
+  }
+
+  // Cập nhật trạng thái user và đánh dấu OTP đã dùng
+  await user.update({ status: 'ACTIVE' });
+  await otp.update({ isUsed: true });
+
+  return {
+    message: 'Kích hoạt tài khoản thành công. Bây giờ bạn có thể đăng nhập.'
+  };
+};
+
