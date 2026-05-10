@@ -3,7 +3,7 @@ import AppError from '../../utils/AppError.js';
 import { User, UserProfile, Otp } from '../../models/mysql/index.js';
 import { generateToken } from '../../utils/jwt.js';
 import { config } from '../../config/env.js';
-import { sendOtpEmail } from '../../utils/mail.util.js';
+import { sendOtpEmail, sendForgotPasswordEmail } from '../../utils/mail.util.js';
 
 export const loginUser = async (data) => {
   const { email, password } = data;
@@ -144,3 +144,66 @@ export const verifyOtp = async (data) => {
   };
 };
 
+
+export const forgotPassword = async (email) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user)
+    throw new AppError('Email không tồn tại trong hệ thống', 404);
+
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
+
+  await Otp.create({
+    otpCode,
+    type: 'FORGOT_PASSWORD',
+    userId: user.id,
+    expiresAt
+  });
+
+  // Gửi email OTP
+  try {
+    await sendForgotPasswordEmail(email, otpCode);
+  } catch (error) {
+    console.error('Lỗi gửi mail OTP quên mật khẩu:', error);
+    throw new AppError('Lỗi gửi email OTP, vui lòng thử lại sau', 500);
+  }
+
+  return {
+    message: 'Mã OTP đã được gửi về email của bạn. Vui lòng kiểm tra.'
+  };
+};
+
+export const resetPassword = async (data) => {
+  const { email, otpCode, newPassword } = data;
+
+  const user = await User.findOne({ where: { email } });
+  if (!user)
+    throw new AppError('Người dùng không tồn tại', 404);
+
+  const otp = await Otp.findOne({
+    where: {
+      userId: user.id,
+      otpCode,
+      type: 'FORGOT_PASSWORD',
+      isUsed: false,
+      expiresAt: {
+        [User.sequelize.Sequelize.Op.gt]: new Date()
+      }
+    }
+  });
+
+  if (!otp)
+    throw new AppError('Mã OTP không hợp lệ hoặc đã hết hạn', 400);
+
+  // Hash password mới
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(newPassword, salt);
+
+  // Cập nhật mật khẩu và đánh dấu OTP đã dùng
+  await user.update({ passwordHash });
+  await otp.update({ isUsed: true });
+
+  return {
+    message: 'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.'
+  };
+};
