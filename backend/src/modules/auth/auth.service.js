@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import AppError from '../../utils/AppError.js';
 import { User, UserProfile, Otp } from '../../models/mysql/index.js';
-import { generateToken } from '../../utils/jwt.js';
+import { generateToken, verifyToken } from '../../utils/jwt.js';
 import { config } from '../../config/env.js';
 import { sendOtpEmail, sendForgotPasswordEmail } from '../../utils/mail.util.js';
 
@@ -151,7 +151,7 @@ export const forgotPassword = async (email) => {
     throw new AppError('Email không tồn tại trong hệ thống', 404);
 
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await Otp.create({
     otpCode,
@@ -206,4 +206,32 @@ export const resetPassword = async (data) => {
   return {
     message: 'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.'
   };
+};
+
+export const refreshToken = async (token) => {
+  if (!token) {
+    throw new AppError('Không tìm thấy Refresh Token, vui lòng đăng nhập lại', 401);
+  }
+
+  let decoded;
+  try {
+    decoded = verifyToken(token);
+    if (decoded.type !== 'REFRESH') {
+      throw new AppError('Token không hợp lệ', 401);
+    }
+  } catch (err) {
+    throw new AppError('Token không hợp lệ', 401);
+  }
+
+  const payload = {
+    id: decoded.id,
+    role: decoded.role,
+    email: decoded.email,
+    username: decoded.username,
+    type: 'ACCESS'
+  };
+
+  const newAccessToken = generateToken(payload, config.jwtAccessExpiresIn);
+
+  return { accessToken: newAccessToken };
 };
