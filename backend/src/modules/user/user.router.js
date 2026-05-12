@@ -9,7 +9,7 @@ const router = Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.get("/users/:id", protect, controller.getOtherProfile);
+router.get("/profile/:id", protect, controller.getOtherProfile);
 router.get("/profile", protect, controller.getSelfProfile);
 router.post(
   "/profile",
