@@ -3,7 +3,6 @@ import AppError from "../../utils/AppError.js";
 
 /**
  * @param {number} userId
- * @returns {Promise<User>}
  */
 export const getUserProfile = async (userId) => {
   const user = await User.findByPk(userId, {
@@ -35,7 +34,7 @@ export const updateProfile = async (data) => {
     profile.birthday = data.birthday || profile.birthday;
     profile.avatarName = data.avatarName || profile.avatarName;
     await profile.save();
-    return profile;
+    return await getUserProfile(data.userId);
   } catch (e) {
     throw new AppError("Lỗi khi lưu profile", 500);//Lỗi server
   }

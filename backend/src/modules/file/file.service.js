@@ -27,11 +27,10 @@ const randomImageName = (bytes = 32) =>
  */
 const resolveAvatarKey = (data) => {
   if (!data) return null;
-  //return data.avatarName || data.profile?.avatarName || null;//user || userProfile
-  return data.profile?.avatarName || null;
+  return data.profile?.avatarName || data.avatarName || null;
 };
 
-export const getImagePresignedUrl = (data) => {
+export const getImagePresignedUrl = async (data) => {
   const key = resolveAvatarKey(data);
   if (!key) return null;
 
@@ -39,11 +38,14 @@ export const getImagePresignedUrl = (data) => {
     Bucket: bucketName,
     Key: key,
   };
-  return getSignedUrl(s3, new GetObjectCommand(getObjectParams), {
+  return await getSignedUrl(s3, new GetObjectCommand(getObjectParams), {
     expiresIn: 60, // 60 seconds
   });
 };
 
+/**
+ * @param {User} data
+ */
 export const deleteOldAndInsertNewImageInS3 = async (data, file) => {
   const oldKey = resolveAvatarKey(data);
   if (oldKey) {

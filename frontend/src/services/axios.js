@@ -13,6 +13,13 @@ axiosInstance.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
+  // trình duyệt tự làm, nó sẽ tạo ra một chuỗi vd:
+  // Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryabc123...
+
   return config;
 }, (error) => {
   return Promise.reject(error);

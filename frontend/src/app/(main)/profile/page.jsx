@@ -26,7 +26,7 @@ export default function ProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        const res = await axiosInstance.get(`/user/profile?userId=${user.id}`);
+        const res = await axiosInstance.get(`/user/profile`);
         setProfile(res.data.data);
       } catch (err) {
         setError(err.response?.data?.message || "Không thể lấy thông tin user");
@@ -55,6 +55,12 @@ export default function ProfilePage() {
       </div>
     );
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "Chưa cập nhật";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN");// Định dạng theo kiểu Việt Nam
+  };
+
   return (
     <div className="container mt-5">
       <div className="card shadow-sm border-0 rounded-4 p-4">
@@ -63,7 +69,7 @@ export default function ProfilePage() {
           <div className="col-md-4 text-center">
             <img
               src={
-                profile.profile?.avatar_url ||
+                profile?.imagePresignedUrl  ||
                 "https://ui-avatars.com/api/?name=" + profile.username
               }
               alt="Avatar"
@@ -95,6 +101,9 @@ export default function ProfilePage() {
                   : profile.profile?.gender === "FEMALE"
                     ? "Nữ"
                     : "Chưa cập nhật"}
+              </li>
+              <li className="list-group-item">
+                <strong>Ngày sinh:</strong> {formatDate(profile.profile?.birthday)}
               </li>
               <li className="list-group-item">
                 <strong>Bio:</strong> {profile.profile?.bio || "Chưa cập nhật"}
