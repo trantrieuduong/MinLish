@@ -10,7 +10,7 @@ import './login.css';
 
 const loginSchema = z.object({
   email: z.string().email('Email không đúng định dạng'),
-  password: z.string().min(1, 'Vui lòng nhập mật khẩu')
+  password: z.string().min(6, 'Vui lòng nhập mật khẩu')
 });
 
 export default function LoginPage() {
@@ -27,10 +27,10 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMsg('');
     try {
-      const res = await axiosInstance.post('/auth/login', data);
+      const res = await axiosInstance.post('/auth/login', data, { withCredentials: true });
       const { accessToken, user } = res.data.data;
       setAuth(accessToken, user);
-      
+
       if (user.role === 'ADMIN') {
         router.push('/admin');
       } else {
@@ -50,36 +50,36 @@ export default function LoginPage() {
           <h2 className="fw-bold text-primary">MinLish</h2>
           <p className="text-muted">Chào mừng trở lại! Vui lòng đăng nhập</p>
         </div>
-        
+
         {errorMsg && <div className="alert alert-danger p-2 fs-6">{errorMsg}</div>}
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="form-floating mb-3">
-            <input 
-              type="email" 
-              className={`form-control ${errors.email ? 'is-invalid' : ''}`} 
-              id="email" 
-              placeholder="name@example.com" 
+            <input
+              type="email"
+              className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+              id="email"
+              placeholder="name@example.com"
               {...register('email')}
             />
             <label htmlFor="email">Địa chỉ Email</label>
             {errors.email && <div className="invalid-feedback">{errors.email.message}</div>}
           </div>
-          
+
           <div className="form-floating mb-4">
-            <input 
-              type="password" 
-              className={`form-control ${errors.password ? 'is-invalid' : ''}`} 
-              id="password" 
-              placeholder="Mật khẩu" 
+            <input
+              type="password"
+              className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+              id="password"
+              placeholder="Mật khẩu"
               {...register('password')}
             />
             <label htmlFor="password">Mật khẩu</label>
             {errors.password && <div className="invalid-feedback">{errors.password.message}</div>}
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary w-100 py-3 fw-bold rounded-3"
             disabled={isLoading}
           >

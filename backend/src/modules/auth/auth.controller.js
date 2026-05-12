@@ -1,6 +1,3 @@
-import AppError from '../../utils/AppError.js';
-import { verifyToken, generateToken } from '../../utils/jwt.js';
-import { config } from '../../config/env.js';
 import { successResponse } from '../../utils/response.js';
 import * as authService from './auth.service.js';
 
@@ -44,31 +41,9 @@ export const verifyOtp = async (req, res, next) => {
 export const refreshToken = async (req, res, next) => {
   try {
     const token = req.cookies.refreshToken;
-    if (!token) {
-      return next(new AppError('Không tìm thấy Refresh Token, vui lòng đăng nhập lại', 401));
-    }
+    const { accessToken } = await authService.refreshToken(token);
 
-    let decoded;
-    try {
-      decoded = verifyToken(token);
-      if (decoded.type !== 'REFRESH') {
-        return next(new AppError('Token không hợp lệ', 401));
-      }
-    } catch (err) {
-      return next(new AppError('Token không hợp lệ', 401));
-    }
-
-    const payload = {
-      id: decoded.id,
-      role: decoded.role,
-      email: decoded.email,
-      username: decoded.username,
-      type: 'ACCESS'
-    };
-
-    const newAccessToken = generateToken(payload, config.jwtAccessExpiresIn);
-
-    res.status(200).json(successResponse('Refresh token thành công', { accessToken: newAccessToken }));
+    res.status(200).json(successResponse('Refresh token thành công', { accessToken }));
   } catch (err) {
     next(err);
   }
