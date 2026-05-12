@@ -235,3 +235,36 @@ export const refreshToken = async (token) => {
 
   return { accessToken: newAccessToken };
 };
+
+export const resendOtp = async (email) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new AppError('Người dùng không tồn tại', 404);
+  }
+
+  if (user.status === 'ACTIVE') {
+    throw new AppError('Tài khoản đã được kích hoạt', 400);
+  }
+
+  // Hủy các OTP cũ cùng loại
+  await Otp.update({ isUsed: true }, {
+    where: { userId: user.id, type: 'REGISTER', isUsed: false }
+  });
+
+  // Tạo OTP mới
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await Otp.create({
+    otpCode,
+    type: 'REGISTER',
+    userId: user.id,
+    expiresAt
+  });
+
+  // Gửi email
+  await sendOtpEmail(email, otpCode);
+
+  return { message: 'Đã gửi lại mã OTP mới' };
+};
+

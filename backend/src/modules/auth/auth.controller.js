@@ -67,3 +67,14 @@ export const resetPassword = async (req, res, next) => {
     next(err);
   }
 };
+
+
+export const resendOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const result = await authService.resendOtp(email);
+    res.status(200).json(successResponse(result.message));
+  } catch (err) {
+    next(err);
+  }
+};
