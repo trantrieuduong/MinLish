@@ -1,6 +1,10 @@
 import { User, UserProfile } from "../../models/mysql/index.js";
 import AppError from "../../utils/AppError.js";
 
+/**
+ * @param {number} userId
+ * @returns {Promise<User>}
+ */
 export const getUserProfile = async (userId) => {
   const user = await User.findByPk(userId, {
     attributes: { exclude: ["passwordHash"] },

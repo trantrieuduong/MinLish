@@ -7,9 +7,7 @@ export const getProfile = async (req, res, next) => {
   try {
     const data = await service.getUserProfile(req.query.userId);
     let imagePresignedUrl = null;
-    // if (data && data.avatarName) {
-      imagePresignedUrl = fileService.getImagePresignedUrl(data);
-    // }
+    imagePresignedUrl = fileService.getImagePresignedUrl(data);
     data.imagePresignedUrl = imagePresignedUrl;
     res.status(200).json(successResponse('Lấy thông tin thành công', data));
   } catch (err) {
@@ -22,9 +20,7 @@ export const getEditProfile = async (req, res, next) => {
   if (userId&&service.isEditSelfProfile(userId, req.user.id)) {//req.user.id từ token jwt
     let data = await service.getUserProfile(userId);
     let imagePresignedUrl = null;
-    // if (data && data.avatarName) {
-      imagePresignedUrl = fileService.getImagePresignedUrl(data);
-    // }
+    imagePresignedUrl = fileService.getImagePresignedUrl(data);
     data.imagePresignedUrl = imagePresignedUrl;
     res.status(200).json(successResponse('Lấy thông tin thành công', data));
   } else {
@@ -39,10 +35,9 @@ export const putProfile = async (req, res, next) => {
     if (req.file) {
       req.body.avatarName = await fileService.deleteOldAndInsertNewImageInS3(data, req.file);
     }
-    const updatedProfile = await service.updateProfile(req.body);
-    const imagePresignedUrl = fileService.getImagePresignedUrl(updatedProfile);
-    updatedProfile.imagePresignedUrl = imagePresignedUrl;
-    res.status(200).json(successResponse('Lấy thông tin thành công', updatedProfile));
+    data = await service.updateProfile(req.body);
+    data.imagePresignedUrl = fileService.getImagePresignedUrl(data);
+    res.status(200).json(successResponse('Lấy thông tin thành công', data));
   } else {
     next(new AppError('Chỉ có quyền sửa profile của chính mình', 401));
   }

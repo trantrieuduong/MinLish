@@ -21,9 +21,14 @@ const s3 = new S3Client({
 const randomImageName = (bytes = 32) =>
   crypto.randomBytes(bytes).toString("hex");
 
+/**
+ * @param {User} data
+ * @returns {String}
+ */
 const resolveAvatarKey = (data) => {
   if (!data) return null;
-  return data.avatarName || data.profile?.avatarName || null;
+  //return data.avatarName || data.profile?.avatarName || null;//user || userProfile
+  return data.profile?.avatarName || null;
 };
 
 export const getImagePresignedUrl = (data) => {
