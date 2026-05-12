@@ -66,7 +66,7 @@ export default function ProfilePage() {
       <div className="card shadow-sm border-0 rounded-4 p-4">
         <h2 className="text-primary fw-bold mb-4">Hồ Sơ Của Tôi</h2>
         <div className="row">
-          <div className="col-md-4 text-center">
+          <div className="col-md-4 d-flex flex-column align-items-center text-center">
             <img
               src={
                 profile?.imagePresignedUrl  ||
