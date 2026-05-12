@@ -19,8 +19,7 @@ export const getSelfProfile = async (req, res, next) => {
 
 export const getOtherProfile = async (req, res, next) => {
   try {
-    const userId = req.params.id;
-    const data = await service.getUserProfile(req.query.userId);
+    const data = await service.getUserProfile(req.params.id);
     const result = data.toJSON ? data.toJSON() : data;
     result.imagePresignedUrl = await fileService.getImagePresignedUrl(data);
     res.status(200).json(successResponse("Lấy thông tin thành công", result));

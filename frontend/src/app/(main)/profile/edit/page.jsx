@@ -158,7 +158,7 @@ export default function EditProfilePage() {
   return (
     <div className="container mt-5">
       <div className="card shadow border-0 rounded-4 p-4">
-        <h2 className="fw-bold text-primary mb-4">Cập Nhật Hồ Sơ</h2>
+        <h1 className="fw-bold text-primary mb-4 text-center">Cập Nhật Hồ Sơ</h1>
 
         {error && <div className="alert alert-danger">{error}</div>}
 
@@ -190,7 +190,6 @@ export default function EditProfilePage() {
                 value={formData.gender}
                 onChange={handleChange}
               >
-                <option value="">Chọn giới tính</option>
                 <option value="MALE">Nam</option>
                 <option value="FEMALE">Nữ</option>
               </select>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axiosInstance from "@/services/axios";
 import useAuthStore from "@/stores/useAuthStore";
 import { useRouter } from "next/navigation";
+import "./profile.css"
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -58,65 +59,98 @@ export default function ProfilePage() {
   const formatDate = (dateString) => {
     if (!dateString) return "Chưa cập nhật";
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN");// Định dạng theo kiểu Việt Nam
+    return date.toLocaleDateString("vi-VN"); // Định dạng theo kiểu Việt Nam
   };
 
   return (
-    <div className="container mt-5">
-      <div className="card shadow-sm border-0 rounded-4 p-4">
-        <h2 className="text-primary fw-bold mb-4">Hồ Sơ Của Tôi</h2>
-        <div className="row">
-          <div className="col-md-4 d-flex flex-column align-items-center text-center">
+    <div className="profile-wrap">
+      <div className="profile-card">
+        <div className="profile-banner">
+          <div className="avatar-wrap">
             <img
+              className="avatar-img"
               src={
-                profile?.imagePresignedUrl  ||
-                "https://ui-avatars.com/api/?name=" + profile.username
+                profile?.imagePresignedUrl ||
+                `https://ui-avatars.com/api/?name=${profile.username}`
               }
               alt="Avatar"
-              className="rounded-circle shadow"
-              width="150"
-              height="150"
             />
-            <h4 className="mt-3 fw-bold">
-              {profile.profile?.fullname || profile.username}
-            </h4>
-            <span className="badge bg-success">{profile.role}</span>
           </div>
-          <div className="col-md-8 mt-4 mt-md-0">
-            <ul className="list-group list-group-flush">
-              <li className="list-group-item">
-                <strong>Username:</strong> {profile.username}
-              </li>
-              <li className="list-group-item">
-                <strong>Email:</strong> {profile.email}
-              </li>
-              <li className="list-group-item">
-                <strong>Phone:</strong>{" "}
-                {profile.profile?.phone || "Chưa cập nhật"}
-              </li>
-              <li className="list-group-item">
-                <strong>Giới tính:</strong>{" "}
-                {profile.profile?.gender === "MALE"
-                  ? "Nam"
-                  : profile.profile?.gender === "FEMALE"
-                    ? "Nữ"
-                    : "Chưa cập nhật"}
-              </li>
-              <li className="list-group-item">
-                <strong>Ngày sinh:</strong> {formatDate(profile.profile?.birthday)}
-              </li>
-              <li className="list-group-item">
-                <strong>Bio:</strong> {profile.profile?.bio || "Chưa cập nhật"}
-              </li>
-            </ul>
+        </div>
 
-            <div className="mt-4 d-flex gap-2">
-              <button
-                className="btn btn-primary"
-                onClick={() => router.push("/profile/edit")}
-              >
-                Cập nhật hồ sơ
-              </button>
+        <div className="profile-header d-flex justify-content-between align-items-center">
+          <div className="header-info d-flex flex-column">
+            <span className="name mr-2 fw-bold fs-4">
+              {profile.profile?.fullname || profile.username}
+            </span>
+            <span className="username d-flex align-items-center text-muted">
+              @{profile.username}
+              <span className="badge-role ml-2">
+                <i className="ti ti-shield-check" />
+                {profile.role}
+              </span>
+            </span>
+          </div>
+          <button
+            className="edit-btn"
+            onClick={() => router.push("/profile/edit")}
+          >
+            <i className="ti ti-edit" /> Cập nhật hồ sơ
+          </button>
+        </div>
+
+        {/* Thông tin chi tiết */}
+        <div className="profile-body">
+          <div className="info-grid three-col">
+            <div className="info-card">
+              <i className="ti ti-mail" />
+              <div>
+                <div className="label">Email</div>
+                <div className="value">{profile.email}</div>
+              </div>
+            </div>
+            <div className="info-card">
+              <i className="ti ti-phone" />
+              <div>
+                <div className="label">Điện thoại</div>
+                <div className="value">
+                  {profile.profile?.phone || "Chưa cập nhật"}
+                </div>
+              </div>
+            </div>
+            <div className="info-card">
+              <i className="ti ti-gender-bigender" />
+              <div>
+                <div className="label">Giới tính</div>
+                <div className="value">
+                  {profile.profile?.gender === "MALE"
+                    ? "Nam"
+                    : profile.profile?.gender === "FEMALE"
+                      ? "Nữ"
+                      : "Chưa cập nhật"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="info-grid two-col">
+            <div className="info-card">
+              <i className="ti ti-calendar" />
+              <div>
+                <div className="label">Ngày sinh</div>
+                <div className="value">
+                  {formatDate(profile.profile?.birthday)}
+                </div>
+              </div>
+            </div>
+            <div className="info-card">
+              <i className="ti ti-notes" />
+              <div>
+                <div className="label">Bio</div>
+                <div className="value">
+                  {profile.profile?.bio || "Chưa cập nhật"}
+                </div>
+              </div>
             </div>
           </div>
         </div>
