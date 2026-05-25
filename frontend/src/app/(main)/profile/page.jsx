@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import axiosInstance from "@/services/axios";
 import useAuthStore from "@/stores/useAuthStore";
 import { useRouter } from "next/navigation";
-import "./profile.css"
+import "./profile.css";
+import InfoCard from "@/components/ui/info-card";
+import LoadAnimation from "@/components/ui/load-animation";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -38,9 +40,7 @@ export default function ProfilePage() {
 
   if (!mounted)
     return (
-      <div className="text-center mt-5">
-        <div className="spinner-border text-primary" />
-      </div>
+      <LoadAnimation />
     );
 
   if (error)
@@ -51,9 +51,7 @@ export default function ProfilePage() {
     );
   if (!profile)
     return (
-      <div className="text-center mt-5">
-        <div className="spinner-border text-primary" />
-      </div>
+      <LoadAnimation />
     );
 
   const formatDate = (dateString) => {
@@ -102,56 +100,26 @@ export default function ProfilePage() {
         {/* Thông tin chi tiết */}
         <div className="profile-body">
           <div className="info-grid three-col">
-            <div className="info-card">
-              <i className="ti ti-mail" />
-              <div>
-                <div className="label">Email</div>
-                <div className="value">{profile.email}</div>
-              </div>
-            </div>
-            <div className="info-card">
-              <i className="ti ti-phone" />
-              <div>
-                <div className="label">Điện thoại</div>
-                <div className="value">
-                  {profile.profile?.phone || "Chưa cập nhật"}
-                </div>
-              </div>
-            </div>
-            <div className="info-card">
-              <i className="ti ti-gender-bigender" />
-              <div>
-                <div className="label">Giới tính</div>
-                <div className="value">
-                  {profile.profile?.gender === "MALE"
-                    ? "Nam"
-                    : profile.profile?.gender === "FEMALE"
-                      ? "Nữ"
-                      : "Chưa cập nhật"}
-                </div>
-              </div>
-            </div>
+            <InfoCard title={"Email"} value={profile.email} />
+            <InfoCard
+              title={"Điện thoại"}
+              value={profile.profile?.phone || "Chưa cập nhật"}
+            />
+            <InfoCard
+              title={"Giới tính"}
+              value={
+                profile.profile?.gender === "MALE"
+                  ? "Nam"
+                  : profile.profile?.gender === "FEMALE"
+                    ? "Nữ"
+                    : "Chưa cập nhật"
+              }
+            />
           </div>
 
           <div className="info-grid two-col">
-            <div className="info-card">
-              <i className="ti ti-calendar" />
-              <div>
-                <div className="label">Ngày sinh</div>
-                <div className="value">
-                  {formatDate(profile.profile?.birthday)}
-                </div>
-              </div>
-            </div>
-            <div className="info-card">
-              <i className="ti ti-notes" />
-              <div>
-                <div className="label">Bio</div>
-                <div className="value">
-                  {profile.profile?.bio || "Chưa cập nhật"}
-                </div>
-              </div>
-            </div>
+            <InfoCard title={"Ngày sinh"} value={formatDate(profile.profile?.birthday)} />
+            <InfoCard title={"Tiểu sử"} value={profile.profile?.bio || "Chưa cập nhật"} />
           </div>
         </div>
       </div>

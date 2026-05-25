@@ -86,6 +86,12 @@ export default function EditProfilePage() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const validTypes = ["image/jpeg", "image/png"];
+      if (!validTypes.includes(file.type)) {
+        setError("Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG.");
+        return;
+      }
+
       if (file.size > 2 * 1024 * 1024) {
         setError("Kích thước ảnh quá lớn (tối đa 2MB)");
         return;
