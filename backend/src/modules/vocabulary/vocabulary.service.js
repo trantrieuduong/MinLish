@@ -5,7 +5,7 @@ import Deck from "../../models/deck.model.js";
 import UserCardState from "../../models/userCardState.model.js";
 import AppError from "../../utils/AppError.js";
 
-const getCardsByUserIdService = async (queryData, userId) => {
+export const getCardsByUserIdService = async (queryData, userId) => {
   const { deckId, topicId } = queryData;
 
   const query = {};
@@ -38,7 +38,7 @@ const getCardsByUserIdService = async (queryData, userId) => {
   }));
 };
 
-const createManualCardService = async (body) => {
+export const createManualCardService = async (body) => {
   const {
     deckId,
     topicId,
@@ -265,5 +265,3 @@ export const deleteCardService = async (cardId, currentUserId) => {
     session.endSession();
   }
 };
-
-export { getCardsByUserIdService, createManualCardService, updateCardService, deleteCardService };

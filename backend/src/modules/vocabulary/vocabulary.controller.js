@@ -4,7 +4,7 @@ import * as service from './vocabulary.service.js';
 import User from "../../models/user.model.js";
 import AppError from "../../utils/AppError.js";
 
-const getCardsByUserId = async (req, res, next) => {
+export const getCardsByUserId = async (req, res, next) => {
   try {
     const result = getCardsSchema.safeParse(req.query);
     if (!result.success) {
@@ -33,7 +33,7 @@ const getCardsByUserId = async (req, res, next) => {
   }
 };
 
-const createManualCard = async (req, res, next) => {
+export const createManualCard = async (req, res, next) => {
   try {
     const newCard = await service.createManualCardService(req.body);
     res.status(201).json(successResponse("Thêm thẻ từ vựng thành công!", newCard));
@@ -42,7 +42,7 @@ const createManualCard = async (req, res, next) => {
   }
 };
 
-const updateCard = async (req, res, next) => {
+export const updateCard = async (req, res, next) => {
   try {
     const user = await User.findOne({ firebaseUid: req.user.uid });
     if (!user) throw new AppError("Không tìm thấy người dùng", 404);
@@ -54,7 +54,7 @@ const updateCard = async (req, res, next) => {
   }
 };
 
-const deleteCard = async (req, res, next) => {
+export const deleteCard = async (req, res, next) => {
   try {
     const user = await User.findOne({ firebaseUid: req.user.uid });
     if (!user) throw new AppError("Không tìm thấy người dùng", 404);
@@ -65,5 +65,3 @@ const deleteCard = async (req, res, next) => {
     next(error);
   }
 };
-
-export { getCardsByUserId, createManualCard, updateCard, deleteCard };

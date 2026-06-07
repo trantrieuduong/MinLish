@@ -3,10 +3,9 @@ import * as controller from './vocabulary.controller.js';
 
 const router = Router();
 
-router.post("/manual-create", createManualCard);
-router.put('/:cardId', updateCard);
-router.delete('/:cardId', deleteCard);
-router.get("/", getCards);
-router.get("/me", getCardsByUserId);
+router.post("/manual-create", controller.createManualCard);
+router.put('/:cardId', controller.updateCard);
+router.delete('/:cardId', controller.deleteCard);
+router.get("/me", controller.getCardsByUserId);
 
 export default router;
