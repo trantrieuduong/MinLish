@@ -24,7 +24,7 @@ app.use(cookieParser());
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/user', userRouter);
-app.use('/api/v1/lesson', lessonRouter);
+app.use('/api/v1/lessons', lessonRouter);
 app.use('/api/v1/dictation', dictationRouter);
 app.use('/api/v1/shadowing', shadowingRouter);
 app.use('/api/v1/vocabulary', vocabularyRouter);

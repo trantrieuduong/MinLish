@@ -1,8 +1,10 @@
+import DictationPage from "./dictation/page";
+
 export default function LessonDetailPage({ params }) {
   return (
     <div>
-      <h2>Chi Tiết Bài Học {params.id}</h2>
-      {/* TODO: Implement Lesson Detail, Audio Player, Transcript */}
+      <h2 className="text-center mt-4">Chi Tiết Bài Học {params.id}</h2>
+      <DictationPage />
     </div>
   );
 }
