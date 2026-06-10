@@ -59,5 +59,11 @@ const userSegmentProgressSchema = new mongoose.Schema(
   }
 );
 
-const UserSegmentProgress = mongoose.models.UserSegmentProgress || mongoose.model('UserSegmentProgress', userSegmentProgressSchema, 'user_segment_progress');
+const UserSegmentProgress =
+  mongoose.models.UserSegmentProgress ||
+  mongoose.model(
+    'UserSegmentProgress',
+    userSegmentProgressSchema,
+    'user_segment_progress'
+  );
 export default UserSegmentProgress;

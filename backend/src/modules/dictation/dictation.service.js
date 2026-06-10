@@ -1,7 +1,7 @@
-import AppError from "../../utils/AppError.js";
-import LessonSegment from "../../models/lessonSegment.model.js";
-import UserSegmentProgress from "../../models/userSegmentProgress.model.js";
-import UserLessonProgress from "../../models/userLessonProgress.model.js";
+import AppError from '../../utils/AppError.js';
+import LessonSegment from '../../models/lessonSegment.model.js';
+import UserSegmentProgress from '../../models/userSegmentProgress.model.js';
+import UserLessonProgress from '../../models/userLessonProgress.model.js';
 
 const DICTATION_PASS_THRESHOLD = 80;
 
@@ -15,14 +15,17 @@ export const submitDictationProgress = async (
   userId,
   lessonId,
   segmentId,
-  userInput,
+  userInput
 ) => {
   // Lấy transcript gốc để tính điểm
   const segment = await LessonSegment.findOne({ _id: segmentId, lessonId });
-  if (!segment) throw new AppError("Segment not found", 404);
+  if (!segment) throw new AppError('Segment not found', 404);
 
   // Tính điểm
-  const score = calculateDictationScore(userInput, segment.transcript.normalized);
+  const score = calculateDictationScore(
+    userInput,
+    segment.transcript.normalized
+  );
   const completed = score >= DICTATION_PASS_THRESHOLD;
 
   // Upsert user_segment_progress
@@ -39,7 +42,7 @@ export const submitDictationProgress = async (
   const progress = await UserSegmentProgress.findOneAndUpdate(
     { userId, segmentId, lessonId },
     { $set: { dictation: dictationUpdate, updatedAt: new Date() } },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
 
   // Recalculate lesson-level progress
@@ -56,7 +59,7 @@ const calculateDictationScore = (userInput, normalized) => {
   const clean = (s) =>
     s
       .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/[^a-z0-9\s]/g, '')
       .trim()
       .split(/\s+/);
   // Xóa ký tự đặc biệt, chỉ giữ a->z, 0->9, khoảng trắng (\s)
@@ -85,14 +88,18 @@ const calculateDictationScore = (userInput, normalized) => {
  * @param {string} lessonId
  * @param {number} currentSegmentOrder
  */
-const recalculateLessonProgress = async (userId, lessonId, currentSegmentOrder) => {
+const recalculateLessonProgress = async (
+  userId,
+  lessonId,
+  currentSegmentOrder
+) => {
   const [allSegments, completedSegments] = await Promise.all([
     // -> Chạy song song - Nhanh hơn viết 2 dòng await
     LessonSegment.countDocuments({ lessonId }),
     UserSegmentProgress.countDocuments({
       userId,
       lessonId,
-      "dictation.completed": true,
+      'dictation.completed': true,
     }),
   ]);
 
@@ -104,11 +111,11 @@ const recalculateLessonProgress = async (userId, lessonId, currentSegmentOrder) 
       $set: {
         progressPercent,
         lastSegmentOrder: currentSegmentOrder,
-        selectedMode: "dictation",
-        status: progressPercent === 100 ? "completed" : "in_progress",
+        selectedMode: 'dictation',
+        status: progressPercent === 100 ? 'completed' : 'in_progress',
         updatedAt: new Date(),
       },
     },
-    { upsert: true },
+    { upsert: true }
   );
 };

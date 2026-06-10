@@ -31,7 +31,10 @@ export const rateLimiter = ({ windowMs, max, message }) => {
 
       if (current > max) {
         return next(
-          new AppError(message || 'Quá nhiều yêu cầu, vui lòng thử lại sau', 429)
+          new AppError(
+            message || 'Quá nhiều yêu cầu, vui lòng thử lại sau',
+            429
+          )
         );
       }
 

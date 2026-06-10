@@ -4,10 +4,14 @@ import { generateToken, verifyToken } from '../../utils/jwt.js';
 import { config } from '../../config/env.js';
 import redisClient from '../../config/redis.js';
 import AppError from '../../utils/AppError.js';
-import { sendOtpEmail, sendForgotPasswordEmail } from '../../utils/mail.util.js';
+import {
+  sendOtpEmail,
+  sendForgotPasswordEmail,
+} from '../../utils/mail.util.js';
 
 // Helper sinh mã OTP 6 chữ số
-const generateOtpCode = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generateOtpCode = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
 
 export const signup = async (email, password, name) => {
   const existingUser = await User.findOne({ email });
@@ -54,11 +58,17 @@ export const login = async (email, password) => {
   }
 
   if (!user.isVerified) {
-    throw new AppError('Tài khoản chưa được kích hoạt, vui lòng xác thực email', 403);
+    throw new AppError(
+      'Tài khoản chưa được kích hoạt, vui lòng xác thực email',
+      403
+    );
   }
 
   if (!user.isActive) {
-    throw new AppError(`Tài khoản đã bị khóa${user.banReason ? ': ' + user.banReason : ''}`, 403);
+    throw new AppError(
+      `Tài khoản đã bị khóa${user.banReason ? ': ' + user.banReason : ''}`,
+      403
+    );
   }
 
   const accessToken = generateToken(
@@ -87,7 +97,10 @@ export const login = async (email, password) => {
 
 export const sendVerificationEmail = async (email) => {
   if (!redisClient.isOpen) {
-    throw new AppError('Hệ thống tạm thời gián đoạn, vui lòng thử lại sau', 500);
+    throw new AppError(
+      'Hệ thống tạm thời gián đoạn, vui lòng thử lại sau',
+      500
+    );
   }
 
   const user = await User.findOne({ email });
@@ -111,7 +124,10 @@ export const sendVerificationEmail = async (email) => {
 
 export const verifyEmail = async (email, otp) => {
   if (!redisClient.isOpen) {
-    throw new AppError('Hệ thống tạm thời gián đoạn, vui lòng thử lại sau', 500);
+    throw new AppError(
+      'Hệ thống tạm thời gián đoạn, vui lòng thử lại sau',
+      500
+    );
   }
 
   const redisKey = `otp:verify_email:${email}`;
@@ -122,7 +138,11 @@ export const verifyEmail = async (email, otp) => {
   }
 
   // Xác thực đúng, cập nhật DB và xóa OTP
-  const user = await User.findOneAndUpdate({ email }, { isVerified: true }, { new: true });
+  const user = await User.findOneAndUpdate(
+    { email },
+    { isVerified: true },
+    { new: true }
+  );
   if (!user) {
     throw new AppError('Không tìm thấy tài khoản để kích hoạt', 404);
   }
@@ -133,7 +153,10 @@ export const verifyEmail = async (email, otp) => {
 
 export const forgotPassword = async (email) => {
   if (!redisClient.isOpen) {
-    throw new AppError('Hệ thống tạm thời gián đoạn, vui lòng thử lại sau', 500);
+    throw new AppError(
+      'Hệ thống tạm thời gián đoạn, vui lòng thử lại sau',
+      500
+    );
   }
 
   const user = await User.findOne({ email });
@@ -157,7 +180,10 @@ export const forgotPassword = async (email) => {
 
 export const resetPassword = async (email, otp, newPassword) => {
   if (!redisClient.isOpen) {
-    throw new AppError('Hệ thống tạm thời gián đoạn, vui lòng thử lại sau', 500);
+    throw new AppError(
+      'Hệ thống tạm thời gián đoạn, vui lòng thử lại sau',
+      500
+    );
   }
 
   const redisKey = `otp:forgot_password:${email}`;
@@ -170,7 +196,11 @@ export const resetPassword = async (email, otp, newPassword) => {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(newPassword, salt);
 
-  const user = await User.findOneAndUpdate({ email }, { passwordHash }, { new: true });
+  const user = await User.findOneAndUpdate(
+    { email },
+    { passwordHash },
+    { new: true }
+  );
   if (!user) {
     throw new AppError('Không tìm thấy người dùng', 404);
   }
@@ -197,11 +227,17 @@ export const refreshTokens = async (refreshToken) => {
 
   const user = await User.findById(decoded.id);
   if (!user) {
-    throw new AppError('Người dùng không tồn tại hoặc đã bị xóa khỏi hệ thống', 401);
+    throw new AppError(
+      'Người dùng không tồn tại hoặc đã bị xóa khỏi hệ thống',
+      401
+    );
   }
 
   if (!user.isActive) {
-    throw new AppError(`Tài khoản đã bị khóa${user.banReason ? ': ' + user.banReason : ''}`, 403);
+    throw new AppError(
+      `Tài khoản đã bị khóa${user.banReason ? ': ' + user.banReason : ''}`,
+      403
+    );
   }
 
   const accessToken = generateToken(

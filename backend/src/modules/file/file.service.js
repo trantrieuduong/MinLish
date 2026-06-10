@@ -3,11 +3,11 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
-} from "@aws-sdk/client-s3";
-import crypto from "crypto";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import "dotenv";
-import sharp from "sharp";
+} from '@aws-sdk/client-s3';
+import crypto from 'crypto';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import 'dotenv';
+import sharp from 'sharp';
 
 const bucketName = process.env.BUCKET_NAME;
 const s3 = new S3Client({
@@ -19,7 +19,7 @@ const s3 = new S3Client({
 });
 
 const randomImageName = (bytes = 32) =>
-  crypto.randomBytes(bytes).toString("hex");
+  crypto.randomBytes(bytes).toString('hex');
 
 /**
  * @param {User} data
@@ -31,8 +31,8 @@ const resolveAvatarKey = (data) => {
 };
 
 const checkValidImageExtensionFile = (file) => {
-  return (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png')
-}
+  return file.mimetype === 'image/jpeg' || file.mimetype === 'image/png';
+};
 
 export const getImagePresignedUrl = async (data) => {
   const key = resolveAvatarKey(data);
@@ -51,20 +51,25 @@ export const getImagePresignedUrl = async (data) => {
  * @param {User} data
  */
 export const deleteOldAndInsertNewImageInS3 = async (data, file) => {
-  if(!checkValidImageExtensionFile(file))
-    throw new AppError("Định dạng file không hợp lệ! Chỉ chấp nhận ảnh JPG/PNG.", 400);
+  if (!checkValidImageExtensionFile(file))
+    throw new AppError(
+      'Định dạng file không hợp lệ! Chỉ chấp nhận ảnh JPG/PNG.',
+      400
+    );
 
   const oldKey = resolveAvatarKey(data);
   if (oldKey) {
-    await s3.send(new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: oldKey,
-    }));
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: bucketName,
+        Key: oldKey,
+      })
+    );
   }
 
   const imageName = randomImageName();
   const buffer = await sharp(file.buffer)
-    .resize({ height: 500, width: 500, fit: "contain" })
+    .resize({ height: 500, width: 500, fit: 'contain' })
     .toBuffer();
 
   await s3.send(

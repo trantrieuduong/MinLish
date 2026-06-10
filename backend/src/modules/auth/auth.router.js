@@ -32,23 +32,40 @@ router.post(
   rateLimiter({
     windowMs: config.loginLimitWindowMs,
     max: config.loginLimitMax,
-    message: 'Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.',
+    message:
+      'Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.',
   }),
   validate(loginSchema),
   authController.login
 );
 
 // Gửi lại mã OTP kích hoạt tài khoản
-router.post('/verify-email/send', validate(resendVerifyEmailSchema), authController.sendVerificationEmail);
+router.post(
+  '/verify-email/send',
+  validate(resendVerifyEmailSchema),
+  authController.sendVerificationEmail
+);
 
 // Xác thực OTP kích hoạt tài khoản
-router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail);
+router.post(
+  '/verify-email',
+  validate(verifyEmailSchema),
+  authController.verifyEmail
+);
 
 // Yêu cầu OTP khi quên mật khẩu
-router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
+router.post(
+  '/forgot-password',
+  validate(forgotPasswordSchema),
+  authController.forgotPassword
+);
 
 // Đặt lại mật khẩu mới kèm OTP xác thực
-router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);
+router.post(
+  '/reset-password',
+  validate(resetPasswordSchema),
+  authController.resetPassword
+);
 
 // Làm mới Access Token
 router.post('/refresh', authController.refresh);

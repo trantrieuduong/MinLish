@@ -1,5 +1,5 @@
-import AppError from "../../utils/AppError.js";
-import LessonSegment from "../../models/lessonSegment.model.js";
+import AppError from '../../utils/AppError.js';
+import LessonSegment from '../../models/lessonSegment.model.js';
 
 export const getSegmentsByLessonId = async (lessonId) => {
   const segments = await LessonSegment.find({ lessonId }).sort({ order: 1 });

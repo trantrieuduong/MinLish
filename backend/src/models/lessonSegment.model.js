@@ -39,5 +39,7 @@ const lessonSegmentSchema = new mongoose.Schema(
   }
 );
 
-const LessonSegment = mongoose.models.LessonSegment || mongoose.model('LessonSegment', lessonSegmentSchema, 'lesson_segments');
+const LessonSegment =
+  mongoose.models.LessonSegment ||
+  mongoose.model('LessonSegment', lessonSegmentSchema, 'lesson_segments');
 export default LessonSegment;

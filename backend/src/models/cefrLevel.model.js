@@ -20,5 +20,7 @@ const cefrLevelSchema = new mongoose.Schema(
   }
 );
 
-const CefrLevel = mongoose.models.CefrLevel || mongoose.model('CefrLevel', cefrLevelSchema, 'cefr_levels');
+const CefrLevel =
+  mongoose.models.CefrLevel ||
+  mongoose.model('CefrLevel', cefrLevelSchema, 'cefr_levels');
 export default CefrLevel;

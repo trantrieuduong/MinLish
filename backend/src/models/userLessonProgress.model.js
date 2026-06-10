@@ -36,5 +36,11 @@ const userLessonProgressSchema = new mongoose.Schema(
   }
 );
 
-const UserLessonProgress = mongoose.models.UserLessonProgress || mongoose.model('UserLessonProgress', userLessonProgressSchema, 'user_lesson_progress');
+const UserLessonProgress =
+  mongoose.models.UserLessonProgress ||
+  mongoose.model(
+    'UserLessonProgress',
+    userLessonProgressSchema,
+    'user_lesson_progress'
+  );
 export default UserLessonProgress;

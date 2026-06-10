@@ -55,5 +55,7 @@ const userCardStateSchema = new mongoose.Schema(
   }
 );
 
-const UserCardState = mongoose.models.UserCardState || mongoose.model('UserCardState', userCardStateSchema, 'user_card_states');
+const UserCardState =
+  mongoose.models.UserCardState ||
+  mongoose.model('UserCardState', userCardStateSchema, 'user_card_states');
 export default UserCardState;

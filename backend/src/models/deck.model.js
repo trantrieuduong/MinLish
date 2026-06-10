@@ -50,5 +50,6 @@ const deckSchema = new mongoose.Schema(
   }
 );
 
-const Deck = mongoose.models.Deck || mongoose.model('Deck', deckSchema, 'decks');
+const Deck =
+  mongoose.models.Deck || mongoose.model('Deck', deckSchema, 'decks');
 export default Deck;

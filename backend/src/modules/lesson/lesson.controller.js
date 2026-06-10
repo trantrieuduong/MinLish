@@ -5,7 +5,9 @@ export const getSegments = async (req, res, next) => {
   try {
     const { lessonId } = req.params;
     const segments = await service.getSegmentsByLessonId(lessonId);
-    return res.status(200).json(successResponse('Lấy segments thành công', segments));
+    return res
+      .status(200)
+      .json(successResponse('Lấy segments thành công', segments));
   } catch (err) {
     next(err);
   }

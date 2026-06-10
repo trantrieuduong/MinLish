@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
-import Card from "../../models/card.model.js";
-import Topic from "../../models/topic.model.js";
-import Deck from "../../models/deck.model.js";
-import UserCardState from "../../models/userCardState.model.js";
-import AppError from "../../utils/AppError.js";
+import mongoose from 'mongoose';
+import Card from '../../models/card.model.js';
+import Topic from '../../models/topic.model.js';
+import Deck from '../../models/deck.model.js';
+import UserCardState from '../../models/userCardState.model.js';
+import AppError from '../../utils/AppError.js';
 
 export const getCardsByUserIdService = async (queryData, userId) => {
   const { deckId, topicId } = queryData;
@@ -28,7 +28,7 @@ export const getCardsByUserIdService = async (queryData, userId) => {
   });
 
   const stateMap = userCardStates.reduce((acc, state) => {
-    acc[state.cardId.toString()] = state;//Dùng toString() vì ObjectId không so sánh trực tiếp bằng ===
+    acc[state.cardId.toString()] = state; //Dùng toString() vì ObjectId không so sánh trực tiếp bằng ===
     return acc;
   }, {});
 
@@ -56,8 +56,8 @@ export const createManualCardService = async (body) => {
 
   if (!deckId || !topicId || !term || !translation)
     throw new AppError(
-      "Thiếu các trường bắt buộc (deckId, topicId, term, translation)",
-      400,
+      'Thiếu các trường bắt buộc (deckId, topicId, term, translation)',
+      400
     );
 
   const session = await mongoose.startSession();
@@ -69,16 +69,16 @@ export const createManualCardService = async (body) => {
       //.session(session) nằm trong transaction;
       // do mặc định ngoài transaction
     ]);
-    if (!deck) throw new AppError("Không tìm thấy deck", 404);
+    if (!deck) throw new AppError('Không tìm thấy deck', 404);
 
-    if (!topic) throw new AppError("Không tìm thấy topic", 404);
+    if (!topic) throw new AppError('Không tìm thấy topic', 404);
 
     if (topic.deckId.toString() !== deck._id.toString())
-      throw new AppError("Topic không thuộc về Deck này", 400);
+      throw new AppError('Topic không thuộc về Deck này', 400);
 
     const existingCard = await Card.findOne({
       topicId: topic._id,
-      term: { $regex: new RegExp(`^${term}$`, "i") },
+      term: { $regex: new RegExp(`^${term}$`, 'i') },
       // ^: bắt đầu, $: kết thúc -> khớp hoàn toàn
       // i: Kiểm tra không phân biệt chữ hoa/thường -> case insesitive
       // -> vd: hello -> "Hello", "hello" hợp lệ
@@ -89,7 +89,7 @@ export const createManualCardService = async (body) => {
 
     const lastCard = await Card.findOne({ topicId: topic._id })
       .sort({ order: -1 })
-      .select("order")
+      .select('order')
       .session(session);
     const newCard = new Card({
       deckId: deck._id,
@@ -117,12 +117,12 @@ export const createManualCardService = async (body) => {
     await Topic.updateOne(
       { _id: topic._id },
       { $inc: { cardCount: 1 } },
-      { session },
+      { session }
     );
     await Deck.updateOne(
       { _id: deck._id },
       { $inc: { cardCount: 1 } },
-      { session },
+      { session }
     );
     await session.commitTransaction();
     return newCard;
@@ -133,7 +133,6 @@ export const createManualCardService = async (body) => {
     session.endSession();
   }
 };
-
 
 export const updateCardService = async (cardId, updateData, currentUserId) => {
   const {
@@ -150,25 +149,25 @@ export const updateCardService = async (cardId, updateData, currentUserId) => {
   } = updateData;
 
   const card = await Card.findById(cardId);
-  if (!card) throw new AppError("Không tìm thấy từ vựng này.", 404);
+  if (!card) throw new AppError('Không tìm thấy từ vựng này.', 404);
 
   const deck = await Deck.findById(card.deckId);
-  if (!deck) throw new AppError("Không tìm thấy bộ từ vựng chứa từ này.", 404);
+  if (!deck) throw new AppError('Không tìm thấy bộ từ vựng chứa từ này.', 404);
 
   const topic = await Topic.findById(card.topicId);
-  if (!topic) throw new AppError("Không tìm thấy chủ đề chứa từ này.", 404);
+  if (!topic) throw new AppError('Không tìm thấy chủ đề chứa từ này.', 404);
 
   if (topic.deckId.toString() !== deck._id.toString())
-    throw new AppError("Topic không thuộc về Deck này", 400);
+    throw new AppError('Topic không thuộc về Deck này', 400);
 
   const isUserOwner =
-    deck.ownerType === "user" &&
+    deck.ownerType === 'user' &&
     deck.ownerId.toString() === currentUserId.toString();
 
   if (!isUserOwner)
     throw new AppError(
-      "Bạn không có quyền cập nhật từ này vì nó thuộc về hệ thống hoặc người dùng khác.",
-      403,
+      'Bạn không có quyền cập nhật từ này vì nó thuộc về hệ thống hoặc người dùng khác.',
+      403
     );
 
   // Kiểm tra trùng term trong cùng topic (nếu có update term)
@@ -205,7 +204,7 @@ export const updateCardService = async (cardId, updateData, currentUserId) => {
   const updatedCard = await Card.findByIdAndUpdate(
     cardId,
     { $set: setData },
-    { new: true },
+    { new: true }
   );
 
   return updatedCard;
@@ -213,25 +212,25 @@ export const updateCardService = async (cardId, updateData, currentUserId) => {
 
 export const deleteCardService = async (cardId, currentUserId) => {
   const card = await Card.findById(cardId);
-  if (!card) throw new AppError("Không tìm thấy từ vựng này.", 404);
+  if (!card) throw new AppError('Không tìm thấy từ vựng này.', 404);
 
   const deck = await Deck.findById(card.deckId);
-  if (!deck) throw new AppError("Không tìm thấy bộ từ vựng chứa từ này.", 404);
+  if (!deck) throw new AppError('Không tìm thấy bộ từ vựng chứa từ này.', 404);
 
   const topic = await Topic.findById(card.topicId);
-  if (!topic) throw new AppError("Không tìm thấy chủ đề chứa từ này.", 404);
+  if (!topic) throw new AppError('Không tìm thấy chủ đề chứa từ này.', 404);
 
   if (topic.deckId.toString() !== deck._id.toString())
-    throw new AppError("Topic không thuộc về Deck này", 400);
+    throw new AppError('Topic không thuộc về Deck này', 400);
 
   const isUserOwner =
-    deck.ownerType === "user" &&
+    deck.ownerType === 'user' &&
     deck.ownerId.toString() === currentUserId.toString();
 
   if (!isUserOwner) {
     throw new AppError(
-      "Bạn không có quyền xóa từ này vì nó thuộc về hệ thống hoặc người dùng khác.",
-      403,
+      'Bạn không có quyền xóa từ này vì nó thuộc về hệ thống hoặc người dùng khác.',
+      403
     );
   }
 
@@ -246,14 +245,14 @@ export const deleteCardService = async (cardId, currentUserId) => {
     await Topic.updateOne(
       { _id: card.topicId },
       { $inc: { cardCount: -1 } },
-      { session },
+      { session }
     );
 
     // Giảm số lượng từ vựng ở Deck
     await Deck.updateOne(
       { _id: card.deckId },
       { $inc: { cardCount: -1 } },
-      { session },
+      { session }
     );
 
     await session.commitTransaction();

@@ -13,7 +13,8 @@ export const config = {
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   loginLimitWindowMs: parseInt(process.env.LOGIN_LIMIT_WINDOW_MS) || 900000,
   loginLimitMax: parseInt(process.env.LOGIN_LIMIT_MAX) || 5,
-  registerLimitWindowMs: parseInt(process.env.REGISTER_LIMIT_WINDOW_MS) || 3600000,
+  registerLimitWindowMs:
+    parseInt(process.env.REGISTER_LIMIT_WINDOW_MS) || 3600000,
   registerLimitMax: parseInt(process.env.REGISTER_LIMIT_MAX) || 3,
-  otpTTL: parseInt(process.env.OTP_TTL) || 600
+  otpTTL: parseInt(process.env.OTP_TTL) || 600,
 };

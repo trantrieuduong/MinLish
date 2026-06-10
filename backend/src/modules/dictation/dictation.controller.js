@@ -13,14 +13,23 @@ export const submitSegmentProgress = async (req, res, next) => {
       return next(new AppError('Invalid mode', 400));
     }
 
-    const { score, completed, progress } = await service.submitDictationProgress(
-      userId,
-      lessonId,
-      segmentId,
-      userInput,
-    );
+    const { score, completed, progress } =
+      await service.submitDictationProgress(
+        userId,
+        lessonId,
+        segmentId,
+        userInput
+      );
 
-    return res.status(200).json(successResponse('Nộp kết quả thành công', { score, completed, progress }));
+    return res
+      .status(200)
+      .json(
+        successResponse('Nộp kết quả thành công', {
+          score,
+          completed,
+          progress,
+        })
+      );
   } catch (err) {
     next(err);
   }
