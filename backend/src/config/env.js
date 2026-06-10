@@ -15,4 +15,5 @@ export const config = {
   loginLimitMax: parseInt(process.env.LOGIN_LIMIT_MAX) || 5,
   registerLimitWindowMs: parseInt(process.env.REGISTER_LIMIT_WINDOW_MS) || 3600000,
   registerLimitMax: parseInt(process.env.REGISTER_LIMIT_MAX) || 3,
+  otpTTL: parseInt(process.env.OTP_TTL) || 600
 };

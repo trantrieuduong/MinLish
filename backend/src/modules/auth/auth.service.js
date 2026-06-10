@@ -32,7 +32,7 @@ export const signup = async (email, password, name) => {
     if (redisClient.isOpen) {
       const otp = generateOtpCode();
       const redisKey = `otp:verify_email:${email}`;
-      await redisClient.set(redisKey, otp, { EX: 600 }); // TTL: 10 phút
+      await redisClient.set(redisKey, otp, { EX: config.otpTTL });
       await sendOtpEmail(email, otp);
     }
   } catch (error) {
@@ -104,7 +104,7 @@ export const sendVerificationEmail = async (email) => {
 
   const otp = generateOtpCode();
   const redisKey = `otp:verify_email:${email}`;
-  await redisClient.set(redisKey, otp, { EX: 600 }); // TTL: 10 phút
+  await redisClient.set(redisKey, otp, { EX: config.otpTTL });
 
   await sendOtpEmail(email, otp);
   return { message: 'Mã OTP kích hoạt tài khoản đã được gửi' };
@@ -147,7 +147,7 @@ export const forgotPassword = async (email) => {
 
   const otp = generateOtpCode();
   const redisKey = `otp:forgot_password:${email}`;
-  await redisClient.set(redisKey, otp, { EX: 600 }); // TTL: 10 phút
+  await redisClient.set(redisKey, otp, { EX: config.otpTTL });
 
   await sendForgotPasswordEmail(email, otp);
   return { message: 'Mã OTP đặt lại mật khẩu đã được gửi' };
