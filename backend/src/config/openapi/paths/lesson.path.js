@@ -1,19 +1,5 @@
 const optionalBearerSecurity = [{}, { BearerAuth: [] }];
 
-const invalidTokenResponse = {
-  description: 'Bearer token không hợp lệ hoặc đã hết hạn nếu được gửi kèm.',
-  content: {
-    'application/json': {
-      schema: {
-        $ref: '#/components/schemas/ErrorResponse',
-      },
-      example: {
-        success: false,
-        message: 'Token không hợp lệ hoặc đã hết hạn',
-      },
-    },
-  },
-};
 
 export default {
   '/lessons': {
@@ -124,7 +110,9 @@ export default {
             },
           },
         },
-        401: invalidTokenResponse,
+        401: {
+          $ref: '#/components/responses/Unauthorized',
+        },
       },
     },
   },
@@ -179,7 +167,9 @@ export default {
             },
           },
         },
-        401: invalidTokenResponse,
+        401: {
+          $ref: '#/components/responses/Unauthorized',
+        },
         404: {
           description: 'Không tìm thấy bài học đã công khai.',
           content: {
@@ -248,7 +238,9 @@ export default {
             },
           },
         },
-        401: invalidTokenResponse,
+        401: {
+          $ref: '#/components/responses/Unauthorized',
+        },
         404: {
           description: 'Không tìm thấy segment của bài học.',
           content: {
@@ -328,7 +320,9 @@ export default {
             },
           },
         },
-        401: invalidTokenResponse,
+        401: {
+          $ref: '#/components/responses/Unauthorized',
+        },
         404: {
           description: 'Không tìm thấy segment thuộc bài học này.',
           content: {
