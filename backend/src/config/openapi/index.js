@@ -1,10 +1,14 @@
 import base from './base.js';
 
 import authPaths from './paths/auth.path.js';
+import lessonPaths from './paths/lesson.path.js';
 import userPaths from './paths/user.path.js';
+
+import securitySchemes from './components/securitySchemes.js';
 
 import authSchemas from './schemas/auth.schema.js';
 import commonSchemas from './schemas/common.schema.js';
+import lessonSchemas from './schemas/lesson.schema.js';
 import userSchemas from './schemas/user.schema.js';
 
 import commonResponses from './responses/common.response.js';
@@ -13,26 +17,15 @@ export default {
   ...base,
   paths: {
     ...authPaths,
+    ...lessonPaths,
     ...userPaths,
   },
   components: {
-    securitySchemes: {
-      BearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'JWT Access Token: Bearer <Token>',
-      },
-      CookieAuth: {
-        type: 'apiKey',
-        in: 'cookie',
-        name: 'refreshToken',
-        description: 'Refresh Token lưu dưới dạng HTTP-only Cookie',
-      },
-    },
+    securitySchemes,
     schemas: {
       ...commonSchemas,
       ...authSchemas,
+      ...lessonSchemas,
       ...userSchemas,
     },
     responses: {
