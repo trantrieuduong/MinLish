@@ -18,6 +18,100 @@ const TagNotFound = {
   },
 };
 
+const LessonNotFound = {
+  description: 'Không tìm thấy lesson',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      example: { success: false, message: 'Không tìm thấy lesson' },
+    },
+  },
+};
+
+const LessonSlugConflict = {
+  description: 'Slug đã tồn tại',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DuplicateSlug: {
+          summary: 'Trùng slug',
+          value: {
+            success: false,
+            message: 'Dữ liệu đã tồn tại',
+            errors: [
+              {
+                field: 'slug',
+                message: 'Slug của lesson đã tồn tại trong hệ thống',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+const LessonBadRequest = {
+  description: 'Dữ liệu đầu vào không hợp lệ',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        MissingFields: {
+          summary: 'Thiếu dữ liệu trường bắt buộc',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              { field: 'title', message: 'Trường title là bắt buộc' },
+              { field: 'sourceUrl', message: 'Trường sourceUrl là bắt buộc' },
+            ],
+          },
+        },
+        InvalidStatus: {
+          summary: 'Sai trạng thái',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'status',
+                message: 'Trường status phải là draft, published hoặc archived',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+const LessonPublishBadRequest = {
+  description: 'Không đủ điều kiện publish',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        AlreadyPublished: {
+          summary: 'Bài học đã được publish',
+          value: {
+            success: false,
+            message: 'Bài học này đã ở trạng thái published',
+          },
+        },
+        MissingSegments: {
+          summary: 'Chưa có nội dung',
+          value: {
+            success: false,
+            message: 'Không thể publish bài học chưa có segment nào',
+          },
+        },
+      },
+    },
+  },
+};
+
 const LessonOrSegmentNotFound = {
   description: 'Không tìm thấy lesson hoặc segment',
   content: {
@@ -37,14 +131,144 @@ const LessonOrSegmentNotFound = {
   },
 };
 
+const CefrBadRequest = {
+  description: 'Dữ liệu đầu vào không hợp lệ',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        MissingFields: {
+          summary: 'Thiếu dữ liệu trường bắt buộc',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [{ field: 'label', message: 'Trường label là bắt buộc' }],
+          },
+        },
+      },
+    },
+  },
+};
+
+const TagBadRequest = {
+  description: 'Dữ liệu đầu vào không hợp lệ',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        MissingFields: {
+          summary: 'Thiếu dữ liệu trường bắt buộc',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [{ field: 'label', message: 'Trường label là bắt buộc' }],
+          },
+        },
+      },
+    },
+  },
+};
+
+const SegmentBadRequest = {
+  description: 'Dữ liệu đầu vào không hợp lệ',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        MissingFields: {
+          summary: 'Thiếu dữ liệu trường bắt buộc',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'order',
+                message: 'Trường order là bắt buộc và phải >= 1',
+              },
+              {
+                field: 'startMs',
+                message: 'Trường startMs là bắt buộc và phải >= 0',
+              },
+              { field: 'endMs', message: 'Trường endMs phải lớn hơn startMs' },
+              {
+                field: 'transcript.original',
+                message: 'Trường original là bắt buộc',
+              },
+              {
+                field: 'transcript.normalized',
+                message: 'Trường normalized là bắt buộc',
+              },
+              {
+                field: 'translation',
+                message: 'Trường translation là bắt buộc',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
 const SegmentOrderConflict = {
   description: 'Thứ tự segment (order) đã tồn tại',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
-      example: {
-        success: false,
-        message: 'Thứ tự segment (order) này đã tồn tại trong lesson',
+      examples: {
+        DuplicateOrder: {
+          summary: 'Trùng thứ tự',
+          value: {
+            success: false,
+            message: 'Dữ liệu đã tồn tại',
+            errors: [
+              {
+                field: 'order',
+                message: 'Thứ tự segment (order) này đã tồn tại trong lesson',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+const CefrConflict = {
+  description: 'Dữ liệu CEFR Level đã tồn tại',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DuplicateLabel: {
+          summary: 'Trùng label',
+          value: {
+            success: false,
+            message: 'Dữ liệu đã tồn tại',
+            errors: [
+              { field: 'label', message: 'Label CEFR level này đã tồn tại' },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+const TagConflict = {
+  description: 'Dữ liệu Tag đã tồn tại',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DuplicateLabel: {
+          summary: 'Trùng label',
+          value: {
+            success: false,
+            message: 'Dữ liệu đã tồn tại',
+            errors: [{ field: 'label', message: 'Label tag này đã tồn tại' }],
+          },
+        },
       },
     },
   },
@@ -121,12 +345,8 @@ export default {
             },
           },
         },
-        400: {
-          $ref: '#/components/responses/BadRequest',
-        },
-        409: {
-          $ref: '#/components/responses/Conflict',
-        },
+        400: CefrBadRequest,
+        409: CefrConflict,
         401: {
           $ref: '#/components/responses/Unauthorized',
         },
@@ -223,12 +443,8 @@ export default {
             },
           },
         },
-        400: {
-          $ref: '#/components/responses/BadRequest',
-        },
-        409: {
-          $ref: '#/components/responses/Conflict',
-        },
+        400: CefrBadRequest,
+        409: CefrConflict,
         404: CefrNotFound,
         401: {
           $ref: '#/components/responses/Unauthorized',
@@ -338,8 +554,8 @@ export default {
             },
           },
         },
-        400: { $ref: '#/components/responses/BadRequest' },
-        409: { $ref: '#/components/responses/Conflict' },
+        400: TagBadRequest,
+        409: TagConflict,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
         500: { $ref: '#/components/responses/ServerError' },
@@ -424,8 +640,8 @@ export default {
             },
           },
         },
-        400: { $ref: '#/components/responses/BadRequest' },
-        409: { $ref: '#/components/responses/Conflict' },
+        400: TagBadRequest,
+        409: TagConflict,
         404: TagNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
@@ -464,9 +680,275 @@ export default {
       },
     },
   },
-  '/admin/lessons/{lessonId}/segments': {
+  '/admin/lessons': {
     get: {
       tags: ['/admin/lessons'],
+      summary: 'Lấy danh sách lessons',
+      description:
+        'Lấy danh sách tất cả lessons dành cho Admin. Hỗ trợ phân trang và tìm kiếm.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'query',
+          name: 'status',
+          schema: { type: 'string', enum: ['draft', 'published', 'archived'] },
+          description: 'Lọc theo trạng thái',
+        },
+        {
+          in: 'query',
+          name: 'tagId',
+          schema: { type: 'string' },
+          description: 'Lọc theo tag',
+        },
+        {
+          in: 'query',
+          name: 'cefrLevelId',
+          schema: { type: 'string' },
+          description: 'Lọc theo CEFR level',
+        },
+        {
+          in: 'query',
+          name: 'mode',
+          schema: { type: 'string', enum: ['dictation', 'shadowing'] },
+          description: 'Lọc theo chế độ học',
+        },
+        {
+          in: 'query',
+          name: 'q',
+          schema: { type: 'string' },
+          description: 'Tìm kiếm theo từ khóa (tiêu đề, mô tả)',
+        },
+        {
+          in: 'query',
+          name: 'page',
+          schema: { type: 'integer', default: 1 },
+          description: 'Trang hiện tại',
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: { type: 'integer', default: 10 },
+          description: 'Số lượng bài học trên mỗi trang',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Lấy danh sách lessons thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/LessonsResponse' },
+            },
+          },
+        },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    post: {
+      tags: ['/admin/lessons'],
+      summary: 'Tạo lesson mới',
+      description: 'Tạo mới một lesson. Mặc định trạng thái là draft.',
+      security: [{ BearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/LessonPayload' },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'Tạo lesson thành công',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/LessonResponse' },
+                  {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Tạo lesson thành công',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        400: LessonBadRequest,
+        409: LessonSlugConflict,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/lessons/{lessonId}': {
+    get: {
+      tags: ['/admin/lessons'],
+      summary: 'Lấy chi tiết một lesson',
+      description: 'Lấy thông tin chi tiết một lesson bất kể trạng thái.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'lessonId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của lesson',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Lấy chi tiết lesson thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/LessonResponse' },
+            },
+          },
+        },
+        404: LessonNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    put: {
+      tags: ['/admin/lessons'],
+      summary: 'Cập nhật lesson',
+      description: 'Cập nhật thông tin của lesson.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'lessonId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của lesson',
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/LessonPayload' },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: 'Cập nhật lesson thành công',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/LessonResponse' },
+                  {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Cập nhật bài học thành công',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        400: LessonBadRequest,
+        404: LessonNotFound,
+        409: LessonSlugConflict,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    delete: {
+      tags: ['/admin/lessons'],
+      summary: 'Xóa hoặc archive lesson',
+      description: 'Xóa mềm hoặc chuyển trạng thái lesson sang archived.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'lessonId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của lesson',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Xóa lesson thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SuccessResponse' },
+            },
+          },
+        },
+        404: LessonNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/lessons/{lessonId}/publish': {
+    post: {
+      tags: ['/admin/lessons'],
+      summary: 'Publish lesson',
+      description:
+        'Chuyển trạng thái lesson từ draft sang published và ghi nhận publishedAt.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'lessonId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của lesson',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Publish lesson thành công',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/LessonResponse' },
+                  {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Publish lesson thành công',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        400: LessonPublishBadRequest,
+        404: LessonNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/lessons/{lessonId}/segments': {
+    get: {
+      tags: ['/admin/lessons/:lessonId/segments'],
       summary: 'Lấy danh sách segment của lesson',
       description:
         'Lấy danh sách các segment thuộc về một lesson cụ thể dành cho Admin.',
@@ -495,7 +977,7 @@ export default {
       },
     },
     post: {
-      tags: ['/admin/lessons'],
+      tags: ['/admin/lessons/:lessonId/segments'],
       summary: 'Tạo segment mới',
       description: 'Tạo mới một segment cho một lesson cụ thể dành cho Admin.',
       security: [{ BearerAuth: [] }],
@@ -538,7 +1020,7 @@ export default {
             },
           },
         },
-        400: { $ref: '#/components/responses/BadRequest' },
+        400: SegmentBadRequest,
         409: SegmentOrderConflict,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
@@ -548,7 +1030,7 @@ export default {
   },
   '/admin/lessons/{lessonId}/segments/{segmentId}': {
     get: {
-      tags: ['/admin/lessons'],
+      tags: ['/admin/lessons/:lessonId/segments'],
       summary: 'Lấy chi tiết một segment',
       description:
         'Lấy thông tin chi tiết của một segment cụ thể trong một lesson cụ thể dành cho Admin.',
@@ -585,7 +1067,7 @@ export default {
       },
     },
     put: {
-      tags: ['/admin/lessons'],
+      tags: ['/admin/lessons/:lessonId/segments'],
       summary: 'Cập nhật segment',
       description:
         'Cập nhật thông tin segment cụ thể trong một lesson cụ thể dành cho Admin.',
@@ -636,7 +1118,7 @@ export default {
             },
           },
         },
-        400: { $ref: '#/components/responses/BadRequest' },
+        400: SegmentBadRequest,
         409: SegmentOrderConflict,
         404: LessonOrSegmentNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
@@ -645,7 +1127,7 @@ export default {
       },
     },
     delete: {
-      tags: ['/admin/lessons'],
+      tags: ['/admin/lessons/:lessonId/segments'],
       summary: 'Xóa segment khỏi lesson',
       description: 'Xóa segment khỏi lesson dành cho Admin.',
       security: [{ BearerAuth: [] }],

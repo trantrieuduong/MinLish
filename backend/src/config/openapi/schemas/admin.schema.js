@@ -113,6 +113,151 @@ export default {
       },
     },
   },
+  Lesson: {
+    type: 'object',
+    properties: {
+      _id: {
+        type: 'string',
+        example: '64a1234567890abcdef12345',
+        description: 'ID lesson.',
+      },
+      title: {
+        type: 'string',
+        example: 'Ted Talk: How to speak',
+        description: 'Tên bài học.',
+      },
+      slug: {
+        type: 'string',
+        example: 'ted-talk-how-to-speak',
+        description: 'Chuỗi URL thân thiện.',
+      },
+      description: {
+        type: 'string',
+        example: 'Bài học luyện nghe qua video TED Talk.',
+        description: 'Mô tả ngắn.',
+      },
+      tagIds: {
+        type: 'array',
+        items: { type: 'string' },
+        example: ['64a1234567890abcdef12345'],
+        description: 'Danh sách ID tag.',
+      },
+      cefrLevelIds: {
+        type: 'array',
+        items: { type: 'string' },
+        example: ['64a1234567890abcdef12345'],
+        description: 'Danh sách ID CEFR level.',
+      },
+      modes: {
+        type: 'array',
+        items: { type: 'string', enum: ['dictation', 'shadowing'] },
+        example: ['dictation'],
+        description: 'Chế độ hỗ trợ.',
+      },
+      status: {
+        type: 'string',
+        enum: ['draft', 'published', 'archived'],
+        example: 'published',
+        description: 'Trạng thái bài học.',
+      },
+      publishedAt: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Ngày công khai bài học.',
+      },
+      createdAt: { type: 'string', format: 'date-time' },
+      updatedAt: { type: 'string', format: 'date-time' },
+      sourceUrl: {
+        type: 'string',
+        example: 'https://youtube.com/watch?v=123',
+        description: 'URL gốc để phát media.',
+      },
+      thumbnailUrl: {
+        type: 'string',
+        example: 'https://img.youtube.com/vi/123/hqdefault.jpg',
+        description: 'Ảnh thumbnail.',
+      },
+    },
+  },
+  LessonsResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Lấy danh sách lesson thành công' },
+      data: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/Lesson' },
+      },
+      pagination: {
+        type: 'object',
+        properties: {
+          total: { type: 'integer', example: 100 },
+          page: { type: 'integer', example: 1 },
+          limit: { type: 'integer', example: 10 },
+          totalPages: { type: 'integer', example: 10 },
+        },
+      },
+    },
+  },
+  LessonPayload: {
+    type: 'object',
+    required: ['title', 'sourceUrl'],
+    properties: {
+      title: {
+        type: 'string',
+        example: 'Ted Talk: How to speak',
+        description: 'Tên bài học.',
+      },
+      slug: {
+        type: 'string',
+        example: 'ted-talk-how-to-speak',
+        description: 'Chuỗi URL thân thiện. Nếu bỏ trống sẽ tự sinh từ title.',
+      },
+      description: {
+        type: 'string',
+        example: 'Bài học luyện nghe qua video TED Talk.',
+        description: 'Mô tả ngắn.',
+      },
+      tagIds: {
+        type: 'array',
+        items: { type: 'string' },
+        example: ['64a1234567890abcdef12345'],
+        description: 'Danh sách ID tag.',
+      },
+      cefrLevelIds: {
+        type: 'array',
+        items: { type: 'string' },
+        example: ['64a1234567890abcdef12345'],
+        description: 'Danh sách ID CEFR level.',
+      },
+      modes: {
+        type: 'array',
+        items: { type: 'string', enum: ['dictation', 'shadowing'] },
+        example: ['dictation'],
+        description: 'Chế độ hỗ trợ.',
+      },
+      sourceUrl: {
+        type: 'string',
+        example: 'https://youtube.com/watch?v=123',
+        description: 'URL gốc để phát media.',
+      },
+      thumbnailUrl: {
+        type: 'string',
+        example: 'https://img.youtube.com/vi/123/hqdefault.jpg',
+        description: 'Ảnh thumbnail.',
+      },
+    },
+  },
+  LessonResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Lấy chi tiết lesson thành công' },
+      data: {
+        $ref: '#/components/schemas/Lesson',
+      },
+    },
+  },
   Segment: {
     type: 'object',
     properties: {
