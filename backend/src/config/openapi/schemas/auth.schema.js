@@ -72,4 +72,38 @@ export default {
       },
     },
   },
+  LoginResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Đăng nhập thành công' },
+      data: {
+        type: 'object',
+        properties: {
+          accessToken: {
+            type: 'string',
+            description: 'JWT access token. Lưu ở localStorage, gửi qua Authorization header.',
+            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          },
+          user: { $ref: '#/components/schemas/User' },
+        },
+      },
+    },
+  },
+  RefreshResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Làm mới token thành công' },
+      data: {
+        type: 'object',
+        properties: {
+          accessToken: {
+            type: 'string',
+            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          },
+        },
+      },
+    },
+  },
 };
