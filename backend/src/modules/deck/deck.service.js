@@ -1,4 +1,16 @@
 import Deck from '../../models/deck.model.js';
+import AppError from '../../utils/AppError.js';
+
+export const getDeckById = async (deckId, userId) => {
+  const accessClause = {
+    $or: [{ ownerType: 'system', status: 'published' }, { ownerId: userId }],
+  };
+
+  const deck = await Deck.findOne({ _id: deckId, ...accessClause });
+  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+
+  return deck;
+};
 
 export const listDecks = async (filters, userId) => {
   const { tagId, cefrLevelId, q, page, limit } = filters;

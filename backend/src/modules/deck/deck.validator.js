@@ -4,6 +4,10 @@ const objectIdSchema = z
   .string()
   .regex(/^[0-9a-fA-F]{24}$/, 'ObjectId không hợp lệ');
 
+export const getDeckSchema = z.object({
+  deckId: objectIdSchema,
+});
+
 export const listDecksSchema = z.object({
   tagId: objectIdSchema.optional(),
   cefrLevelId: objectIdSchema.optional(),
