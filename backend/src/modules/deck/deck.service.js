@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Deck from '../../models/deck.model.js';
 import Topic from '../../models/topic.model.js';
+import Card from '../../models/card.model.js';
 import UserCardState from '../../models/userCardState.model.js';
 import AppError from '../../utils/AppError.js';
 
@@ -55,6 +56,36 @@ export const getDeckTopics = async (deckId, userId) => {
   });
 
   return { deck, topics: items };
+};
+
+export const getTopicCards = async (deckId, topicId, userId) => {
+  // Reuse access check; throws 404 if deck not accessible.
+  await getDeckById(deckId, userId);
+
+  // Topic must belong to this deck.
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError('Không tìm thấy deck hoặc topic', 404);
+
+  const cards = await Card.find({ deckId, topicId }).sort({ order: 1 });
+
+  // Fetch user's states for these cards, then merge by cardId (O(1) lookup).
+  const cardIds = cards.map((c) => c._id);
+  const userCardStates = await UserCardState.find({
+    userId,
+    cardId: { $in: cardIds },
+  });
+
+  const stateMap = userCardStates.reduce((acc, state) => {
+    acc[state.cardId.toString()] = state;
+    return acc;
+  }, {});
+
+  const items = cards.map((card) => ({
+    card,
+    userCardState: stateMap[card._id.toString()] || null,
+  }));
+
+  return { cards: items };
 };
 
 export const listDecks = async (filters, userId) => {

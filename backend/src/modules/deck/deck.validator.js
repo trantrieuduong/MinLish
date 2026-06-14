@@ -8,6 +8,11 @@ export const getDeckSchema = z.object({
   deckId: objectIdSchema,
 });
 
+export const getTopicCardsSchema = z.object({
+  deckId: objectIdSchema,
+  topicId: objectIdSchema,
+});
+
 export const listDecksSchema = z.object({
   tagId: objectIdSchema.optional(),
   cefrLevelId: objectIdSchema.optional(),
