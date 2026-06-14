@@ -471,6 +471,99 @@ const TopicReorderBadRequest = {
   },
 };
 
+const DeckOrCardNotFound = {
+  description: 'Không tìm thấy deck hoặc card',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DeckNotFound: {
+          summary: 'Lỗi sai deck ID',
+          value: { success: false, message: 'Không tìm thấy deck' },
+        },
+        CardNotFound: {
+          summary: 'Lỗi sai card ID',
+          value: { success: false, message: 'Không tìm thấy card' },
+        },
+      },
+    },
+  },
+};
+
+const CardConflict = {
+  description: 'Dữ liệu đã tồn tại (Order)',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DuplicateOrder: {
+          summary: 'Trùng thứ tự',
+          value: {
+            success: false,
+            message: 'Dữ liệu đã tồn tại',
+            errors: [
+              { field: 'order', message: 'Order này đã tồn tại trong topic' },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+const CardBadRequest = {
+  description: 'Dữ liệu đầu vào không hợp lệ',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        MissingFields: {
+          summary: 'Thiếu dữ liệu trường bắt buộc',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              { field: 'topicId', message: 'Trường topicId là bắt buộc' },
+              { field: 'term', message: 'Trường term là bắt buộc' },
+              { field: 'pos', message: 'Trường pos là bắt buộc' },
+              {
+                field: 'translation',
+                message: 'Trường translation là bắt buộc',
+              },
+            ],
+          },
+        },
+        InvalidData: {
+          summary: 'Dữ liệu sai định dạng',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'order',
+                message: 'Trường order phải là số nguyên lớn hơn hoặc bằng 1',
+              },
+            ],
+          },
+        },
+        InvalidTopicInDeck: {
+          summary: 'Topic không thuộc Deck',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'topicId',
+                message: 'Topic này không thuộc về deck hiện tại',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
 export default {
   '/admin/cefr-levels': {
     get: {
@@ -1821,6 +1914,249 @@ export default {
           },
         },
         404: DeckOrTopicNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/decks/{deckId}/cards': {
+    get: {
+      tags: ['/admin/decks/:deckId/cards'],
+      summary: 'Lấy danh sách card của deck',
+      description:
+        'Lấy danh sách các card thuộc về một deck cụ thể dành cho Admin. Hỗ trợ lọc theo topicId, q, page, limit.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+        {
+          in: 'query',
+          name: 'topicId',
+          schema: { type: 'string' },
+          description: 'Lọc theo topic',
+        },
+        {
+          in: 'query',
+          name: 'q',
+          schema: { type: 'string' },
+          description: 'Tìm kiếm theo từ khóa (term, translation)',
+        },
+        {
+          in: 'query',
+          name: 'page',
+          schema: { type: 'integer', default: 1 },
+          description: 'Trang hiện tại',
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: { type: 'integer', default: 10 },
+          description: 'Số lượng card trên mỗi trang',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Lấy danh sách cards thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/CardsResponse' },
+            },
+          },
+        },
+        404: DeckNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    post: {
+      tags: ['/admin/decks/:deckId/cards'],
+      summary: 'Tạo card mới',
+      description:
+        'Tạo mới một card cho một deck và topic cụ thể dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/CardPayload' },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'Tạo card thành công',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/CardResponse' },
+                  {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Tạo card thành công',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        400: CardBadRequest,
+        409: CardConflict,
+        404: DeckNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/decks/{deckId}/cards/{cardId}': {
+    get: {
+      tags: ['/admin/decks/:deckId/cards'],
+      summary: 'Lấy chi tiết một card',
+      description: 'Lấy thông tin chi tiết của một card cụ thể dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+        {
+          in: 'path',
+          name: 'cardId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của card',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Lấy chi tiết card thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/CardResponse' },
+            },
+          },
+        },
+        404: DeckOrCardNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    put: {
+      tags: ['/admin/decks/:deckId/cards'],
+      summary: 'Cập nhật card',
+      description:
+        'Cập nhật thông tin card (term, translation, pos, explanation, ...).',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+        {
+          in: 'path',
+          name: 'cardId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của card',
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/CardPayload' },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: 'Cập nhật card thành công',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/CardResponse' },
+                  {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Cập nhật card thành công',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        400: CardBadRequest,
+        409: CardConflict,
+        404: DeckOrCardNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    delete: {
+      tags: ['/admin/decks/:deckId/cards'],
+      summary: 'Xóa card',
+      description: 'Xóa card khỏi deck dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+        {
+          in: 'path',
+          name: 'cardId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của card',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Xóa card thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SuccessResponse' },
+            },
+          },
+        },
+        404: DeckOrCardNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
         500: { $ref: '#/components/responses/ServerError' },
