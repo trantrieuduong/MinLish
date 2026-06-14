@@ -327,6 +327,150 @@ const DeckSlugConflict = {
   },
 };
 
+const DeckOrTopicNotFound = {
+  description: 'Không tìm thấy deck hoặc topic',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DeckNotFound: {
+          summary: 'Lỗi sai deck ID',
+          value: { success: false, message: 'Không tìm thấy deck' },
+        },
+        TopicNotFound: {
+          summary: 'Lỗi sai topic ID',
+          value: { success: false, message: 'Không tìm thấy topic' },
+        },
+      },
+    },
+  },
+};
+
+const TopicConflict = {
+  description: 'Dữ liệu đã tồn tại (Slug hoặc Order)',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DuplicateSlug: {
+          summary: 'Trùng slug',
+          value: {
+            success: false,
+            message: 'Dữ liệu đã tồn tại',
+            errors: [
+              {
+                field: 'slug',
+                message: 'Slug của topic đã tồn tại trong deck',
+              },
+            ],
+          },
+        },
+        DuplicateOrder: {
+          summary: 'Trùng thứ tự',
+          value: {
+            success: false,
+            message: 'Dữ liệu đã tồn tại',
+            errors: [
+              { field: 'order', message: 'Order này đã tồn tại trong deck' },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+const TopicBadRequest = {
+  description: 'Dữ liệu đầu vào không hợp lệ',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        MissingFields: {
+          summary: 'Thiếu dữ liệu trường bắt buộc',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [{ field: 'name', message: 'Trường name là bắt buộc' }],
+          },
+        },
+        InvalidData: {
+          summary: 'Dữ liệu sai định dạng',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'order',
+                message: 'Trường order phải là số nguyên lớn hơn hoặc bằng 1',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+const TopicReorderBadRequest = {
+  description: 'Dữ liệu đầu vào không hợp lệ',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        MissingFields: {
+          summary: 'Thiếu hoặc sai cấu trúc dữ liệu',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'topics',
+                message: 'Trường topics phải là một mảng và không được rỗng',
+              },
+              {
+                field: 'topics[0].topicId',
+                message: 'Trường topicId là bắt buộc',
+              },
+              {
+                field: 'topics[0].order',
+                message:
+                  'Trường order là bắt buộc và phải là số nguyên lớn hơn hoặc bằng 1',
+              },
+            ],
+          },
+        },
+        DuplicateOrderInArray: {
+          summary: 'Trùng lặp order trong mảng',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'topics',
+                message: 'Order của các topics không được trùng lặp trong mảng',
+              },
+            ],
+          },
+        },
+        InvalidTopicInDeck: {
+          summary: 'Topic không thuộc Deck',
+          value: {
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: [
+              {
+                field: 'topics[0].topicId',
+                message: 'Topic này không thuộc về deck hiện tại',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
 export default {
   '/admin/cefr-levels': {
     get: {
@@ -1418,6 +1562,265 @@ export default {
           },
         },
         404: DeckNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/decks/{deckId}/topics': {
+    get: {
+      tags: ['/admin/decks/:deckId/topics'],
+      summary: 'Lấy danh sách topic của deck',
+      description:
+        'Lấy danh sách các topic thuộc về một deck cụ thể dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Lấy danh sách topic thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/TopicsResponse' },
+            },
+          },
+        },
+        404: DeckNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    post: {
+      tags: ['/admin/decks/:deckId/topics'],
+      summary: 'Tạo topic mới',
+      description: 'Tạo mới một topic cho một deck cụ thể dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/TopicPayload' },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'Tạo topic thành công',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/TopicResponse' },
+                  {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Tạo topic thành công',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        400: TopicBadRequest,
+        409: TopicConflict,
+        404: DeckNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/decks/{deckId}/topics/reorder': {
+    patch: {
+      tags: ['/admin/decks/:deckId/topics'],
+      summary: 'Sắp xếp lại các topic',
+      description: 'Cập nhật lại order của nhiều topics cùng lúc trong deck.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/TopicReorderPayload' },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: 'Sắp xếp topics thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SuccessResponse' },
+            },
+          },
+        },
+        404: DeckNotFound,
+        400: TopicReorderBadRequest,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+  },
+  '/admin/decks/{deckId}/topics/{topicId}': {
+    get: {
+      tags: ['/admin/decks/:deckId/topics'],
+      summary: 'Lấy chi tiết một topic',
+      description:
+        'Lấy thông tin chi tiết của một topic cụ thể trong một deck cụ thể dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+        {
+          in: 'path',
+          name: 'topicId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của topic',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Lấy chi tiết topic thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/TopicResponse' },
+            },
+          },
+        },
+        404: DeckOrTopicNotFound,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    put: {
+      tags: ['/admin/decks/:deckId/topics'],
+      summary: 'Cập nhật topic',
+      description:
+        'Cập nhật thông tin topic trong một deck cụ thể dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+        {
+          in: 'path',
+          name: 'topicId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của topic',
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/TopicPayload' },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: 'Cập nhật topic thành công',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/TopicResponse' },
+                  {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'Cập nhật topic thành công',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        400: TopicBadRequest,
+        404: DeckOrTopicNotFound,
+        409: TopicConflict,
+        401: { $ref: '#/components/responses/Unauthorized' },
+        403: { $ref: '#/components/responses/Forbidden' },
+        500: { $ref: '#/components/responses/ServerError' },
+      },
+    },
+    delete: {
+      tags: ['/admin/decks/:deckId/topics'],
+      summary: 'Xóa topic khỏi deck',
+      description: 'Xóa topic khỏi deck dành cho Admin.',
+      security: [{ BearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'deckId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của deck',
+        },
+        {
+          in: 'path',
+          name: 'topicId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID của topic',
+        },
+      ],
+      responses: {
+        200: {
+          description: 'Xóa topic thành công',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SuccessResponse' },
+            },
+          },
+        },
+        404: DeckOrTopicNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
         500: { $ref: '#/components/responses/ServerError' },

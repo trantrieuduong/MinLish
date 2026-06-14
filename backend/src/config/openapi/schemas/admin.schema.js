@@ -423,4 +423,60 @@ export default {
       },
     },
   },
+  TopicsResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Lấy danh sách topics thành công' },
+      data: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/Topic' },
+      },
+    },
+  },
+  TopicResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Lấy chi tiết topic thành công' },
+      data: {
+        $ref: '#/components/schemas/Topic',
+      },
+    },
+  },
+  TopicPayload: {
+    type: 'object',
+    required: ['name'],
+    properties: {
+      name: { type: 'string', example: 'Family', description: 'Tên topic.' },
+      slug: {
+        type: 'string',
+        example: 'family',
+        description: 'URL thân thiện. Nếu bỏ trống tự sinh từ name.',
+      },
+      order: {
+        type: 'integer',
+        example: 1,
+        description: 'Thứ tự hiển thị. Nếu bỏ trống hệ thống tự thêm vào cuối.',
+      },
+    },
+  },
+  TopicReorderPayload: {
+    type: 'object',
+    required: ['topics'],
+    properties: {
+      topics: {
+        type: 'array',
+        description: 'Mảng các topic kèm thứ tự mới',
+        items: {
+          type: 'object',
+          required: ['topicId', 'order'],
+          properties: {
+            topicId: { type: 'string', example: '665f1f77bcf86cd799439041' },
+            order: { type: 'integer', example: 1 },
+          },
+        },
+      },
+    },
+  },
 };

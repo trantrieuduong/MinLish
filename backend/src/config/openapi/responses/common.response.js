@@ -1,4 +1,18 @@
 export default {
+  BadRequest: {
+    description: 'Dữ liệu không hợp lệ',
+    content: {
+      'application/json': {
+        schema: {
+          $ref: '#/components/schemas/ErrorResponse',
+        },
+        example: {
+          success: false,
+          message: 'Dữ liệu yêu cầu không hợp lệ. Vui lòng kiểm tra lại!',
+        },
+      },
+    },
+  },
   Unauthorized: {
     description: 'Chưa đăng nhập hoặc token không hợp lệ',
     content: {
