@@ -25,6 +25,30 @@ export const getDeckById = async (req, res, next) => {
   }
 };
 
+export const getDeckTopics = async (req, res, next) => {
+  try {
+    const result = getDeckSchema.safeParse(req.params);
+    if (!result.success) {
+      const errors = result.error.errors.map((e) => ({
+        field: e.path.join('.'),
+        message: e.message,
+      }));
+      return next(new AppError('Dữ liệu không hợp lệ', 400, errors));
+    }
+
+    const userId = req.user.id;
+    const data = await service.getDeckTopics(result.data.deckId, userId);
+
+    return res
+      .status(200)
+      .json(
+        successResponse('Lấy danh sách topic trong deck thành công.', data)
+      );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const listDecks = async (req, res, next) => {
   try {
     const result = listDecksSchema.safeParse(req.query);
