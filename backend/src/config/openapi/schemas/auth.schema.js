@@ -82,7 +82,8 @@ export default {
         properties: {
           accessToken: {
             type: 'string',
-            description: 'JWT access token. Lưu ở localStorage, gửi qua Authorization header.',
+            description:
+              'JWT access token. Lưu ở localStorage, gửi qua Authorization header.',
             example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
           },
           user: { $ref: '#/components/schemas/User' },

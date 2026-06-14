@@ -222,7 +222,8 @@ export default {
       responses: {
         200: simpleSuccess('Đặt lại mật khẩu thành công.'),
         400: {
-          description: 'OTP không hợp lệ, đã hết hạn, hoặc mật khẩu không đủ độ dài.',
+          description:
+            'OTP không hợp lệ, đã hết hạn, hoặc mật khẩu không đủ độ dài.',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/ErrorResponse' },
