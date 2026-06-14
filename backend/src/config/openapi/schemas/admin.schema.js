@@ -479,4 +479,86 @@ export default {
       },
     },
   },
+  CardsResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Lấy danh sách card thành công' },
+      data: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/Card' },
+      },
+      pagination: {
+        type: 'object',
+        properties: {
+          totalItems: { type: 'integer', example: 100 },
+          page: { type: 'integer', example: 1 },
+          limit: { type: 'integer', example: 10 },
+          totalPages: { type: 'integer', example: 10 },
+        },
+      },
+    },
+  },
+  CardResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Lấy chi tiết card thành công' },
+      data: {
+        $ref: '#/components/schemas/Card',
+      },
+    },
+  },
+  CardPayload: {
+    type: 'object',
+    required: ['topicId', 'term', 'pos', 'translation'],
+    properties: {
+      topicId: {
+        type: 'string',
+        example: '665f1f77bcf86cd799439041',
+        description: 'ID của topic chứa card.',
+      },
+      order: {
+        type: 'integer',
+        example: 1,
+        description: 'Thứ tự hiển thị. Nếu bỏ trống hệ thống tự thêm vào cuối.',
+      },
+      term: { type: 'string', example: 'family', description: 'Từ vựng.' },
+      pos: { type: 'string', example: 'noun', description: 'Từ loại.' },
+      phonetics: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/CardPhonetic' },
+        description: 'Danh sách phiên âm và audio.',
+      },
+      translation: {
+        type: 'string',
+        example: 'gia đình',
+        description: 'Nghĩa tiếng Việt.',
+      },
+      explanation: {
+        type: 'object',
+        properties: {
+          vi: {
+            type: 'string',
+            example: 'Những người có quan hệ huyết thống hoặc sống chung.',
+          },
+          en: { type: 'string', example: 'A group of related people.' },
+        },
+        description: 'Giải nghĩa chi tiết.',
+      },
+      examples: {
+        type: 'object',
+        properties: {
+          vi: { type: 'string', example: 'Gia đình tôi có bốn người.' },
+          en: { type: 'string', example: 'My family has four people.' },
+        },
+        description: 'Câu ví dụ.',
+      },
+      imageUrl: {
+        type: 'string',
+        example: 'https://example.com/images/family.jpg',
+        description: 'Ảnh minh họa.',
+      },
+    },
+  },
 };
