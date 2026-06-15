@@ -4,6 +4,7 @@ import { protect } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
 
+router.get('/', protect, controller.listMyDecks);
 router.post('/', protect, controller.createDeck);
 
 export default router;

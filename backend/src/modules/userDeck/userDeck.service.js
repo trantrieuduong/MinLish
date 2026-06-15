@@ -15,6 +15,33 @@ const buildSlug = (title) => {
   return `${base || 'deck'}-${crypto.randomBytes(4).toString('hex')}`;
 };
 
+export const listMyDecks = async (userId, filters) => {
+  const { q, page, limit } = filters;
+
+  const query = { ownerType: 'user', ownerId: userId };
+  if (q) {
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+    query.$or = [{ title: regex }, { description: regex }];
+  }
+
+  const skip = (page - 1) * limit;
+  const [decks, totalItems] = await Promise.all([
+    Deck.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Deck.countDocuments(query),
+  ]);
+
+  return {
+    decks,
+    pagination: {
+      page,
+      limit,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    },
+  };
+};
+
 export const createDeck = async (userId, data) => {
   const ownedCount = await Deck.countDocuments({
     ownerType: 'user',
