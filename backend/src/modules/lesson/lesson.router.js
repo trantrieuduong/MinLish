@@ -5,6 +5,7 @@ import { protect, protectOptional } from '../../middlewares/auth.middleware.js';
 const router = Router();
 
 router.get('/', protectOptional, controller.listLessons);
+router.get('/:lessonId', protectOptional, controller.getLessonById);
 router.get('/:lessonId/segments', protect, controller.getSegments);
 
 export default router;

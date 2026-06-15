@@ -53,6 +53,20 @@ export const listLessons = async (filters, userId) => {
   };
 };
 
+export const getLessonById = async (lessonId, userId) => {
+  // Only published lessons are publicly visible.
+  const lesson = await Lesson.findOne({ _id: lessonId, status: 'published' });
+  if (!lesson) throw new AppError('Không tìm thấy bài học', 404);
+
+  // Attach the current user's progress when authenticated.
+  let userProgress = null;
+  if (userId) {
+    userProgress = await UserLessonProgress.findOne({ userId, lessonId });
+  }
+
+  return { lesson, userProgress };
+};
+
 export const getSegmentsByLessonId = async (lessonId) => {
   const segments = await LessonSegment.find({ lessonId }).sort({ order: 1 });
   if (segments.length == 0) throw new AppError('Không tìm thấy segments', 404);
