@@ -142,17 +142,18 @@ export default {
   UserTopicCreateRequest: {
     type: 'object',
     required: ['name'],
+    description:
+      'Tạo nhóm (topic) mới. Chỉ cần tên; thứ tự (order) được gán tự động ở cuối danh sách.',
     properties: {
-      name: { type: 'string', example: 'Family' },
-      order: { type: 'integer', example: 1 },
+      name: { type: 'string', maxLength: 100, example: 'Family' },
     },
   },
   UserTopicUpdateRequest: {
     type: 'object',
-    description: 'Tất cả các trường đều tùy chọn; chỉ gửi trường cần cập nhật.',
+    required: ['name'],
+    description: 'Đổi tên nhóm (topic).',
     properties: {
-      name: { type: 'string', example: 'Family (updated)' },
-      order: { type: 'integer', example: 2 },
+      name: { type: 'string', maxLength: 100, example: 'Family (updated)' },
     },
   },
   UserTopicListResponse: {

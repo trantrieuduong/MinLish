@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import Deck from '../../models/deck.model.js';
 import Topic from '../../models/topic.model.js';
 import Card from '../../models/card.model.js';
@@ -6,6 +7,17 @@ import UserCardState from '../../models/userCardState.model.js';
 import AppError from '../../utils/AppError.js';
 
 const MAX_USER_DECKS = 3;
+
+// Throws 404 if the deck is missing or not owned by this user.
+const ensureOwnedDeck = async (userId, deckId) => {
+  const deck = await Deck.findOne({
+    _id: deckId,
+    ownerType: 'user',
+    ownerId: userId,
+  });
+  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+  return deck;
+};
 
 const buildSlug = (title) => {
   const base = title
@@ -88,6 +100,26 @@ export const deleteMyDeck = async (userId, deckId) => {
     UserCardState.deleteMany({ cardId: { $in: cardIds } }),
   ]);
   await deck.deleteOne();
+};
+
+export const createMyDeckTopic = async (userId, deckId, data) => {
+  await ensureOwnedDeck(userId, deckId);
+
+  // Auto-assign order = highest existing order + 1 (append to end).
+  const last = await Topic.findOne({ deckId }).sort({ order: -1 }).select('order');
+  const nextOrder = last ? last.order + 1 : 1;
+
+  const topic = await Topic.create({
+    deckId,
+    name: data.name,
+    slug: buildSlug(data.name),
+    order: nextOrder,
+    cardCount: 0,
+  });
+
+  await Deck.updateOne({ _id: deckId }, { $inc: { topicCount: 1 } });
+
+  return topic;
 };
 
 export const createDeck = async (userId, data) => {

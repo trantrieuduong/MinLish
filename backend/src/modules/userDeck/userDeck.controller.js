@@ -5,8 +5,38 @@ import {
   updateDeckSchema,
   listMyDecksSchema,
   deckIdParamSchema,
+  topicIdParamSchema,
+  createTopicSchema,
+  updateTopicSchema,
 } from './userDeck.validator.js';
 import * as service from './userDeck.service.js';
+
+export const createMyDeckTopic = async (req, res, next) => {
+  try {
+    const paramResult = deckIdParamSchema.safeParse(req.params);
+    const bodyResult = createTopicSchema.safeParse(req.body);
+
+    if (!paramResult.success || !bodyResult.success) {
+      const errors = [
+        ...(paramResult.success ? [] : paramResult.error.errors),
+        ...(bodyResult.success ? [] : bodyResult.error.errors),
+      ].map((e) => ({ field: e.path.join('.'), message: e.message }));
+      return next(new AppError('Dữ liệu không hợp lệ', 400, errors));
+    }
+
+    const topic = await service.createMyDeckTopic(
+      req.user.id,
+      paramResult.data.deckId,
+      bodyResult.data
+    );
+
+    return res
+      .status(201)
+      .json(successResponse('Tạo topic thành công.', topic));
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const deleteMyDeck = async (req, res, next) => {
   try {

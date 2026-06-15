@@ -36,3 +36,25 @@ export const updateDeckSchema = z
   .refine((data) => data.title !== undefined || data.description !== undefined, {
     message: 'Cần cung cấp ít nhất một trường để cập nhật (title hoặc description)',
   });
+
+// ---------- Topic ----------
+export const topicIdParamSchema = z.object({
+  deckId: objectIdSchema,
+  topicId: objectIdSchema,
+});
+
+export const createTopicSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Tên nhóm không được để trống')
+    .max(100, 'Tên nhóm tối đa 100 ký tự'),
+});
+
+export const updateTopicSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Tên nhóm không được để trống')
+    .max(100, 'Tên nhóm tối đa 100 ký tự'),
+});

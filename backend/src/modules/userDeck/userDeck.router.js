@@ -10,4 +10,7 @@ router.get('/:deckId', protect, controller.getMyDeckById);
 router.put('/:deckId', protect, controller.updateMyDeck);
 router.delete('/:deckId', protect, controller.deleteMyDeck);
 
+// Topics
+router.post('/:deckId/topics', protect, controller.createMyDeckTopic);
+
 export default router;
