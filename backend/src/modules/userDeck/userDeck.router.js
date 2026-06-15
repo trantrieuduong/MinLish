@@ -6,5 +6,6 @@ const router = Router();
 
 router.get('/', protect, controller.listMyDecks);
 router.post('/', protect, controller.createDeck);
+router.get('/:deckId', protect, controller.getMyDeckById);
 
 export default router;

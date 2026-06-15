@@ -42,6 +42,17 @@ export const listMyDecks = async (userId, filters) => {
   };
 };
 
+export const getMyDeckById = async (userId, deckId) => {
+  const deck = await Deck.findOne({
+    _id: deckId,
+    ownerType: 'user',
+    ownerId: userId,
+  });
+  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+
+  return deck;
+};
+
 export const createDeck = async (userId, data) => {
   const ownedCount = await Deck.countDocuments({
     ownerType: 'user',

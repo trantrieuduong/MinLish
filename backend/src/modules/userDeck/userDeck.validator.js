@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+const objectIdSchema = z
+  .string()
+  .regex(/^[0-9a-fA-F]{24}$/, 'ObjectId không hợp lệ');
+
+export const deckIdParamSchema = z.object({
+  deckId: objectIdSchema,
+});
+
 export const listMyDecksSchema = z.object({
   q: z.string().trim().min(1).optional(),
   page: z.coerce.number().int().min(1).default(1),
