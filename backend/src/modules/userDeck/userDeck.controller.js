@@ -35,6 +35,31 @@ export const getMyDeckTopics = async (req, res, next) => {
   }
 };
 
+export const getMyDeckTopic = async (req, res, next) => {
+  try {
+    const result = topicIdParamSchema.safeParse(req.params);
+    if (!result.success) {
+      const errors = result.error.errors.map((e) => ({
+        field: e.path.join('.'),
+        message: e.message,
+      }));
+      return next(new AppError('Dữ liệu không hợp lệ', 400, errors));
+    }
+
+    const topic = await service.getMyDeckTopic(
+      req.user.id,
+      result.data.deckId,
+      result.data.topicId
+    );
+
+    return res
+      .status(200)
+      .json(successResponse('Lấy chi tiết topic thành công.', topic));
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createMyDeckTopic = async (req, res, next) => {
   try {
     const paramResult = deckIdParamSchema.safeParse(req.params);

@@ -142,6 +142,15 @@ export const getMyDeckTopics = async (userId, deckId) => {
   return { deck, topics: items };
 };
 
+export const getMyDeckTopic = async (userId, deckId, topicId) => {
+  await ensureOwnedDeck(userId, deckId);
+
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError('Không tìm thấy deck hoặc topic', 404);
+
+  return topic;
+};
+
 export const createMyDeckTopic = async (userId, deckId, data) => {
   await ensureOwnedDeck(userId, deckId);
 

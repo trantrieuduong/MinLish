@@ -13,5 +13,6 @@ router.delete('/:deckId', protect, controller.deleteMyDeck);
 // Topics
 router.get('/:deckId/topics', protect, controller.getMyDeckTopics);
 router.post('/:deckId/topics', protect, controller.createMyDeckTopic);
+router.get('/:deckId/topics/:topicId', protect, controller.getMyDeckTopic);
 
 export default router;
