@@ -88,6 +88,29 @@ export const updateMyDeckTopic = async (req, res, next) => {
   }
 };
 
+export const deleteMyDeckTopic = async (req, res, next) => {
+  try {
+    const result = topicIdParamSchema.safeParse(req.params);
+    if (!result.success) {
+      const errors = result.error.errors.map((e) => ({
+        field: e.path.join('.'),
+        message: e.message,
+      }));
+      return next(new AppError('Dữ liệu không hợp lệ', 400, errors));
+    }
+
+    await service.deleteMyDeckTopic(
+      req.user.id,
+      result.data.deckId,
+      result.data.topicId
+    );
+
+    return res.status(200).json(successResponse('Xóa topic thành công.', null));
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createMyDeckTopic = async (req, res, next) => {
   try {
     const paramResult = deckIdParamSchema.safeParse(req.params);

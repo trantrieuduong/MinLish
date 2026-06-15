@@ -166,6 +166,27 @@ export const updateMyDeckTopic = async (userId, deckId, topicId, data) => {
   return topic;
 };
 
+export const deleteMyDeckTopic = async (userId, deckId, topicId) => {
+  await ensureOwnedDeck(userId, deckId);
+
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError('Không tìm thấy deck hoặc topic', 404);
+
+  const cardIds = await Card.find({ deckId, topicId }).distinct('_id');
+
+  await Promise.all([
+    Card.deleteMany({ deckId, topicId }),
+    UserCardState.deleteMany({ cardId: { $in: cardIds } }),
+  ]);
+  await topic.deleteOne();
+
+  // Keep deck counters in sync.
+  await Deck.updateOne(
+    { _id: deckId },
+    { $inc: { topicCount: -1, cardCount: -cardIds.length } }
+  );
+};
+
 export const createMyDeckTopic = async (userId, deckId, data) => {
   await ensureOwnedDeck(userId, deckId);
 
