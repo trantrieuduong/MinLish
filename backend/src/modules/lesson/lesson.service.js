@@ -95,3 +95,23 @@ export const getSegmentsByLessonId = async (lessonId, userId) => {
     userProgress: progressMap[segment._id.toString()] || null,
   }));
 };
+
+export const getSegmentById = async (lessonId, segmentId, userId) => {
+  // Don't serve segments of missing/unpublished lessons.
+  const lesson = await Lesson.findOne({ _id: lessonId, status: 'published' });
+  if (!lesson) throw new AppError('Không tìm thấy segment', 404);
+
+  const segment = await LessonSegment.findOne({ _id: segmentId, lessonId });
+  if (!segment) throw new AppError('Không tìm thấy segment', 404);
+
+  let userProgress = null;
+  if (userId) {
+    userProgress = await UserSegmentProgress.findOne({
+      userId,
+      lessonId,
+      segmentId,
+    });
+  }
+
+  return { segment, userProgress };
+};

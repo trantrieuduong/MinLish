@@ -12,6 +12,11 @@ export const getSegmentsSchema = z.object({
   lessonId: objectIdSchema,
 });
 
+export const getSegmentSchema = z.object({
+  lessonId: objectIdSchema,
+  segmentId: objectIdSchema,
+});
+
 export const listLessonsSchema = z.object({
   tagId: objectIdSchema.optional(),
   cefrLevelId: objectIdSchema.optional(),

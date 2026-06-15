@@ -7,5 +7,10 @@ const router = Router();
 router.get('/', protectOptional, controller.listLessons);
 router.get('/:lessonId', protectOptional, controller.getLessonById);
 router.get('/:lessonId/segments', protectOptional, controller.getSegments);
+router.get(
+  '/:lessonId/segments/:segmentId',
+  protectOptional,
+  controller.getSegmentById
+);
 
 export default router;
