@@ -1,5 +1,57 @@
 import AppError from '../../utils/AppError.js';
 import LessonSegment from '../../models/lessonSegment.model.js';
+import Lesson from '../../models/lesson.model.js';
+import UserLessonProgress from '../../models/userLessonProgress.model.js';
+
+export const listLessons = async (filters, userId) => {
+  const { tagId, cefrLevelId, mode, q, page, limit } = filters;
+
+  // Lessons are public content — only published ones are listed.
+  const query = { status: 'published' };
+  if (tagId) query.tagIds = tagId;
+  if (cefrLevelId) query.cefrLevelIds = cefrLevelId;
+  if (mode) query.modes = mode; 
+  if (q) {
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+    query.$or = [{ title: regex }, { description: regex }];
+  }
+
+  const skip = (page - 1) * limit;
+  const [lessons, totalItems] = await Promise.all([
+    Lesson.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Lesson.countDocuments(query),
+  ]);
+
+  // Attach the current user's progress (one query, merged by lessonId).
+  let progressMap = {};
+  if (userId && lessons.length > 0) {
+    const lessonIds = lessons.map((l) => l._id);
+    const progresses = await UserLessonProgress.find({
+      userId,
+      lessonId: { $in: lessonIds },
+    });
+    progressMap = progresses.reduce((acc, p) => {
+      acc[p.lessonId.toString()] = p;
+      return acc;
+    }, {});
+  }
+
+  const items = lessons.map((lesson) => ({
+    lesson,
+    userProgress: progressMap[lesson._id.toString()] || null,
+  }));
+
+  return {
+    lessons: items,
+    pagination: {
+      page,
+      limit,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    },
+  };
+};
 
 export const getSegmentsByLessonId = async (lessonId) => {
   const segments = await LessonSegment.find({ lessonId }).sort({ order: 1 });

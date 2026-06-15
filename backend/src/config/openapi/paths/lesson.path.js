@@ -109,9 +109,6 @@ export default {
             },
           },
         },
-        401: {
-          $ref: '#/components/responses/Unauthorized',
-        },
         500: {
           $ref: '#/components/responses/ServerError',
         },
