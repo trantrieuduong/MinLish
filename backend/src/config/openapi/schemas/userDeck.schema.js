@@ -51,25 +51,18 @@ export default {
   UserDeckCreateRequest: {
     type: 'object',
     required: ['title'],
+    description:
+      'Tạo bộ thẻ cá nhân. Chỉ cần tên; deck luôn ở trạng thái published và thuộc sở hữu người dùng hiện tại.',
     properties: {
-      title: { type: 'string', example: 'Travel Vocabulary' },
+      title: {
+        type: 'string',
+        maxLength: 100,
+        example: 'Bộ thẻ của tôi',
+      },
       description: {
         type: 'string',
-        example: 'Common English words and phrases for travel.',
-      },
-      coverImage: {
-        type: 'string',
-        example: 'https://example.com/images/my-travel.jpg',
-      },
-      tagIds: {
-        type: 'array',
-        items: { type: 'string', pattern: '^[a-fA-F0-9]{24}$' },
-        example: ['665f1f77bcf86cd799439011'],
-      },
-      cefrLevelIds: {
-        type: 'array',
-        items: { type: 'string', pattern: '^[a-fA-F0-9]{24}$' },
-        example: ['665f1f77bcf86cd799439012'],
+        maxLength: 500,
+        example: 'Từ vựng cá nhân cần ôn.',
       },
     },
   },

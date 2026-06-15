@@ -1,0 +1,9 @@
+import { Router } from 'express';
+import * as controller from './userDeck.controller.js';
+import { protect } from '../../middlewares/auth.middleware.js';
+
+const router = Router();
+
+router.post('/', protect, controller.createDeck);
+
+export default router;

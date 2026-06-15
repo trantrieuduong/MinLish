@@ -120,7 +120,7 @@ export default {
       tags: [TAG],
       summary: 'Tạo deck mới',
       description:
-        'Tạo một deck thuộc sở hữu người dùng hiện tại (ownerType = user, ownerId = người dùng hiện tại). Status luôn là published vì deck chỉ dùng cho cá nhân.',
+        'Tạo một deck thuộc sở hữu người dùng hiện tại (ownerType = user, ownerId = người dùng hiện tại). Status luôn là published vì deck chỉ dùng cho cá nhân. Mỗi người dùng được tạo tối đa 3 bộ thẻ; vượt quá sẽ trả về lỗi 400.',
       requestBody: jsonBody('UserDeckCreateRequest'),
       responses: {
         201: jsonResponse('UserDeckCreateResponse', 'Tạo deck thành công.'),
