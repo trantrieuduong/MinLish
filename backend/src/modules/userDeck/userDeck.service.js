@@ -291,6 +291,24 @@ export const updateMyDeckCard = async (userId, deckId, cardId, data) => {
   return updated;
 };
 
+export const deleteMyDeckCard = async (userId, deckId, cardId) => {
+  await ensureOwnedDeck(userId, deckId);
+
+  const card = await Card.findOne({ _id: cardId, deckId });
+  if (!card) throw new AppError('Không tìm thấy deck hoặc card', 404);
+
+  await Promise.all([
+    card.deleteOne(),
+    UserCardState.deleteMany({ cardId }),
+  ]);
+
+  // Keep counters in sync (topic + deck).
+  await Promise.all([
+    Topic.updateOne({ _id: card.topicId }, { $inc: { cardCount: -1 } }),
+    Deck.updateOne({ _id: deckId }, { $inc: { cardCount: -1 } }),
+  ]);
+};
+
 export const createMyDeckCard = async (userId, deckId, data) => {
   await ensureOwnedDeck(userId, deckId);
 
