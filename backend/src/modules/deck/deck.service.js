@@ -5,12 +5,14 @@ import Card from '../../models/card.model.js';
 import UserCardState from '../../models/userCardState.model.js';
 import AppError from '../../utils/AppError.js';
 
-export const getDeckById = async (deckId, userId) => {
-  const accessClause = {
-    $or: [{ ownerType: 'system', status: 'published' }, { ownerId: userId }],
-  };
-
-  const deck = await Deck.findOne({ _id: deckId, ...accessClause });
+// Public deck endpoints serve the SYSTEM catalog only.
+// A user's own decks are reached through /users/me/decks/*.
+export const getDeckById = async (deckId) => {
+  const deck = await Deck.findOne({
+    _id: deckId,
+    ownerType: 'system',
+    status: 'published',
+  });
   if (!deck) throw new AppError('Không tìm thấy deck', 404);
 
   return deck;
@@ -18,7 +20,7 @@ export const getDeckById = async (deckId, userId) => {
 
 export const getDeckTopics = async (deckId, userId) => {
   // Reuse access check; throws 404 if deck not accessible.
-  const deck = await getDeckById(deckId, userId);
+  const deck = await getDeckById(deckId);
 
   const topics = await Topic.find({ deckId }).sort({ order: 1 });
 
@@ -60,7 +62,7 @@ export const getDeckTopics = async (deckId, userId) => {
 
 export const getTopicCards = async (deckId, topicId, userId) => {
   // Reuse access check; throws 404 if deck not accessible.
-  await getDeckById(deckId, userId);
+  await getDeckById(deckId);
 
   // Topic must belong to this deck.
   const topic = await Topic.findOne({ _id: topicId, deckId });
@@ -88,26 +90,19 @@ export const getTopicCards = async (deckId, topicId, userId) => {
   return { cards: items };
 };
 
-export const listDecks = async (filters, userId) => {
+export const listDecks = async (filters) => {
   const { tagId, cefrLevelId, q, page, limit } = filters;
 
-  // Owner clause: public system decks, plus all of the current user's decks.
-  const publicClause = { ownerType: 'system', status: 'published' };
-  const ownerClause = userId
-    ? { $or: [publicClause, { ownerId: userId }] }
-    : publicClause;
-
-  // Filter clause from optional query params.
-  const filterClause = {};
-  if (tagId) filterClause.tagIds = tagId;
-  if (cefrLevelId) filterClause.cefrLevelIds = cefrLevelId;
+  // Public catalog = system published decks only.
+  const query = { ownerType: 'system', status: 'published' };
+  if (tagId) query.tagIds = tagId;
+  if (cefrLevelId) query.cefrLevelIds = cefrLevelId;
   if (q) {
-    const regex = new RegExp(q, 'i');
-    filterClause.$or = [{ title: regex }, { description: regex }];
+    // Escape regex metacharacters to avoid ReDoS / injection.
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+    query.$or = [{ title: regex }, { description: regex }];
   }
-
-  // Combine with $and so the owner $or and the q $or don't collide.
-  const query = { $and: [ownerClause, filterClause] };
 
   const skip = (page - 1) * limit;
   const [decks, totalItems] = await Promise.all([

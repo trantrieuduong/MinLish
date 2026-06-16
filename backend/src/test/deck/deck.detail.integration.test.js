@@ -78,8 +78,8 @@ describe('GET /api/v1/decks/:deckId', () => {
       expect(res.body.data.title).toBe('Travel Vocabulary');
     });
 
-    it("returns user's own published deck", async () => {
-      // User decks are always status:'published' (personal use, no draft/archive)
+    it("returns 404 for the user's own deck (use /users/me/decks instead)", async () => {
+      // Public /decks serves the system catalog only; user decks are not exposed here.
       const deck = await Deck.create({
         title: 'My Deck',
         slug: 'my-deck',
@@ -92,8 +92,8 @@ describe('GET /api/v1/decks/:deckId', () => {
         .get(`/api/v1/decks/${deck._id}`)
         .set('Authorization', `Bearer ${validToken}`);
 
-      expect(res.status).toBe(200);
-      expect(res.body.data.title).toBe('My Deck');
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
     });
 
     it("returns 404 for another user's deck", async () => {

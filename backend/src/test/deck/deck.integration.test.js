@@ -107,12 +107,11 @@ describe('GET /api/v1/decks', () => {
   });
 
   describe('authenticated access', () => {
-    it("includes the current user's decks of any status", async () => {
+    it('still returns only system published decks (user decks excluded)', async () => {
       await Deck.insertMany([
         { title: 'System Deck', slug: 'system-deck', ownerType: 'system', status: 'published' },
         { title: 'My Published', slug: 'my-published', ownerType: 'user', ownerId: testUserId, status: 'published' },
         { title: 'My Draft', slug: 'my-draft', ownerType: 'user', ownerId: testUserId, status: 'draft' },
-        { title: 'My Archived', slug: 'my-archived', ownerType: 'user', ownerId: testUserId, status: 'archived' },
         { title: 'Other User', slug: 'other-user', ownerType: 'user', ownerId: otherUserId, status: 'published' },
       ]);
 
@@ -121,30 +120,13 @@ describe('GET /api/v1/decks', () => {
         .set('Authorization', `Bearer ${makeToken(testUserId)}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.pagination.totalItems).toBe(4);
+      expect(res.body.data.pagination.totalItems).toBe(1);
 
       const titles = res.body.data.decks.map((d) => d.title);
       expect(titles).toContain('System Deck');
-      expect(titles).toContain('My Published');
-      expect(titles).toContain('My Draft');
-      expect(titles).toContain('My Archived');
+      expect(titles).not.toContain('My Published');
+      expect(titles).not.toContain('My Draft');
       expect(titles).not.toContain('Other User');
-    });
-
-    it("does not include another user's non-published decks", async () => {
-      await Deck.insertMany([
-        { title: 'Other Draft', slug: 'other-draft', ownerType: 'user', ownerId: otherUserId, status: 'draft' },
-        { title: 'Other Published', slug: 'other-published', ownerType: 'user', ownerId: otherUserId, status: 'published' },
-      ]);
-
-      const res = await request(app)
-        .get('/api/v1/decks')
-        .set('Authorization', `Bearer ${makeToken(testUserId)}`);
-
-      expect(res.status).toBe(200);
-      const titles = res.body.data.decks.map((d) => d.title);
-      expect(titles).not.toContain('Other Draft');
-      expect(titles).not.toContain('Other Published');
     });
   });
 
