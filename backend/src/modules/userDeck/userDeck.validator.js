@@ -91,7 +91,6 @@ export const createCardSchema = z.object({
 
 export const updateCardSchema = z
   .object({
-    topicId: objectIdSchema.optional(),
     term: z.string().trim().min(1, 'Từ vựng không được để trống').max(200).optional(),
     translation: z
       .string()

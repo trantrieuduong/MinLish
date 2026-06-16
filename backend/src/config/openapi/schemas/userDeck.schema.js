@@ -197,9 +197,8 @@ export default {
   UserCardUpdateRequest: {
     type: 'object',
     description:
-      'Tất cả các trường đều tùy chọn; gửi ít nhất một. definition → explanation.vi, example → examples.en. Đổi topicId để chuyển thẻ sang nhóm khác trong cùng deck.',
+      'Tất cả các trường đều tùy chọn; gửi ít nhất một. definition → explanation.vi, example → examples.en. Thẻ giữ nguyên topic (không hỗ trợ chuyển nhóm).',
     properties: {
-      topicId: { type: 'string', pattern: '^[a-fA-F0-9]{24}$' },
       term: { type: 'string', maxLength: 200, example: 'family' },
       translation: { type: 'string', maxLength: 500, example: 'gia đình' },
       definition: { type: 'string', maxLength: 1000 },

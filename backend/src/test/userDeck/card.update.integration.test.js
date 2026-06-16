@@ -131,8 +131,8 @@ describe('PUT /api/v1/users/me/decks/:deckId/cards/:cardId', () => {
     });
   });
 
-  describe('move topic', () => {
-    it('moves the card to another topic and adjusts cardCounts', async () => {
+  describe('topic is immutable', () => {
+    it('ignores topicId in the body (no topic move)', async () => {
       const deck = await makeMyDeck();
       const topicA = await makeTopic(deck._id, { name: 'A', cardCount: 1 });
       const topicB = await makeTopic(deck._id, { name: 'B', order: 2, cardCount: 0 });
@@ -141,47 +141,18 @@ describe('PUT /api/v1/users/me/decks/:deckId/cards/:cardId', () => {
       const res = await request(app)
         .put(url(deck._id, card._id))
         .set('Authorization', `Bearer ${validToken}`)
-        .send({ topicId: topicB._id });
+        .send({ term: 'renamed', topicId: topicB._id });
 
       expect(res.status).toBe(200);
-      expect(res.body.data.topicId).toBe(topicB._id.toString());
+      expect(res.body.data.term).toBe('renamed');
+      expect(res.body.data.topicId).toBe(topicA._id.toString()); // unchanged
 
       const [a, b] = await Promise.all([
         Topic.findById(topicA._id),
         Topic.findById(topicB._id),
       ]);
-      expect(a.cardCount).toBe(0);
-      expect(b.cardCount).toBe(1);
-    });
-
-    it('re-assigns order at the end of the destination topic', async () => {
-      const deck = await makeMyDeck();
-      const topicA = await makeTopic(deck._id, { name: 'A' });
-      const topicB = await makeTopic(deck._id, { name: 'B', order: 2 });
-      await makeCard(deck._id, topicB._id, { term: 'existing', order: 3 });
-      const card = await makeCard(deck._id, topicA._id, { order: 1 });
-
-      const res = await request(app)
-        .put(url(deck._id, card._id))
-        .set('Authorization', `Bearer ${validToken}`)
-        .send({ topicId: topicB._id });
-
-      expect(res.body.data.order).toBe(4);
-    });
-
-    it('returns 404 when the destination topic is in another deck', async () => {
-      const deckA = await makeMyDeck();
-      const deckB = await makeMyDeck();
-      const topicA = await makeTopic(deckA._id);
-      const topicInB = await makeTopic(deckB._id);
-      const card = await makeCard(deckA._id, topicA._id);
-
-      const res = await request(app)
-        .put(url(deckA._id, card._id))
-        .set('Authorization', `Bearer ${validToken}`)
-        .send({ topicId: topicInB._id });
-
-      expect(res.status).toBe(404);
+      expect(a.cardCount).toBe(1); // counts untouched
+      expect(b.cardCount).toBe(0);
     });
   });
 
