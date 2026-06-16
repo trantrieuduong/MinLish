@@ -67,6 +67,34 @@ export const getMyDeckCard = async (req, res, next) => {
   }
 };
 
+export const updateMyDeckCard = async (req, res, next) => {
+  try {
+    const paramResult = cardIdParamSchema.safeParse(req.params);
+    const bodyResult = updateCardSchema.safeParse(req.body);
+
+    if (!paramResult.success || !bodyResult.success) {
+      const errors = [
+        ...(paramResult.success ? [] : paramResult.error.errors),
+        ...(bodyResult.success ? [] : bodyResult.error.errors),
+      ].map((e) => ({ field: e.path.join('.'), message: e.message }));
+      return next(new AppError('Dữ liệu không hợp lệ', 400, errors));
+    }
+
+    const card = await service.updateMyDeckCard(
+      req.user.id,
+      paramResult.data.deckId,
+      paramResult.data.cardId,
+      bodyResult.data
+    );
+
+    return res
+      .status(200)
+      .json(successResponse('Cập nhật card thành công.', card));
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createMyDeckCard = async (req, res, next) => {
   try {
     const paramResult = deckIdParamSchema.safeParse(req.params);

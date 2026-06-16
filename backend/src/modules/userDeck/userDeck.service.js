@@ -247,6 +247,50 @@ export const getMyDeckCard = async (userId, deckId, cardId) => {
   return card;
 };
 
+export const updateMyDeckCard = async (userId, deckId, cardId, data) => {
+  await ensureOwnedDeck(userId, deckId);
+
+  const card = await Card.findOne({ _id: cardId, deckId });
+  if (!card) throw new AppError('Không tìm thấy deck hoặc card', 404);
+
+  // Map flat request fields onto the card document.
+  const set = {};
+  if (data.term !== undefined) set.term = data.term;
+  if (data.translation !== undefined) set.translation = data.translation;
+  if (data.pos !== undefined) set.pos = data.pos;
+  if (data.definition !== undefined) set['explanation.vi'] = data.definition;
+  if (data.example !== undefined) set['examples.en'] = data.example;
+
+  // Moving the card to another topic inside the same deck.
+  const movingTopic =
+    data.topicId !== undefined && data.topicId !== card.topicId.toString();
+  if (movingTopic) {
+    const newTopic = await Topic.findOne({ _id: data.topicId, deckId });
+    if (!newTopic) throw new AppError('Không tìm thấy topic đích', 404);
+    set.topicId = data.topicId;
+    // Re-assign order to the end of the destination topic.
+    const last = await Card.findOne({ deckId, topicId: data.topicId })
+      .sort({ order: -1 })
+      .select('order');
+    set.order = last ? last.order + 1 : 1;
+  }
+
+  const updated = await Card.findOneAndUpdate(
+    { _id: cardId, deckId },
+    { $set: set },
+    { new: true }
+  );
+
+  if (movingTopic) {
+    await Promise.all([
+      Topic.updateOne({ _id: card.topicId }, { $inc: { cardCount: -1 } }),
+      Topic.updateOne({ _id: data.topicId }, { $inc: { cardCount: 1 } }),
+    ]);
+  }
+
+  return updated;
+};
+
 export const createMyDeckCard = async (userId, deckId, data) => {
   await ensureOwnedDeck(userId, deckId);
 
