@@ -163,6 +163,12 @@ export const forgotPassword = async (email) => {
   if (!user) {
     throw new AppError('Không tìm thấy tài khoản với email này', 404);
   }
+  if (!user.isVerified) {
+    throw new AppError(
+      'Tài khoản chưa được kích hoạt, vui lòng xác thực email trước khi đặt lại mật khẩu',
+      403
+    );
+  }
   if (!user.isActive) {
     throw new AppError('Tài khoản này đã bị khóa', 403);
   }
