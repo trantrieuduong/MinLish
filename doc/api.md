@@ -47,7 +47,7 @@ forgot-password, reset-password tương tự
 
 - GET /api/v1/decks/{deckId} — chi tiết deck.
 - GET /api/v1/decks/{deckId}/topics — danh sách topic trong deck kèm tiến độ topic của user.
-- GET /api/v1/decks/{deckId}/topics/{topicId}/cards — danh sách card trong topic kèm trạng thái học của user.
+- GET /api/v1/decks/{deckId}/topics/{topicId}/cards — danh sách card trong topic kèm trạng thái học của user. Card hệ thống trả về thêm `quizOptions [{word, isCorrect}]` để render trắc nghiệm.
 
 ## **Deck của user (ownerType = user)**
 
