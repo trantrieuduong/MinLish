@@ -1,0 +1,260 @@
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
+import request from 'supertest';
+import app from '../../app.js';
+import UserGamification from '../../models/userGamification.model.js';
+import XpEvent from '../../models/xpEvent.model.js';
+import { generateToken } from '../../utils/jwt.js';
+import { XP, getDayKey } from '../../config/gamification.config.js';
+import * as service from '../../modules/gamification/gamification.service.js';
+
+let mongod;
+const userId1 = new mongoose.Types.ObjectId();
+const userId2 = new mongoose.Types.ObjectId();
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  await mongoose.connect(mongod.getUri());
+  await UserGamification.createIndexes();
+  await XpEvent.createIndexes();
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongod.stop();
+});
+
+beforeEach(async () => {
+  await UserGamification.deleteMany({});
+  await XpEvent.deleteMany({});
+});
+
+const makeToken = (userId) =>
+  generateToken({ id: userId, role: 'user', type: 'ACCESS' }, '15m');
+
+// ─── recordActivity (service-level) ──────────────────────────────────────────
+
+describe('recordActivity — idempotency', () => {
+  it('awards XP only once for same source+refId on same day', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    // segmentComplete XP + dailyStreakBonus (first day)
+    expect(profile.totalXp).toBe(XP.segmentComplete + XP.dailyStreakBonus);
+  });
+
+  it('awards XP for each distinct refId', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+    await service.recordActivity(userId1, 'segment_complete', 'seg-2');
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    // 2x segmentComplete + 1x streak bonus (same day)
+    expect(profile.totalXp).toBe(XP.segmentComplete * 2 + XP.dailyStreakBonus);
+  });
+});
+
+describe('recordActivity — streak transitions', () => {
+  it('first ever activity creates profile with streak=1', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    expect(profile.currentStreak).toBe(1);
+    expect(profile.longestStreak).toBe(1);
+    expect(profile.lastActiveDayKey).toBe(getDayKey());
+  });
+
+  it('same day second action does not increment streak', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+    await service.recordActivity(userId1, 'card_review', 'card-1:' + getDayKey());
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    expect(profile.currentStreak).toBe(1);
+  });
+
+  it('consecutive day increments streak', async () => {
+    const yesterday = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return getDayKey(d);
+    })();
+
+    // Seed yesterday's activity directly in the model
+    await UserGamification.create({
+      userId: userId1,
+      currentStreak: 3,
+      longestStreak: 3,
+      lastActiveDayKey: yesterday,
+      totalXp: 100,
+    });
+    await XpEvent.create({
+      userId: userId1,
+      source: 'daily_streak',
+      refId: yesterday,
+      amount: XP.dailyStreakBonus,
+    });
+
+    await service.recordActivity(userId1, 'segment_complete', 'seg-today');
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    expect(profile.currentStreak).toBe(4);
+    expect(profile.longestStreak).toBe(4);
+  });
+
+  it('gap day resets streak to 1', async () => {
+    const twoDaysAgo = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 2);
+      return getDayKey(d);
+    })();
+
+    await UserGamification.create({
+      userId: userId1,
+      currentStreak: 5,
+      longestStreak: 5,
+      lastActiveDayKey: twoDaysAgo,
+      totalXp: 200,
+    });
+
+    await service.recordActivity(userId1, 'segment_complete', 'seg-today');
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    expect(profile.currentStreak).toBe(1);
+    expect(profile.longestStreak).toBe(5); // longest preserved
+  });
+});
+
+describe('recordActivity — daily streak bonus', () => {
+  it('awards streak bonus on first activity of each new day', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    expect(profile.totalXp).toBe(XP.segmentComplete + XP.dailyStreakBonus);
+
+    const bonusEvent = await XpEvent.findOne({
+      userId: userId1,
+      source: 'daily_streak',
+      refId: getDayKey(),
+    });
+    expect(bonusEvent).not.toBeNull();
+  });
+
+  it('awards streak bonus only once per day (same-day second action)', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+    await service.recordActivity(userId1, 'card_review', 'card-1:' + getDayKey());
+
+    const bonusEvents = await XpEvent.find({
+      userId: userId1,
+      source: 'daily_streak',
+    });
+    expect(bonusEvents).toHaveLength(1);
+  });
+
+  it('two activities same day different source: both XP awarded, streak bonus once', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-1');
+    await service.recordActivity(userId1, 'card_review', 'card-1:' + getDayKey());
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    expect(profile.totalXp).toBe(
+      XP.segmentComplete + XP.cardReview + XP.dailyStreakBonus
+    );
+  });
+});
+
+describe('recordActivity — level computation', () => {
+  it('level updates when XP crosses threshold', async () => {
+    // Level 2 requires requiredXpForLevel(1) = 100 XP
+    // Each segment_complete = 10 XP + 20 streak bonus = 30 on first activity
+    // Seed a profile near threshold
+    await UserGamification.create({
+      userId: userId1,
+      totalXp: 89,
+      level: 1,
+      lastActiveDayKey: null,
+    });
+
+    // +10 XP segment + 20 streak bonus = 119 total → level 2
+    await service.recordActivity(userId1, 'segment_complete', 'seg-cross');
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    expect(profile.totalXp).toBe(89 + XP.segmentComplete + XP.dailyStreakBonus);
+    expect(profile.level).toBe(2);
+  });
+});
+
+// ─── GET /api/v1/gamification/streak ─────────────────────────────────────────
+
+describe('GET /api/v1/gamification/streak', () => {
+  it('returns 401 without token', async () => {
+    const res = await request(app).get('/api/v1/gamification/streak');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns currentStreak=0 and activeToday=false for new user', async () => {
+    const res = await request(app)
+      .get('/api/v1/gamification/streak')
+      .set('Authorization', `Bearer ${makeToken(userId1)}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toMatchObject({
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActiveDayKey: null,
+      activeToday: false,
+    });
+  });
+
+  it('returns activeToday=true after a real learning action', async () => {
+    await service.recordActivity(userId1, 'segment_complete', 'seg-http-test');
+
+    const res = await request(app)
+      .get('/api/v1/gamification/streak')
+      .set('Authorization', `Bearer ${makeToken(userId1)}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.currentStreak).toBeGreaterThanOrEqual(1);
+    expect(res.body.data.activeToday).toBe(true);
+  });
+
+  it('returns activeToday=false after streak from a previous day', async () => {
+    const yesterday = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return getDayKey(d);
+    })();
+
+    await UserGamification.create({
+      userId: userId1,
+      currentStreak: 2,
+      longestStreak: 2,
+      lastActiveDayKey: yesterday,
+      totalXp: 50,
+    });
+
+    const res = await request(app)
+      .get('/api/v1/gamification/streak')
+      .set('Authorization', `Bearer ${makeToken(userId1)}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.activeToday).toBe(false);
+    expect(res.body.data.currentStreak).toBe(2);
+  });
+
+  it('streak does not change from calling GET streak alone', async () => {
+    // Call GET streak multiple times without any learning action
+    await request(app)
+      .get('/api/v1/gamification/streak')
+      .set('Authorization', `Bearer ${makeToken(userId1)}`);
+    await request(app)
+      .get('/api/v1/gamification/streak')
+      .set('Authorization', `Bearer ${makeToken(userId1)}`);
+
+    const profile = await UserGamification.findOne({ userId: userId1 });
+    // ensureProfile creates a doc, but streak stays 0
+    expect(profile.currentStreak).toBe(0);
+    expect(profile.lastActiveDayKey).toBeNull();
+  });
+});
+

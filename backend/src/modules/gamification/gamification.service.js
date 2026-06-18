@@ -8,8 +8,7 @@ import {
 
 const SOURCE_XP_MAP = {
   segment_complete: XP.segmentComplete,
-  flashcard_review: XP.flashcardReview,
-  mcq_answer: XP.mcqAnswer,
+  card_review: XP.cardReview,
   battle_play: XP.battlePlay,
   battle_win: XP.battleWin,
   daily_streak: XP.dailyStreakBonus,

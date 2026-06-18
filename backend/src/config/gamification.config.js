@@ -13,8 +13,7 @@ export const TZ = validateTz(process.env.GAMIFY_TZ || DEFAULT_TZ);
 
 export const XP = {
   segmentComplete: 10,
-  flashcardReview: 3,
-  mcqAnswer: 3,
+  cardReview: 3,
   battlePlay: 15,
   battleWin: 35,
   dailyStreakBonus: 20,

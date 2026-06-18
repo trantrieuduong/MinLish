@@ -1,8 +1,10 @@
 import { Router } from 'express';
+import { protect } from '../../middlewares/auth.middleware.js';
 import * as controller from './gamification.controller.js';
 
 const router = Router();
 
-// Routes added in steps 1.1, 2.1, 2.2, 2.3
+// Module 1 — Streak
+router.get('/streak', protect, controller.getStreak);
 
 export default router;
