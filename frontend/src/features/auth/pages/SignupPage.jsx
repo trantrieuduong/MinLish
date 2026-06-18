@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import './SignupPage.css'
 
 function SignupPage({ onNavigate }) {
   const { signup } = useAuth()
+  const { t } = useTranslation()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,26 +19,26 @@ function SignupPage({ onNavigate }) {
     const newErrors = {}
 
     if (!fullName.trim()) {
-      newErrors.fullName = 'Họ và tên không được để trống'
+      newErrors.fullName = t('auth.nameEmptyError')
     }
 
     if (!email) {
-      newErrors.email = 'Email không được để trống'
+      newErrors.email = t('auth.emailEmptyError')
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(email)) {
-        newErrors.email = 'Email không hợp lệ'
+        newErrors.email = t('auth.emailInvalidError')
       }
     }
 
     if (!password) {
-      newErrors.password = 'Mật khẩu không được để trống'
+      newErrors.password = t('auth.passwordEmptyError')
     } else if (password.length < 6) {
-      newErrors.password = 'Mật khẩu phải chứa tối thiểu 6 ký tự'
+      newErrors.password = t('auth.passwordMinError')
     }
 
     if (password && confirmPassword !== password) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không trùng khớp'
+      newErrors.confirmPassword = t('auth.confirmPasswordMismatch')
     }
 
     setErrors(newErrors)
@@ -58,7 +60,6 @@ function SignupPage({ onNavigate }) {
         if (result.errors && Array.isArray(result.errors)) {
           const apiErrors = {}
           result.errors.forEach((err) => {
-            // map trường từ API (ví dụ name/email/password) sang UI
             const fieldMap = {
               name: 'fullName',
               email: 'email',
@@ -83,17 +84,17 @@ function SignupPage({ onNavigate }) {
   return (
     <div className="signup-wrapper">
       <div className="signup-card">
-        <h2 className="signup-title">Tạo tài khoản mới</h2>
-        <p className="signup-subtitle">Tham gia MinLish để bắt đầu học</p>
+        <h2 className="signup-title">{t('auth.signupTitle')}</h2>
+        <p className="signup-subtitle">{t('auth.signupSubtitle')}</p>
 
         {generalError && <div className="signup-error-message">{generalError}</div>}
 
         <form onSubmit={handleSubmit} className="signup-form">
           <Input
             id="fullName"
-            label="Họ và tên"
+            label={t('auth.fullNameLabel')}
             type="text"
-            placeholder="Nhập họ và tên của bạn"
+            placeholder={t('auth.fullNamePlaceholder')}
             value={fullName}
             onChange={(e) => {
               setFullName(e.target.value)
@@ -105,9 +106,9 @@ function SignupPage({ onNavigate }) {
 
           <Input
             id="email"
-            label="Email"
+            label={t('auth.emailLabel')}
             type="email"
-            placeholder="email@example.com"
+            placeholder={t('auth.emailPlaceholder')}
             value={email}
             onChange={(e) => {
               setEmail(e.target.value)
@@ -120,9 +121,9 @@ function SignupPage({ onNavigate }) {
 
           <Input
             id="password"
-            label="Mật khẩu"
+            label={t('auth.passwordLabel')}
             type="password"
-            placeholder="••••••••"
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
@@ -134,9 +135,9 @@ function SignupPage({ onNavigate }) {
 
           <Input
             id="confirmPassword"
-            label="Xác nhận mật khẩu"
+            label={t('auth.confirmPasswordLabel')}
             type="password"
-            placeholder="••••••••"
+            placeholder={t('auth.passwordPlaceholder')}
             value={confirmPassword}
             onChange={(e) => {
               setConfirmPassword(e.target.value)
@@ -147,14 +148,14 @@ function SignupPage({ onNavigate }) {
           />
 
           <button type="submit" className="signup-submit-btn" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang xử lý...' : 'Đăng ký'}
+            {isSubmitting ? t('auth.processing') : t('auth.signupBtn')}
           </button>
         </form>
 
         <div className="signup-footer">
-          <span>Đã có tài khoản? </span>
+          <span>{t('auth.hasAccount')}</span>
           <a href="/login" onClick={handleLoginClick} className="login-link">
-            Đăng nhập
+            {t('auth.loginNow')}
           </a>
         </div>
       </div>

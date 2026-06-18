@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import './Filters.css'
 
 function Filters({
@@ -8,12 +9,13 @@ function Filters({
   onCefrChange,
   onTagChange
 }) {
+  const { t } = useTranslation()
   return (
     <div className="filters-wrapper">
       {/* Lọc Trình độ */}
       {cefrLevels.length > 0 && (
         <div className="filter-group">
-          <span className="filter-label">TRÌNH ĐỘ</span>
+          <span className="filter-label">{t('filters.level')}</span>
           <div className="filter-options">
             {cefrLevels.map((level) => (
               <button
@@ -31,13 +33,13 @@ function Filters({
       {/* Lọc Chủ đề */}
       {tags.length > 0 && (
         <div className="filter-group">
-          <span className="filter-label">CHỦ ĐỀ</span>
+          <span className="filter-label">{t('filters.topic')}</span>
           <div className="filter-options tags-options">
             <button
               className={`filter-btn tag-btn ${selectedTagId === null ? 'active' : ''}`}
               onClick={() => onTagChange && onTagChange(null)}
             >
-              All
+              {t('filters.all')}
             </button>
             {tags.map((tag) => (
               <button

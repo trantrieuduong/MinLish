@@ -64,6 +64,34 @@
   gap: 16px;
 }
 
+.lang-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--rounded-full);
+  color: var(--color-on-surface-variant);
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  gap: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.lang-toggle-btn:hover {
+  background-color: var(--color-surface-container);
+  color: var(--color-primary);
+}
+
+.lang-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
 .theme-toggle-btn {
   background: none;
   border: none;

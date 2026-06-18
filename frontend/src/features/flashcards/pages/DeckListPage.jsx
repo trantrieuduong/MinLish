@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getSystemDecks, getUserDecks, getCefrLevels, getTags } from '../flashcardsApi'
 import Filters from '../../../components/Filters/Filters'
 import DeckCard from '../components/DeckCard'
 import './DeckListPage.css'
 
 function DeckListPage({ onNavigate }) {
+  const { t } = useTranslation()
   // Trạng thái tab: 'system' (Bộ từ hệ thống) hoặc 'user' (Bộ từ của bạn)
   const [activeTab, setActiveTab] = useState('system')
 
@@ -101,10 +103,10 @@ function DeckListPage({ onNavigate }) {
             setTotalPages(response.data.pagination.totalPages || 1)
           }
         } else {
-          setError(response.message || 'Không thể tải danh sách bộ từ')
+          setError(response.message || t('decks.fetchError'))
         }
       } catch (err) {
-        setError('Có lỗi xảy ra khi tải dữ liệu bộ từ. Vui lòng thử lại sau.')
+        setError(t('decks.serverError'))
       } finally {
         setLoading(false)
       }
@@ -139,13 +141,13 @@ function DeckListPage({ onNavigate }) {
           className={`deck-tab-btn ${activeTab === 'system' ? 'active' : ''}`}
           onClick={() => setActiveTab('system')}
         >
-          Bộ từ hệ thống
+          {t('decks.systemTab')}
         </button>
         <button
           className={`deck-tab-btn ${activeTab === 'user' ? 'active' : ''}`}
           onClick={() => setActiveTab('user')}
         >
-          Bộ từ của bạn
+          {t('decks.userTab')}
         </button>
       </div>
 
@@ -164,7 +166,7 @@ function DeckListPage({ onNavigate }) {
               <input
                 type="text"
                 className="deck-search-input"
-                placeholder="Tìm bộ từ theo tiêu đề..."
+                placeholder={t('decks.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -187,7 +189,7 @@ function DeckListPage({ onNavigate }) {
       {loading ? (
         <div className="decks-loading">
           <div className="deck-spinner"></div>
-          <p>Đang tải danh sách bộ từ...</p>
+          <p>{t('decks.loading')}</p>
         </div>
       ) : error ? (
         <div className="decks-error">
@@ -197,8 +199,8 @@ function DeckListPage({ onNavigate }) {
         <div className="decks-empty">
           <p>
             {activeTab === 'system'
-              ? 'Không tìm thấy bộ từ nào phù hợp với bộ lọc hiện tại.'
-              : 'Bạn chưa tạo bộ từ cá nhân nào.'}
+              ? t('decks.emptySystem')
+              : t('decks.emptyUser')}
           </p>
         </div>
       ) : (
