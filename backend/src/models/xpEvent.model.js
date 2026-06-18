@@ -12,8 +12,7 @@ const xpEventSchema = new mongoose.Schema(
       type: String,
       enum: [
         'segment_complete',
-        'flashcard_review',
-        'mcq_answer',
+        'card_review',
         'battle_play',
         'battle_win',
         'daily_streak',
