@@ -73,7 +73,7 @@ function LoginPage({ onNavigate }) {
             id="password"
             label="Mật khẩu"
             type="password"
-            placeholder="Tối thiểu 6 ký tự"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
