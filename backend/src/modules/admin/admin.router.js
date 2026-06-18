@@ -12,4 +12,10 @@ router.get('/tags/:id', adminController.getTagById);
 router.put('/tags/:id', adminController.updateTag);
 router.delete('/tags/:id', adminController.deleteTag);
 
+router.get('/decks', adminController.listDecks);
+router.post('/decks', adminController.createDeck);
+router.get('/decks/:id', adminController.getDeckById);
+router.put('/decks/:id', adminController.updateDeck);
+router.delete('/decks/:id', adminController.deleteDeck);
+
 export default router;

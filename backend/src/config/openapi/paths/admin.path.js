@@ -317,7 +317,8 @@ const DeckSlugConflict = {
             errors: [
               {
                 field: 'slug',
-                message: 'Slug của deck đã tồn tại trong hệ thống',
+                message:
+                  'Slug của deck đã tồn tại trong hệ thống. Vui lòng thay đổi slug hoặc title',
               },
             ],
           },
