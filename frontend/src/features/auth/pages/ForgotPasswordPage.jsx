@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import Input from '../../../components/Input/Input'
 import './ForgotPasswordPage.css'
 
 function ForgotPasswordPage({ onNavigate }) {
   const { forgotPassword } = useAuth()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
+  const [fieldError, setFieldError] = useState('')
   const [success, setSuccess] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -23,11 +25,12 @@ function ForgotPasswordPage({ onNavigate }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setFieldError('')
     setSuccess('')
 
     const emailError = validateEmail(email)
     if (emailError) {
-      setError(emailError)
+      setFieldError(emailError)
       return
     }
 
@@ -74,29 +77,19 @@ function ForgotPasswordPage({ onNavigate }) {
         {success && <div className="forgot-success-message">{success}</div>}
 
         <form onSubmit={handleSubmit} className="forgot-form">
-          <div className="input-group">
-            <label htmlFor="email" className="input-label">EMAIL</label>
-            <div className={`input-with-icon ${error ? 'input-error' : ''}`}>
-              <span className="input-icon-left">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
-              </span>
-              <input
-                id="email"
-                type="email"
-                placeholder="email@example.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  if (error) setError('')
-                }}
-                disabled={isSubmitting}
-                className="forgot-input-field"
-              />
-            </div>
-          </div>
+          <Input
+            id="email"
+            label="EMAIL"
+            type="email"
+            placeholder="email@example.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (fieldError) setFieldError('')
+              if (error) setError('')
+            }}
+            error={fieldError}
+          />
 
           <button type="submit" className="forgot-submit-btn" disabled={isSubmitting}>
             <span>{isSubmitting ? 'Đang xử lý...' : 'Gửi yêu cầu khôi phục'}</span>

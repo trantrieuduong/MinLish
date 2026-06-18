@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import Input from '../../../components/Input/Input'
 import './ResetPasswordPage.css'
 
 function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
@@ -18,6 +19,8 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
 
   // State thông báo & loading
   const [error, setError] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [confirmPasswordError, setConfirmPasswordError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -110,6 +113,8 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setPasswordError('')
+    setConfirmPasswordError('')
     setSuccessMessage('')
 
     // Validate mã OTP
@@ -121,15 +126,15 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
 
     // Validate mật khẩu mới
     if (!newPassword) {
-      setError('Mật khẩu mới không được để trống ở Bước 2.')
+      setPasswordError('Mật khẩu mới không được để trống.')
       return
     }
     if (newPassword.length < 6) {
-      setError('Mật khẩu mới phải chứa ít nhất 6 ký tự.')
+      setPasswordError('Mật khẩu mới phải chứa ít nhất 6 ký tự.')
       return
     }
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu xác nhận không trùng khớp.')
+      setConfirmPasswordError('Mật khẩu xác nhận không trùng khớp.')
       return
     }
 
@@ -232,68 +237,46 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
               <span className="step-number">2</span> Thiết lập mật khẩu mới
             </h3>
 
-            <div className="input-group">
-              <label htmlFor="newPassword" className="input-label">Mật khẩu mới</label>
-              <div className="input-with-icon">
-                <span className="input-icon-left">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                  </svg>
-                </span>
-                <input
-                  id="newPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Ít nhất 6 ký tự"
-                  value={newPassword}
-                  onChange={(e) => {
-                    setNewPassword(e.target.value)
-                    if (error) setError('')
+            <Input
+              id="newPassword"
+              label="Mật khẩu mới"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Ít nhất 6 ký tự"
+              value={newPassword}
+              onChange={(e) => {
+                setNewPassword(e.target.value)
+                if (passwordError) setPasswordError('')
+                if (error) setError('')
+              }}
+              rightElement={
+                <a
+                  href="/"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowPassword(!showPassword)
                   }}
-                  disabled={isSubmitting}
-                  className="reset-input-field"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="password-toggle-btn"
-                  title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  tabIndex={-1}
                 >
-                  {showPassword ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+                  {showPassword ? 'Ẩn' : 'Hiện'}
+                </a>
+              }
+              error={passwordError}
+            />
 
-            <div className="input-group" style={{ marginTop: '16px' }}>
-              <label htmlFor="confirmPassword" className="input-label">Xác nhận mật khẩu mới</label>
-              <div className="input-with-icon">
-                <span className="input-icon-left">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                  </svg>
-                </span>
-                <input
-                  id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Nhập lại mật khẩu mới"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value)
-                    if (error) setError('')
-                  }}
-                  disabled={isSubmitting}
-                  className="reset-input-field"
-                />
-              </div>
+            <div style={{ marginTop: '16px' }}>
+              <Input
+                id="confirmPassword"
+                label="Xác nhận mật khẩu mới"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Nhập lại mật khẩu mới"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value)
+                  if (confirmPasswordError) setConfirmPasswordError('')
+                  if (error) setError('')
+                }}
+                error={confirmPasswordError}
+              />
             </div>
 
             {/* Hint Box */}
