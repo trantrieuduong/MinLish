@@ -48,7 +48,7 @@ function SignupPage({ onNavigate }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setGeneralError('')
-    
+
     if (validate()) {
       setIsSubmitting(true)
       const result = await signup(fullName, email, password)
@@ -57,7 +57,7 @@ function SignupPage({ onNavigate }) {
       if (result.success) {
         if (onNavigate) onNavigate('/verify-email', email)
       } else {
-        if (result.errors && Array.isArray(result.errors)) {
+        if (result.errors && Array.isArray(result.errors) && result.errors.length > 0) {
           const apiErrors = {}
           result.errors.forEach((err) => {
             const fieldMap = {
