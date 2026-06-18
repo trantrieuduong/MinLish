@@ -26,7 +26,13 @@ function LoginPage({ onNavigate }) {
     setIsSubmitting(false)
 
     if (result.success) {
-      if (onNavigate) onNavigate('/')
+      if (onNavigate) {
+        if (result.user?.role === 'admin') {
+          onNavigate('/admin/decks')
+        } else {
+          onNavigate('/')
+        }
+      }
     } else {
       if (result.notVerified) {
         await resendOtp(email)

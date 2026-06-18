@@ -91,4 +91,33 @@ Hàm điều hướng:
   - Hiển thị danh sách bộ từ dạng lưới (grid) responsive thông qua component `DeckCard` hiển thị tối giản (ảnh đại diện, huy hiệu số lượng từ, các nhãn cấp độ/chủ đề, tiêu đề, và mô tả).
   - Hỗ trợ phân trang danh sách bộ từ và xử lý các trạng thái tải dữ liệu (Loading, Error, Empty).
 
+---
 
+## 3. Routes dành riêng cho Quản trị viên (Admin)
+
+Các route trong nhóm này yêu cầu người dùng đã đăng nhập với vai trò `admin`. Toàn bộ khu vực admin sử dụng bố cục riêng (`AdminLayout`) với Sidebar điều hướng và Header thông tin quản trị viên — **không hiển thị Header/Footer công khai**.
+
+### /admin (Trang tổng quan Admin)
+- **Mô tả**: Trang chào mừng của khu vực quản trị.
+- **Quyền truy cập**: Private — chỉ dành cho `role = admin`.
+- **Chức năng**: Hiện tại chưa có nội dung (placeholder). Sẽ được phát triển sau thành trang thống kê tổng quan (số người dùng, bài học, bộ từ vựng).
+
+### /admin/decks (Trang quản lý Bộ từ vựng)
+- **Mô tả**: Giao diện quản lý toàn bộ bộ từ vựng trong hệ thống.
+- **Quyền truy cập**: Private — chỉ dành cho `role = admin`.
+- **Chức năng**:
+  - Hiển thị danh sách tất cả bộ từ vựng dạng lưới (grid) kèm ảnh bìa, huy hiệu CEFR, thẻ danh mục, số lượng Topics và Cards.
+  - Hỗ trợ tìm kiếm theo tiêu đề (có debounce 400ms) và lọc theo Trình độ CEFR, Danh mục (Tag).
+  - Lưu trữ deck (archive): bấm icon archive sẽ chuyển trạng thái deck sang `archived`, deck bị làm mờ và hiển thị badge "Đã lưu trữ". Bấm icon bỏ lưu trữ để khôi phục về `draft`.
+  - Thẻ "Tạo bộ từ vựng mới" cuối cùng trong lưới điều hướng sang `/admin/decks/new`.
+  - Phân trang với hiển thị số lượng record hiện tại.
+  - Gọi API `GET /api/v1/admin/decks` (yêu cầu Bearer token admin).
+
+### /admin/decks/new (Trang tạo Bộ từ vựng mới)
+- **Mô tả**: Form tạo mới một bộ từ vựng cho hệ thống.
+- **Quyền truy cập**: Private — chỉ dành cho `role = admin`.
+- **Chức năng**:
+  - **Cột trái**: Nhập tiêu đề (bắt buộc, dùng component `Input` chung), mô tả chi tiết (textarea), khu vực tải ảnh bìa (hiển thị tượng trưng, chưa có chức năng).
+  - **Cột phải**: Chọn trình độ CEFR (multi-select dạng pill — A1 đến C2), chọn thẻ danh mục (có autocomplete từ danh sách tag có sẵn, hiển thị dạng chip có thể xóa), chọn trạng thái (Bản nháp / Công khai).
+  - Gọi API `POST /api/v1/admin/decks`. Thành công sẽ điều hướng về `/admin/decks` sau 1.2 giây.
+  - Nút "Hủy" điều hướng trở lại `/admin/decks` không lưu dữ liệu.

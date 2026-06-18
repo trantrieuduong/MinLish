@@ -9,17 +9,37 @@ import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage'
 import ResetPasswordPage from './features/auth/pages/ResetPasswordPage'
 import DeckListPage from './features/flashcards/pages/DeckListPage'
 import DeckDetailPage from './features/flashcards/pages/DeckDetailPage'
+import AdminLayout from './features/admin/layout/AdminLayout'
+import AdminDeckListPage from './features/admin/pages/AdminDeckListPage'
+import AdminDeckCreatePage from './features/admin/pages/AdminDeckCreatePage'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './context/AuthContext'
 import './App.css'
 
 
 function App() {
-  const { loading } = useAuth()
+  const { user, loading } = useAuth()
   const { t } = useTranslation()
   const [currentPath, setCurrentPath] = useState(window.location.pathname)
   const [signupEmail, setSignupEmail] = useState('')
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
+
+  // Route guarding & redirection logic
+  useEffect(() => {
+    if (!loading) {
+      if (user?.role === 'admin') {
+        // Redirect admin users to admin dashboard if they visit public/user pages
+        if (!currentPath.startsWith('/admin')) {
+          navigate('/admin/decks')
+        }
+      } else {
+        // Redirect non-admin users to login if they try to access admin pages
+        if (currentPath.startsWith('/admin')) {
+          navigate('/login')
+        }
+      }
+    }
+  }, [user, loading, currentPath])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -28,14 +48,6 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
-
-  if (loading) {
-    return (
-      <div className="app-loading-screen">
-        <div className="app-loading-spinner"></div>
-      </div>
-    )
-  }
 
   const navigate = (path, emailParam) => {
     window.history.pushState({}, '', path)
@@ -47,6 +59,29 @@ function App() {
         setSignupEmail(emailParam)
       }
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="app-loading-screen">
+        <div className="app-loading-spinner"></div>
+      </div>
+    )
+  }
+
+  const renderAdminContent = () => {
+    if (currentPath === '/admin/decks/new') {
+      return <AdminDeckCreatePage onNavigate={navigate} />
+    }
+    if (currentPath.startsWith('/admin/decks')) {
+      return <AdminDeckListPage onNavigate={navigate} />
+    }
+    // /admin or /admin/* (overview placeholder)
+    return (
+      <div style={{ padding: '40px', fontFamily: 'var(--font-family)', color: 'var(--color-on-surface-variant)' }}>
+        {t('admin.overviewEmpty')}
+      </div>
+    )
   }
 
   const renderContent = () => {
@@ -219,6 +254,15 @@ function App() {
           </main>
         )
     }
+  }
+
+  // Admin routes bypass public Header/Footer
+  if (currentPath.startsWith('/admin')) {
+    return (
+      <AdminLayout currentPath={currentPath} onNavigate={navigate}>
+        {renderAdminContent()}
+      </AdminLayout>
+    )
   }
 
   return (

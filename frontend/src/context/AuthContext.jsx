@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData))
         setUser(userData)
         setAccessToken(token)
-        return { success: true }
+        return { success: true, user: userData }
       }
       return { success: false, message: response.message || 'Đăng nhập không thành công' }
     } catch (error) {
