@@ -165,6 +165,7 @@ function LessonListPage({ onNavigate }) {
             <LessonCard
               key={item.lesson._id}
               lesson={item.lesson}
+              userProgress={item.userProgress}
               onClick={handleLessonClick}
             />
           ))}
