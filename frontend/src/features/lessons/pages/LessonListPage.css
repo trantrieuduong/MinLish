@@ -50,7 +50,8 @@
 }
 
 .search-input::placeholder {
-  color: var(--color-surface-dim);
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
 }
 
 /* Danh sách Grid bài học */
