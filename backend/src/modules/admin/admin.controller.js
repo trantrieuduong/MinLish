@@ -123,3 +123,81 @@ export const deleteDeck = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getDeckTopics = async (req, res, next) => {
+  try {
+    const topics = await deckService.getAdminDeckTopics(req.params.deckId);
+    return res
+      .status(200)
+      .json(successResponse('Lấy danh sách topic thành công', topics));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDeckTopic = async (req, res, next) => {
+  try {
+    const topic = await deckService.createAdminDeckTopic(
+      req.params.deckId,
+      req.body
+    );
+    return res
+      .status(201)
+      .json(successResponse('Tạo mới topic thành công', topic));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDeckTopicById = async (req, res, next) => {
+  try {
+    const topic = await deckService.getAdminDeckTopic(
+      req.params.deckId,
+      req.params.topicId
+    );
+    return res
+      .status(200)
+      .json(successResponse('Lấy chi tiết topic thành công', topic));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDeckTopic = async (req, res, next) => {
+  try {
+    const topic = await deckService.updateAdminDeckTopic(
+      req.params.deckId,
+      req.params.topicId,
+      req.body
+    );
+    return res
+      .status(200)
+      .json(successResponse('Cập nhật topic thành công', topic));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDeckTopic = async (req, res, next) => {
+  try {
+    await deckService.deleteAdminDeckTopic(
+      req.params.deckId,
+      req.params.topicId
+    );
+    return res.status(200).json(successResponse('Xóa topic thành công'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const reorderDeckTopics = async (req, res, next) => {
+  try {
+    await deckService.reorderAdminDeckTopics(
+      req.params.deckId,
+      req.body.topics
+    );
+    return res.status(200).json(successResponse('Sắp xếp topic thành công'));
+  } catch (error) {
+    next(error);
+  }
+};

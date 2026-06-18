@@ -235,3 +235,147 @@ export const deleteAdminDeck = async (deckId) => {
   await deck.save();
   return deck;
 };
+
+export const getAdminDeckTopics = async (deckId) => {
+  const deck = await Deck.findById(deckId);
+  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+  const topics = await Topic.find({ deckId }).sort({ order: 1 });
+  return topics;
+};
+
+export const createAdminDeckTopic = async (deckId, data) => {
+  const deck = await Deck.findById(deckId);
+  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+
+  if (!data.name)
+    throw new AppError('Dữ liệu không hợp lệ', 400, [
+      {
+        field: 'name',
+        message: 'Trường name là bắt buộc',
+      },
+    ]);
+
+  const last = await Topic.findOne({ deckId })
+    .sort({ order: -1 })
+    .select('order');
+  const nextOrder = last ? last.order + 1 : 1;
+  let slug = data.slug;
+  if (!data.slug) slug = generateSlug(data.name);
+  const existing = await Topic.findOne({ deckId, slug });
+  if (existing)
+    throw new AppError('Dữ liệu đã tồn tại', 409, [
+      {
+        field: 'slug',
+        message: 'Slug của topic đã tồn tại. Vui lòng thay đổi slug hoặc title',
+      },
+    ]);
+
+  const topic = await Topic.create({
+    deckId,
+    name: data.name,
+    slug,
+    order: nextOrder,
+    cardCount: 0,
+  });
+  await Deck.updateOne({ _id: deckId }, { $inc: { topicCount: 1 } });
+  return topic;
+};
+
+export const getAdminDeckTopic = async (deckId, topicId) => {
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError('Không tìm thấy deck hoặc topic', 404);
+  return topic;
+};
+
+export const updateAdminDeckTopic = async (deckId, topicId, data) => {
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError('Không tìm thấy deck hoặc topic', 404);
+
+  let slug = data.slug;
+  if (!data.slug) slug = generateSlug(data.name);
+  const existing = await Topic.findOne({ deckId, slug, _id: { $ne: topicId } });
+  if (existing)
+    throw new AppError('Dữ liệu đã tồn tại', 409, [
+      {
+        field: 'slug',
+        message: 'Slug của topic đã tồn tại. Vui lòng thay đổi slug hoặc title',
+      },
+    ]);
+  topic.slug = slug;
+
+  if (data.name) topic.name = data.name;
+  else
+    throw new AppError('Dữ liệu không hợp lệ', 400, [
+      {
+        field: 'name',
+        message: 'Trường name là bắt buộc',
+      },
+    ]);
+  await topic.save();
+  return topic;
+};
+
+export const deleteAdminDeckTopic = async (deckId, topicId) => {
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError('Không tìm thấy deck hoặc topic', 404);
+
+  const cardIds = await Card.find({ deckId, topicId }).distinct('_id');
+  // distinct('_id') trả về mảng thuần:
+  // [ ObjectId("66a..."), ObjectId("66b...")]
+  // find().select('_id') trả về mảng document:
+  // [ { _id: ObjectId("66a...") }, { _id: ObjectId("66b...") }]
+
+  await Promise.all([
+    Card.deleteMany({ deckId, topicId }),
+    UserCardState.deleteMany({ cardId: { $in: cardIds } }),
+  ]);
+  await topic.deleteOne();
+  await Deck.updateOne(
+    { _id: deckId },
+    { $inc: { topicCount: -1, cardCount: -cardIds.length } }
+  );
+};
+
+export const reorderAdminDeckTopics = async (deckId, topics) => {
+  const errors = [];
+  if (!Array.isArray(topics) || topics.length === 0) {
+    errors.push({
+      field: 'topics',
+      message: 'Trường topics phải là một mảng và không được rỗng',
+    });
+  } else {
+    topics.forEach((item, index) => {
+      if (!item.topicId) {
+        errors.push({
+          field: `topics[${index}].topicId`,
+          message: 'Trường topicId là bắt buộc',
+        });
+      }
+      if (!item.order || !Number.isInteger(item.order) || item.order < 1) {
+        errors.push({
+          field: `topics[${index}].order`,
+          message:
+            'Trường order là bắt buộc và phải là số nguyên lớn hơn hoặc bằng 1',
+        });
+      }
+    });
+  }
+
+  if (errors.length > 0) {
+    throw new AppError('Dữ liệu không hợp lệ', 400, errors);
+  }
+
+  const deck = await Deck.findById(deckId);
+  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+
+  const bulkOps = topics.map(({ topicId, order }) => ({
+    updateOne: {
+      filter: { _id: topicId, deckId },
+      // deckId là để kiểm tra deck này có đúng là chứa topic này không, tránh giả deckId
+      update: { $set: { order } },
+    },
+  }));
+  if (bulkOps.length > 0) {
+    await Topic.bulkWrite(bulkOps); // Chạy tất cả update trong một lần gọi MongoDB
+  }
+};
