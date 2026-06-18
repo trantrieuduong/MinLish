@@ -13,7 +13,7 @@ function LoginPage({ onNavigate }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (!email.trim() || !password) {
       setError('Vui lòng điền đầy đủ email và mật khẩu')
       return
@@ -79,7 +79,7 @@ function LoginPage({ onNavigate }) {
               if (error) setError('')
             }}
             rightElement={
-              <a href="/" onClick={handleForgotPasswordClick}>
+              <a href="/" onClick={handleForgotPasswordClick} tabIndex={-1}>
                 Quên mật khẩu?
               </a>
             }
