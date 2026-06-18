@@ -464,11 +464,6 @@ export default {
         example: 'family',
         description: 'URL thân thiện. Nếu bỏ trống tự sinh từ name.',
       },
-      order: {
-        type: 'integer',
-        example: 1,
-        description: 'Thứ tự hiển thị. Nếu bỏ trống hệ thống tự thêm vào cuối.',
-      },
     },
   },
   TopicReorderPayload: {

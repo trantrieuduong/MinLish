@@ -143,7 +143,7 @@ forgot-password, reset-password tương tự
 - POST /api/v1/admin/decks — tạo deck mới.
 - GET /api/v1/admin/decks/{deckId} — chi tiết deck.
 - PUT /api/v1/admin/decks/{deckId} — cập nhật deck.
-- DELETE /api/v1/admin/decks/{deckId} — xóa deck.
+- DELETE /api/v1/admin/decks/{deckId} — xóa mềm deck (đổi status sang archived).
 
 ## **Deck topics management**
 
