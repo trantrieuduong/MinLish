@@ -46,7 +46,7 @@ export const submitDictationProgress = async (
   );
 
   // Recalculate lesson-level progress
-  await recalculateLessonProgress(userId, lessonId, segment.order);
+  await recalculateLessonProgress(userId, lessonId, segment.startMs);
   return { score, completed, progress };
 };
 
@@ -86,12 +86,12 @@ const calculateDictationScore = (userInput, normalized) => {
 /**
  * @param {string} userId
  * @param {string} lessonId
- * @param {number} currentSegmentOrder
+ * @param {number} currentSegmentStartMs
  */
 const recalculateLessonProgress = async (
   userId,
   lessonId,
-  currentSegmentOrder
+  currentSegmentStartMs
 ) => {
   const [allSegments, completedSegments] = await Promise.all([
     // -> Chạy song song - Nhanh hơn viết 2 dòng await
@@ -110,7 +110,7 @@ const recalculateLessonProgress = async (
     {
       $set: {
         'dictation.progressPct': progressPercent,
-        'dictation.lastSegmentOrder': currentSegmentOrder,
+        'dictation.lastSegmentOrder': currentSegmentStartMs,
         'dictation.status':
           progressPercent === 100 ? 'completed' : 'in_progress',
         updatedAt: new Date(),

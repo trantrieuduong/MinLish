@@ -43,12 +43,11 @@ const makeLesson = (over = {}) =>
     ...over,
   });
 
-const makeSegment = (lessonId, order = 1) =>
+const makeSegment = (lessonId, startMs = 1000) =>
   LessonSegment.create({
     lessonId,
-    order,
-    startMs: 1000,
-    endMs: 1500,
+    startMs,
+    endMs: startMs + 500,
     transcript: { original: 'hello', normalized: 'hello' },
     translation: 'xin chào',
   });
@@ -167,7 +166,7 @@ describe('GET /api/v1/lessons/:lessonId/segments/:segmentId', () => {
   describe('response shape', () => {
     it('returns correct envelope with segment + userProgress', async () => {
       const lesson = await makeLesson();
-      const seg = await makeSegment(lesson._id, 3);
+      const seg = await makeSegment(lesson._id, 3000);
 
       const res = await request(app).get(url(lesson._id, seg._id));
 
@@ -176,7 +175,7 @@ describe('GET /api/v1/lessons/:lessonId/segments/:segmentId', () => {
         success: true,
         message: 'Lấy chi tiết segment thành công',
         data: {
-          segment: { order: 3 },
+          segment: { startMs: 3000 },
         },
       });
       expect(res.body.data).toHaveProperty('userProgress');

@@ -33,7 +33,7 @@ forgot-password, reset-password tương tự
 ## **Lessons**
 
 - GET /api/v1/lessons/{lessonId} — chi tiết một lesson đã publish. Yêu cầu đăng nhập.
-- GET /api/v1/lessons/{lessonId}/segments — danh sách segment của lesson theo order. Yêu cầu đăng nhập.
+- GET /api/v1/lessons/{lessonId}/segments — danh sách segment của lesson, sắp xếp theo startMs tăng dần. Yêu cầu đăng nhập.
 - GET /api/v1/lessons/{lessonId}/segments/{segmentId} — chi tiết một segment. Yêu cầu đăng nhập.
 
 ## **Profile**
@@ -137,7 +137,7 @@ forgot-password, reset-password tương tự
 - GET /api/v1/admin/lessons/{lessonId}/segments — danh sách segment của lesson.
 - POST /api/v1/admin/lessons/{lessonId}/segments — tạo segment mới.
 - GET /api/v1/admin/lessons/{lessonId}/segments/{segmentId} — chi tiết segment.
-- PUT /api/v1/admin/lessons/{lessonId}/segments/{segmentId} — cập nhật segment như order, startMs, endMs, transcript, translation.
+- PUT /api/v1/admin/lessons/{lessonId}/segments/{segmentId} — cập nhật segment như startMs, endMs, transcript, translation.
 - DELETE /api/v1/admin/lessons/{lessonId}/segments/{segmentId} — xóa segment.
 
 ## **Decks management**

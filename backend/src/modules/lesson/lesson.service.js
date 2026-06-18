@@ -73,7 +73,7 @@ export const getSegmentsByLessonId = async (lessonId, userId) => {
   const lesson = await Lesson.findOne({ _id: lessonId, status: 'published' });
   if (!lesson) throw new AppError('Không tìm thấy bài học', 404);
 
-  const segments = await LessonSegment.find({ lessonId }).sort({ order: 1 });
+  const segments = await LessonSegment.find({ lessonId }).sort({ startMs: 1 });
 
   // Merge the current user's per-segment progress (one query, keyed by segmentId).
   let progressMap = {};

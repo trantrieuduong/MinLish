@@ -182,10 +182,6 @@ const SegmentBadRequest = {
             message: 'Dữ liệu không hợp lệ',
             errors: [
               {
-                field: 'order',
-                message: 'Trường order là bắt buộc và phải >= 1',
-              },
-              {
                 field: 'startMs',
                 message: 'Trường startMs là bắt buộc và phải >= 0',
               },
@@ -201,30 +197,6 @@ const SegmentBadRequest = {
               {
                 field: 'translation',
                 message: 'Trường translation là bắt buộc',
-              },
-            ],
-          },
-        },
-      },
-    },
-  },
-};
-
-const SegmentOrderConflict = {
-  description: 'Thứ tự segment (order) đã tồn tại',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        DuplicateOrder: {
-          summary: 'Trùng thứ tự',
-          value: {
-            success: false,
-            message: 'Dữ liệu đã tồn tại',
-            errors: [
-              {
-                field: 'order',
-                message: 'Thứ tự segment (order) này đã tồn tại trong lesson',
               },
             ],
           },
@@ -1312,7 +1284,6 @@ export default {
           },
         },
         400: SegmentBadRequest,
-        409: SegmentOrderConflict,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
         500: { $ref: '#/components/responses/ServerError' },
@@ -1410,7 +1381,6 @@ export default {
           },
         },
         400: SegmentBadRequest,
-        409: SegmentOrderConflict,
         404: LessonOrSegmentNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },

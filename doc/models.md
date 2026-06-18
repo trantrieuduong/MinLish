@@ -54,8 +54,7 @@ lesson_segments
 | :---------------------- | :-------------------------------------------------- |
 | `_id`                   | ID segment.                                         |
 | `lessonId`              | Segment thuộc lesson nào.                           |
-| `order`                 | Thứ tự segment trong lesson, ví dụ câu 1, 2, 3\.    |
-| `startMs`               | Thời điểm bắt đầu trong video, tính bằng mili giây. |
+| `startMs`               | Thời điểm bắt đầu trong video, tính bằng mili giây. Dùng để sắp xếp thứ tự segment. |
 | `endMs`                 | Thời điểm kết thúc trong video.                     |
 | `transcript.original`   | Câu gốc đầy đủ.                                     |
 | `transcript.normalized` | Chuẩn hóa để so sánh                                |

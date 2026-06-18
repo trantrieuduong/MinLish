@@ -43,37 +43,36 @@ const makeLesson = (over = {}) =>
     ...over,
   });
 
-const makeSegment = (lessonId, order) =>
+const makeSegment = (lessonId, startMs) =>
   LessonSegment.create({
     lessonId,
-    order,
-    startMs: order * 1000,
-    endMs: order * 1000 + 500,
-    transcript: { original: `line ${order}`, normalized: `line ${order}` },
-    translation: `dòng ${order}`,
+    startMs,
+    endMs: startMs + 500,
+    transcript: { original: `line ${startMs}`, normalized: `line ${startMs}` },
+    translation: `dòng ${startMs}`,
   });
 
 const url = (lessonId) => `/api/v1/lessons/${lessonId}/segments`;
 
 describe('GET /api/v1/lessons/:lessonId/segments', () => {
   describe('data shape (spec: data is an array of {segment, userProgress})', () => {
-    it('returns segments ordered by order as a flat array', async () => {
+    it('returns segments ordered by startMs as a flat array', async () => {
       const lesson = await makeLesson();
-      await makeSegment(lesson._id, 2);
-      await makeSegment(lesson._id, 1);
+      await makeSegment(lesson._id, 2000);
+      await makeSegment(lesson._id, 1000);
 
       const res = await request(app).get(url(lesson._id));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.map((i) => i.segment.order)).toEqual([1, 2]);
+      expect(res.body.data.map((i) => i.segment.startMs)).toEqual([1000, 2000]);
       expect(res.body.data[0]).toHaveProperty('segment');
       expect(res.body.data[0]).toHaveProperty('userProgress');
     });
 
     it('uses the spec message', async () => {
       const lesson = await makeLesson();
-      await makeSegment(lesson._id, 1);
+      await makeSegment(lesson._id, 1000);
 
       const res = await request(app).get(url(lesson._id));
 
@@ -84,7 +83,8 @@ describe('GET /api/v1/lessons/:lessonId/segments', () => {
   describe('optional auth + userProgress', () => {
     it('returns userProgress null for anonymous request', async () => {
       const lesson = await makeLesson();
-      const seg = await makeSegment(lesson._id, 1);
+      const seg = await makeSegment(lesson._id, 1000);
+
       await UserSegmentProgress.create({
         userId: testUserId,
         lessonId: lesson._id,
@@ -100,7 +100,8 @@ describe('GET /api/v1/lessons/:lessonId/segments', () => {
 
     it("attaches the current user's segment progress when authenticated", async () => {
       const lesson = await makeLesson();
-      const seg = await makeSegment(lesson._id, 1);
+      const seg = await makeSegment(lesson._id, 1000);
+
       await UserSegmentProgress.create({
         userId: testUserId,
         lessonId: lesson._id,
@@ -120,7 +121,8 @@ describe('GET /api/v1/lessons/:lessonId/segments', () => {
 
     it("does not attach another user's progress", async () => {
       const lesson = await makeLesson();
-      const seg = await makeSegment(lesson._id, 1);
+      const seg = await makeSegment(lesson._id, 1000);
+
       await UserSegmentProgress.create({
         userId: otherUserId,
         lessonId: lesson._id,
@@ -137,7 +139,7 @@ describe('GET /api/v1/lessons/:lessonId/segments', () => {
 
     it('treats an invalid token as anonymous (200, not 401)', async () => {
       const lesson = await makeLesson();
-      await makeSegment(lesson._id, 1);
+      await makeSegment(lesson._id, 1000);
 
       const res = await request(app)
         .get(url(lesson._id))
@@ -151,7 +153,7 @@ describe('GET /api/v1/lessons/:lessonId/segments', () => {
   describe('visibility', () => {
     it('returns 404 for a draft lesson', async () => {
       const lesson = await makeLesson({ status: 'draft' });
-      await makeSegment(lesson._id, 1);
+      await makeSegment(lesson._id, 1000);
 
       const res = await request(app).get(url(lesson._id));
 

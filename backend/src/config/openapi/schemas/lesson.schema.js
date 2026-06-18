@@ -214,10 +214,6 @@ export default {
         type: 'string',
         example: '665f1f77bcf86cd799439013',
       },
-      order: {
-        type: 'integer',
-        example: 1,
-      },
       startMs: {
         type: 'integer',
         example: 12500,

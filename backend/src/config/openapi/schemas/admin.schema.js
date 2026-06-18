@@ -281,12 +281,6 @@ export default {
         example: '64a1234567890abcdef12345',
         description: 'Segment thuộc lesson nào.',
       },
-      order: {
-        type: 'integer',
-        minimum: 1,
-        example: 1,
-        description: 'Thứ tự segment trong lesson (phải >= 1).',
-      },
       startMs: {
         type: 'integer',
         minimum: 0,
@@ -336,14 +330,8 @@ export default {
   },
   SegmentPayload: {
     type: 'object',
-    required: ['order', 'startMs', 'endMs', 'transcript', 'translation'],
+    required: ['startMs', 'endMs', 'transcript', 'translation'],
     properties: {
-      order: {
-        type: 'integer',
-        minimum: 1,
-        example: 1,
-        description: 'Thứ tự segment trong lesson (phải >= 1).',
-      },
       startMs: {
         type: 'integer',
         minimum: 0,
