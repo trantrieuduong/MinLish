@@ -28,13 +28,20 @@ export const AuthProvider = ({ children }) => {
           setAccessToken(newToken)
         }
       } catch (error) {
-        // Nếu refresh lỗi, ta kiểm tra xem có token cũ trong localStorage hay không
+        // Nếu refresh lỗi, kiểm tra xem có token cũ trong localStorage hay không
         // Nếu có mà lỗi 401 thì xoá đi để người dùng đăng nhập lại
         if (error.response && error.response.status === 401) {
           localStorage.removeItem('accessToken')
           localStorage.removeItem('user')
           setUser(null)
           setAccessToken(null)
+
+          // Chuyển hướng sang trang đăng nhập nếu không ở các trang auth công khai
+          const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email']
+          if (!publicPaths.includes(window.location.pathname)) {
+            window.history.pushState({}, '', '/login')
+            window.dispatchEvent(new PopStateEvent('popstate'))
+          }
         }
       } finally {
         setLoading(false)
