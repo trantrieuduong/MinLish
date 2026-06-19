@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import './ForgotPasswordPage.css'
 
 function ForgotPasswordPage({ onNavigate }) {
   const { forgotPassword } = useAuth()
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [fieldError, setFieldError] = useState('')
@@ -13,11 +15,11 @@ function ForgotPasswordPage({ onNavigate }) {
 
   const validateEmail = (val) => {
     if (!val) {
-      return 'Email không được để trống'
+      return t('auth.emailEmptyError')
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(val)) {
-      return 'Email không đúng định dạng'
+      return t('auth.emailInvalidError')
     }
     return ''
   }
@@ -38,7 +40,7 @@ function ForgotPasswordPage({ onNavigate }) {
     const result = await forgotPassword(email)
 
     if (result.success) {
-      setSuccess(result.message || 'Mã OTP đã được gửi đến email của bạn.')
+      setSuccess(result.message || t('auth.otpSentSuccess'))
       setTimeout(() => {
         if (onNavigate) {
           // Chuyển hướng sang trang reset-password và truyền email qua tham số
@@ -68,9 +70,9 @@ function ForgotPasswordPage({ onNavigate }) {
           </svg>
         </div>
 
-        <h2 className="forgot-title">Quên mật khẩu</h2>
+        <h2 className="forgot-title">{t('auth.forgotPasswordTitle')}</h2>
         <p className="forgot-subtitle">
-          Nhập email của bạn để nhận hướng dẫn khôi phục mật khẩu.
+          {t('auth.forgotPasswordSubtitle')}
         </p>
 
         {error && <div className="forgot-error-message">{error}</div>}
@@ -79,9 +81,9 @@ function ForgotPasswordPage({ onNavigate }) {
         <form onSubmit={handleSubmit} className="forgot-form">
           <Input
             id="email"
-            label="EMAIL"
+            label={t('auth.emailLabel')}
             type="email"
-            placeholder="email@example.com"
+            placeholder={t('auth.emailPlaceholder')}
             value={email}
             onChange={(e) => {
               setEmail(e.target.value)
@@ -92,7 +94,7 @@ function ForgotPasswordPage({ onNavigate }) {
           />
 
           <button type="submit" className="forgot-submit-btn" disabled={isSubmitting}>
-            <span>{isSubmitting ? 'Đang xử lý...' : 'Gửi yêu cầu khôi phục'}</span>
+            <span>{isSubmitting ? t('auth.processing') : t('auth.forgotPasswordBtn')}</span>
             {!isSubmitting && (
               <svg className="forgot-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -108,7 +110,7 @@ function ForgotPasswordPage({ onNavigate }) {
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
-            Quay lại Đăng nhập
+            {t('auth.backToLogin')}
           </a>
         </div>
       </div>

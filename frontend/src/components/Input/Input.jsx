@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import './Input.css'
 
 function Input({ label, type = 'text', placeholder, value, onChange, id, rightElement, error, ...props }) {
+  const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
@@ -32,7 +34,7 @@ function Input({ label, type = 'text', placeholder, value, onChange, id, rightEl
             className="password-toggle-btn"
             onClick={() => setShowPassword(!showPassword)}
             tabIndex={-1}
-            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
+            aria-label={showPassword ? t('input.hidePassword') : t('input.showPassword')}
           >
             {showPassword ? (
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

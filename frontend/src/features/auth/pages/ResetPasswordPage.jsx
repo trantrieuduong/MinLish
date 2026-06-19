@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import './ResetPasswordPage.css'
 
 function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
   const { resetPassword, forgotPassword } = useAuth()
+  const { t } = useTranslation()
 
   // State cho Step 1 (OTP)
   const [otp, setOtp] = useState(Array(6).fill(''))
@@ -15,7 +17,6 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
   // State cho Step 2 (Mật khẩu mới)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
 
   // State thông báo & loading
   const [error, setError] = useState('')
@@ -98,7 +99,7 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
     setIsSubmitting(false)
 
     if (result.success) {
-      setSuccessMessage(result.message || 'Mã OTP mới đã được gửi thành công.')
+      setSuccessMessage(result.message || t('auth.otpResentSuccess'))
       setTimeLeft(cooldownSetting)
       setOtp(Array(6).fill(''))
       if (otpInputRefs[0].current) {
@@ -120,21 +121,21 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
     // Validate mã OTP
     const otpCode = otp.join('')
     if (otpCode.length < 6) {
-      setError('Vui lòng nhập đầy đủ mã xác thực gồm 6 chữ số ở Bước 1.')
+      setError(t('auth.otpRequired'))
       return
     }
 
     // Validate mật khẩu mới
     if (!newPassword) {
-      setPasswordError('Mật khẩu mới không được để trống.')
+      setPasswordError(t('auth.newPasswordRequired'))
       return
     }
     if (newPassword.length < 6) {
-      setPasswordError('Mật khẩu mới phải chứa ít nhất 6 ký tự.')
+      setPasswordError(t('auth.passwordMinError'))
       return
     }
     if (newPassword !== confirmPassword) {
-      setConfirmPasswordError('Mật khẩu xác nhận không trùng khớp.')
+      setConfirmPasswordError(t('auth.confirmPasswordMismatch'))
       return
     }
 
@@ -142,7 +143,7 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
     const result = await resetPassword(email, otpCode, newPassword)
 
     if (result.success) {
-      setSuccessMessage('Cập nhật mật khẩu thành công! Đang chuyển hướng về trang Đăng nhập...')
+      setSuccessMessage(t('auth.resetSuccess'))
       setTimeout(() => {
         if (onNavigate) onNavigate('/login')
       }, 1500)
@@ -173,8 +174,8 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
           </svg>
         </div>
 
-        <h2 className="reset-title">Cập nhật tài khoản</h2>
-        <p className="reset-subtitle">Xác thực OTP và thiết lập mật khẩu mới của bạn</p>
+        <h2 className="reset-title">{t('auth.resetTitle')}</h2>
+        <p className="reset-subtitle">{t('auth.resetSubtitle')}</p>
 
         {error && <div className="reset-error-message">{error}</div>}
         {successMessage && <div className="reset-success-message">{successMessage}</div>}
@@ -184,7 +185,7 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
           {/* STEP 1: XÁC THỰC OTP */}
           <div className="step-section">
             <h3 className="step-title">
-              <span className="step-number">1</span> Xác thực OTP
+              <span className="step-number">1</span> {t('auth.step1Otp')}
             </h3>
 
             <div className="step-email-row">
@@ -193,11 +194,11 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
                   <line x1="19" y1="12" x2="5" y2="12" />
                   <polyline points="12 19 5 12 12 5" />
                 </svg>
-                Sai email? Nhập lại email
+                {t('auth.wrongEmailLink')}
               </a>
             </div>
 
-            <p className="step-desc">Vui lòng nhập mã 6 chữ số đã được gửi đến email</p>
+            <p className="step-desc">{t('auth.step1Desc')}</p>
 
             <div className="otp-container" onPaste={handleOtpPaste}>
               {otp.map((digit, index) => (
@@ -220,10 +221,10 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
 
             <div className="otp-resend-row">
               {timeLeft > 0 ? (
-                <span className="resend-cooldown-text">Gửi lại mã sau ({timeLeft}s)</span>
+                <span className="resend-cooldown-text">{t('auth.resendCooldown', { seconds: timeLeft })}</span>
               ) : (
                 <a href="/" onClick={handleResendOtp} className="resend-link">
-                  Gửi lại mã
+                  {t('auth.resendLink')}
                 </a>
               )}
             </div>
@@ -234,41 +235,29 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
           {/* STEP 2: THIẾT LẬP MẬT KHẨU MỚI */}
           <div className="step-section">
             <h3 className="step-title">
-              <span className="step-number">2</span> Thiết lập mật khẩu mới
+              <span className="step-number">2</span> {t('auth.step2Password')}
             </h3>
 
             <Input
               id="newPassword"
-              label="Mật khẩu mới"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Ít nhất 6 ký tự"
+              label={t('auth.newPasswordLabel')}
+              type="password"
+              placeholder={t('auth.passwordPlaceholder')}
               value={newPassword}
               onChange={(e) => {
                 setNewPassword(e.target.value)
                 if (passwordError) setPasswordError('')
                 if (error) setError('')
               }}
-              rightElement={
-                <a
-                  href="/"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setShowPassword(!showPassword)
-                  }}
-                  tabIndex={-1}
-                >
-                  {showPassword ? 'Ẩn' : 'Hiện'}
-                </a>
-              }
               error={passwordError}
             />
 
             <div style={{ marginTop: '16px' }}>
               <Input
                 id="confirmPassword"
-                label="Xác nhận mật khẩu mới"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Nhập lại mật khẩu mới"
+                label={t('auth.confirmNewPasswordLabel')}
+                type="password"
+                placeholder={t('auth.confirmPasswordPlaceholder')}
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value)
@@ -286,12 +275,12 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
                 <line x1="12" y1="16" x2="12" y2="12" />
                 <line x1="12" y1="8" x2="12.01" y2="8" />
               </svg>
-              <span>Mật khẩu nên bao gồm cả chữ cái và số để bảo mật tốt nhất.</span>
+              <span>{t('auth.passwordHint')}</span>
             </div>
           </div>
 
           <button type="submit" className="reset-submit-btn" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
+            {isSubmitting ? t('auth.updating') : t('auth.resetBtn')}
           </button>
         </form>
 
@@ -301,7 +290,7 @@ function ResetPasswordPage({ email = 'user@example.com', onNavigate }) {
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
-            Quay lại trang đăng nhập
+            {t('auth.backToLogin')}
           </a>
         </div>
       </div>

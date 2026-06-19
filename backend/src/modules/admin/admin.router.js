@@ -18,4 +18,17 @@ router.get('/decks/:id', adminController.getDeckById);
 router.put('/decks/:id', adminController.updateDeck);
 router.delete('/decks/:id', adminController.deleteDeck);
 
+router.get('/decks/:deckId/topics', adminController.getDeckTopics);
+router.post('/decks/:deckId/topics', adminController.createDeckTopic);
+router.get('/decks/:deckId/topics/:topicId', adminController.getDeckTopicById);
+router.put('/decks/:deckId/topics/:topicId', adminController.updateDeckTopic);
+router.delete(
+  '/decks/:deckId/topics/:topicId',
+  adminController.deleteDeckTopic
+);
+router.patch(
+  '/decks/:deckId/topics/reorder',
+  adminController.reorderDeckTopics
+);
+
 export default router;

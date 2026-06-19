@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import './LoginPage.css'
 
 function LoginPage({ onNavigate }) {
   const { login, resendOtp } = useAuth()
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -15,7 +17,7 @@ function LoginPage({ onNavigate }) {
     setError('')
 
     if (!email.trim() || !password) {
-      setError('Vui lòng điền đầy đủ email và mật khẩu')
+      setError(t('auth.loginEmptyError'))
       return
     }
 
@@ -24,12 +26,16 @@ function LoginPage({ onNavigate }) {
     setIsSubmitting(false)
 
     if (result.success) {
-      if (onNavigate) onNavigate('/')
+      if (onNavigate) {
+        if (result.user?.role === 'admin') {
+          onNavigate('/admin/decks')
+        } else {
+          onNavigate('/')
+        }
+      }
     } else {
       if (result.notVerified) {
-        // Tự động gọi API gửi yêu cầu verify email
         await resendOtp(email)
-        // Chuyển hướng sang trang verify-email kèm email
         if (onNavigate) onNavigate('/verify-email', email)
       } else {
         setError(result.message)
@@ -50,17 +56,17 @@ function LoginPage({ onNavigate }) {
   return (
     <div className="login-wrapper">
       <div className="login-card">
-        <h2 className="login-title">Chào mừng quay trở lại</h2>
-        <p className="login-subtitle">Vui lòng đăng nhập để tiếp tục</p>
+        <h2 className="login-title">{t('auth.loginTitle')}</h2>
+        <p className="login-subtitle">{t('auth.loginSubtitle')}</p>
 
         {error && <div className="login-error-message">{error}</div>}
 
         <form onSubmit={handleSubmit} className="login-form">
           <Input
             id="email"
-            label="Email"
+            label={t('auth.emailLabel')}
             type="email"
-            placeholder="email@example.com"
+            placeholder={t('auth.emailPlaceholder')}
             value={email}
             onChange={(e) => {
               setEmail(e.target.value)
@@ -71,9 +77,9 @@ function LoginPage({ onNavigate }) {
 
           <Input
             id="password"
-            label="Mật khẩu"
+            label={t('auth.passwordLabel')}
             type="password"
-            placeholder="••••••••"
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
@@ -81,14 +87,14 @@ function LoginPage({ onNavigate }) {
             }}
             rightElement={
               <a href="/" onClick={handleForgotPasswordClick} tabIndex={-1}>
-                Quên mật khẩu?
+                {t('auth.forgotPasswordLink')}
               </a>
             }
             disabled={isSubmitting}
           />
 
           <button type="submit" className="login-submit-btn" disabled={isSubmitting}>
-            <span>{isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
+            <span>{isSubmitting ? t('auth.loggingIn') : t('auth.loginBtn')}</span>
             {!isSubmitting && (
               <svg className="login-btn-icon" viewBox="0 0 24 24">
                 <path
@@ -105,9 +111,9 @@ function LoginPage({ onNavigate }) {
         </form>
 
         <div className="login-footer">
-          <span>Chưa có tài khoản? </span>
+          <span>{t('auth.noAccount')}</span>
           <a href="/signup" onClick={handleSignupClick} className="register-link">
-            Đăng ký ngay
+            {t('auth.registerNow')}
           </a>
         </div>
       </div>

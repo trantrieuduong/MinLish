@@ -1,13 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { useTranslation } from 'react-i18next'
 import './Header.css'
 
-function Header({ onNavigate }) {
+function Header({ onNavigate, currentPath = window.location.pathname }) {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { t, i18n } = useTranslation()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
+
+  const toggleLanguage = () => {
+    const nextLang = i18n.language === 'vi' ? 'en' : 'vi'
+    i18n.changeLanguage(nextLang)
+    localStorage.setItem('lng', nextLang)
+  }
 
   const handleClick = (path, e) => {
     e.preventDefault()
@@ -57,15 +65,36 @@ function Header({ onNavigate }) {
             MinLish
           </a>
           <nav className="header-nav">
-            <a href="/lessons" onClick={(e) => handleClick('/lessons', e)} className="header-nav-link">
-              Bài học
+            <a
+              href="/lessons"
+              onClick={(e) => handleClick('/lessons', e)}
+              className={`header-nav-link ${currentPath.startsWith('/lessons') ? 'active' : ''}`}
+            >
+              {t('header.lessons')}
             </a>
-            <a href="/decks" onClick={(e) => handleClick('/decks', e)} className="header-nav-link">
-              Từ vựng
+            <a
+              href="/decks"
+              onClick={(e) => handleClick('/decks', e)}
+              className={`header-nav-link ${currentPath.startsWith('/decks') ? 'active' : ''}`}
+            >
+              {t('header.vocabulary')}
             </a>
           </nav>
         </div>
         <div className="header-right">
+          <button
+            onClick={toggleLanguage}
+            className="lang-toggle-btn"
+            title={i18n.language === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}
+            aria-label="Toggle Language"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lang-icon">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+            <span>{i18n.language === 'vi' ? 'VI' : 'EN'}</span>
+          </button>
           <button
             onClick={toggleTheme}
             className="theme-toggle-btn"
@@ -131,7 +160,7 @@ function Header({ onNavigate }) {
                         fill="currentColor"
                       />
                     </svg>
-                    <span>Thông tin cá nhân</span>
+                    <span>{t('header.profile')}</span>
                   </a>
                   <button onClick={handleLogout} className="dropdown-item logout-btn">
                     <svg className="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
@@ -140,14 +169,14 @@ function Header({ onNavigate }) {
                         fill="currentColor"
                       />
                     </svg>
-                    <span>Đăng xuất</span>
+                    <span>{t('header.logout')}</span>
                   </button>
                 </div>
               )}
             </div>
           ) : (
             <a href="/login" onClick={(e) => handleClick('/login', e)} className="header-btn-login">
-              Đăng nhập
+              {t('header.login')}
             </a>
           )}
         </div>

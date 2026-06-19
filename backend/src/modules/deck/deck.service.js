@@ -4,6 +4,7 @@ import Topic from '../../models/topic.model.js';
 import Card from '../../models/card.model.js';
 import UserCardState from '../../models/userCardState.model.js';
 import AppError from '../../utils/AppError.js';
+import { DECK, COMMON } from '../../constants/codes/index.js';
 import { generateSlug } from '../../utils/generate.js';
 
 // Public deck endpoints serve the SYSTEM catalog only.
@@ -14,7 +15,7 @@ export const getDeckById = async (deckId) => {
     ownerType: 'system',
     status: 'published',
   });
-  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+  if (!deck) throw new AppError(DECK.DECK_NOT_FOUND, 404);
 
   return deck;
 };
@@ -67,7 +68,7 @@ export const getTopicCards = async (deckId, topicId, userId) => {
 
   // Topic must belong to this deck.
   const topic = await Topic.findOne({ _id: topicId, deckId });
-  if (!topic) throw new AppError('Không tìm thấy deck hoặc topic', 404);
+  if (!topic) throw new AppError(DECK.DECK_OR_TOPIC_NOT_FOUND, 404);
 
   const cards = await Card.find({ deckId, topicId }).sort({ order: 1 });
 
@@ -107,7 +108,7 @@ export const listDecks = async (filters) => {
 
   const skip = (page - 1) * limit;
   const [decks, totalItems] = await Promise.all([
-    Deck.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Deck.find(query).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit),
     Deck.countDocuments(query),
   ]);
 
@@ -151,7 +152,7 @@ export const listAdminDecks = async (filters) => {
 
   const [decks, totalItems] = await Promise.all([
     Deck.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
       .populate('tagIds', 'label code') //có kèm id tag nếu ko -_id
@@ -174,10 +175,7 @@ export const createAdminDeck = async (payload) => {
   if (!payload.slug) slug = generateSlug(payload.title);
   const existing = await Deck.findOne({ slug });
   if (existing) {
-    throw new AppError(
-      'Slug của deck đã tồn tại trong hệ thống. Vui lòng thay đổi slug hoặc title',
-      400
-    );
+    throw new AppError(DECK.DECK_SLUG_EXISTS, 400);
   }
 
   const newDeck = new Deck({
@@ -197,13 +195,13 @@ export const getAdminDeckById = async (deckId) => {
   const deck = await Deck.findById(deckId)
     .populate('tagIds', 'label code')
     .populate('cefrLevelIds', 'label code');
-  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+  if (!deck) throw new AppError(DECK.DECK_NOT_FOUND, 404);
   return deck;
 };
 
 export const updateAdminDeck = async (deckId, payload) => {
   const deck = await Deck.findById(deckId);
-  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+  if (!deck) throw new AppError(DECK.DECK_NOT_FOUND, 404);
 
   let slug = payload.slug;
   if (!payload.slug) {
@@ -212,10 +210,7 @@ export const updateAdminDeck = async (deckId, payload) => {
 
   const existing = await Deck.findOne({ slug, _id: { $ne: deckId } });
   if (existing) {
-    throw new AppError(
-      'Slug của deck đã tồn tại trong hệ thống. Vui lòng thay đổi slug hoặc title',
-      400
-    );
+    throw new AppError(DECK.DECK_SLUG_EXISTS, 400);
   }
 
   const oldStatus = deck.status;
@@ -230,8 +225,151 @@ export const updateAdminDeck = async (deckId, payload) => {
 
 export const deleteAdminDeck = async (deckId) => {
   const deck = await Deck.findById(deckId);
-  if (!deck) throw new AppError('Không tìm thấy deck', 404);
+  if (!deck) throw new AppError(DECK.DECK_NOT_FOUND, 404);
   deck.status = 'archived';
   await deck.save();
   return deck;
+};
+
+export const getAdminDeckTopics = async (deckId) => {
+  const deck = await Deck.findById(deckId);
+  if (!deck) throw new AppError(DECK.DECK_NOT_FOUND, 404);
+  const topics = await Topic.find({ deckId }).sort({ order: 1 });
+  return topics;
+};
+
+export const createAdminDeckTopic = async (deckId, data) => {
+  const deck = await Deck.findById(deckId);
+  if (!deck) throw new AppError(DECK.DECK_NOT_FOUND, 404);
+
+  if (!data.name)
+    throw new AppError(DECK.TOPIC_NAME_REQUIRED, 400, [
+      {
+        field: 'name',
+        message: 'The name field is required',
+      },
+    ]);
+
+  const last = await Topic.findOne({ deckId })
+    .sort({ order: -1 })
+    .select('order');
+  const nextOrder = last ? last.order + 1 : 1;
+  let slug = data.slug;
+  if (!data.slug) slug = generateSlug(data.name);
+  const existing = await Topic.findOne({ deckId, slug });
+  if (existing)
+    throw new AppError(DECK.TOPIC_SLUG_EXISTS, 409, [
+      {
+        field: 'slug',
+        message: 'Topic slug already exists. Please change the slug or title',
+      },
+    ]);
+
+  const topic = await Topic.create({
+    deckId,
+    name: data.name,
+    slug,
+    order: nextOrder,
+    cardCount: 0,
+  });
+  await Deck.updateOne({ _id: deckId }, { $inc: { topicCount: 1 } });
+  return topic;
+};
+
+export const getAdminDeckTopic = async (deckId, topicId) => {
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError(DECK.DECK_OR_TOPIC_NOT_FOUND, 404);
+  return topic;
+};
+
+export const updateAdminDeckTopic = async (deckId, topicId, data) => {
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError(DECK.DECK_OR_TOPIC_NOT_FOUND, 404);
+
+  let slug = data.slug;
+  if (!data.slug) slug = generateSlug(data.name);
+  const existing = await Topic.findOne({ deckId, slug, _id: { $ne: topicId } });
+  if (existing)
+    throw new AppError(DECK.TOPIC_SLUG_EXISTS, 409, [
+      {
+        field: 'slug',
+        message: 'Topic slug already exists. Please change the slug or title',
+      },
+    ]);
+  topic.slug = slug;
+
+  if (data.name) topic.name = data.name;
+  else
+    throw new AppError(DECK.TOPIC_NAME_REQUIRED, 400, [
+      {
+        field: 'name',
+        message: 'The name field is required',
+      },
+    ]);
+  await topic.save();
+  return topic;
+};
+
+export const deleteAdminDeckTopic = async (deckId, topicId) => {
+  const topic = await Topic.findOne({ _id: topicId, deckId });
+  if (!topic) throw new AppError(DECK.DECK_OR_TOPIC_NOT_FOUND, 404);
+
+  const cardIds = await Card.find({ deckId, topicId }).distinct('_id');
+  // distinct('_id') trả về mảng thuần:
+  // [ ObjectId("66a..."), ObjectId("66b...")]
+  // find().select('_id') trả về mảng document:
+  // [ { _id: ObjectId("66a...") }, { _id: ObjectId("66b...") }]
+
+  await Promise.all([
+    Card.deleteMany({ deckId, topicId }),
+    UserCardState.deleteMany({ cardId: { $in: cardIds } }),
+  ]);
+  await topic.deleteOne();
+  await Deck.updateOne(
+    { _id: deckId },
+    { $inc: { topicCount: -1, cardCount: -cardIds.length } }
+  );
+};
+
+export const reorderAdminDeckTopics = async (deckId, topics) => {
+  const errors = [];
+  if (!Array.isArray(topics) || topics.length === 0) {
+    errors.push({
+      field: 'topics',
+      message: 'The topics field must be a non-empty array',
+    });
+  } else {
+    topics.forEach((item, index) => {
+      if (!item.topicId) {
+        errors.push({
+          field: `topics[${index}].topicId`,
+          message: 'The topicId field is required',
+        });
+      }
+      if (!item.order || !Number.isInteger(item.order) || item.order < 1) {
+        errors.push({
+          field: `topics[${index}].order`,
+          message: 'The order field is required and must be an integer >= 1',
+        });
+      }
+    });
+  }
+
+  if (errors.length > 0) {
+    throw new AppError(COMMON.INVALID_DATA, 400, errors);
+  }
+
+  const deck = await Deck.findById(deckId);
+  if (!deck) throw new AppError(DECK.DECK_NOT_FOUND, 404);
+
+  const bulkOps = topics.map(({ topicId, order }) => ({
+    updateOne: {
+      filter: { _id: topicId, deckId },
+      // deckId là để kiểm tra deck này có đúng là chứa topic này không, tránh giả deckId
+      update: { $set: { order } },
+    },
+  }));
+  if (bulkOps.length > 0) {
+    await Topic.bulkWrite(bulkOps); // Chạy tất cả update trong một lần gọi MongoDB
+  }
 };

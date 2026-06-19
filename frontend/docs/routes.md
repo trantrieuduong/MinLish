@@ -91,4 +91,54 @@ Hàm điều hướng:
   - Hiển thị danh sách bộ từ dạng lưới (grid) responsive thông qua component `DeckCard` hiển thị tối giản (ảnh đại diện, huy hiệu số lượng từ, các nhãn cấp độ/chủ đề, tiêu đề, và mô tả).
   - Hỗ trợ phân trang danh sách bộ từ và xử lý các trạng thái tải dữ liệu (Loading, Error, Empty).
 
+### /decks/:deckId (Trang chi tiết bộ từ vựng hệ thống)
+- **Mô tả**: Trang chi tiết của một bộ từ vựng hệ thống giúp học từ mới theo chủ đề.
+- **Quyền truy cập**: Private (Yêu cầu đăng nhập).
+- **Tham số nhận vào**: `deckId` (ObjectId của bộ từ hệ thống).
+- **Chức năng**:
+  - Giao diện 2 cột: Cột bên trái hiển thị danh sách chủ đề (topics) kèm tiến độ học (số từ đã học / tổng số từ); cột bên phải hiển thị thanh tiến độ lớn tổng quan, bộ chuyển đổi chế độ học (FlashCard/Quiz) và khu vực học thẻ.
+  - Cho phép người dùng học các từ mới (các từ có `userCardState === null` từ API).
+  - Học qua 2 chế độ:
+    - **FlashCard**: Hiển thị ảnh minh họa (vuông cố định `220px x 220px` ở trung tâm), từ vựng, phiên âm US/UK, nút phát âm, lật 3D xem nghĩa, ví dụ và 4 nút đánh giá SRS (Học lại, Khó, Tốt, Dễ).
+    - **Quiz**: Giao diện câu hỏi trắc nghiệm chọn từ tương ứng nghĩa. Sau khi chọn đáp án, tự động phát âm thanh, hiển thị thông tin chi tiết từ vựng và 4 nút đánh giá SRS.
+  - Tích hợp cơ chế tự động cập nhật tiến độ học của chủ đề ngay sau khi người dùng đánh giá thẻ thành công.
+  - Hiển thị màn hình hoàn thành chúc mừng khi học hết tất cả từ mới trong chủ đề hiện tại.
 
+### /profile/decks/:deckId (Trang chi tiết bộ từ vựng cá nhân)
+- **Mô tả**: Trang chi tiết của một bộ từ vựng cá nhân do chính người dùng tạo.
+- **Quyền truy cập**: Private (Yêu cầu đăng nhập).
+- **Tham số nhận vào**: `deckId` (ObjectId của bộ từ cá nhân).
+- **Chức năng**:
+  - Tương tự như trang chi tiết bộ từ vựng hệ thống, nhưng lấy dữ liệu thông tin bộ từ và danh sách chủ đề thông qua các API riêng dành cho cá nhân người dùng (`/users/me/decks/{deckId}` và `/users/me/decks/{deckId}/topics`).
+  - Hỗ trợ đầy đủ các tính năng học từ mới qua FlashCard, trắc nghiệm Quiz, đánh giá SRS và tự động cập nhật tiến độ tương ứng.
+
+---
+
+## 3. Routes dành riêng cho Quản trị viên (Admin)
+
+Các route trong nhóm này yêu cầu người dùng đã đăng nhập với vai trò `admin`. Toàn bộ khu vực admin sử dụng bố cục riêng (`AdminLayout`) với Sidebar điều hướng và Header thông tin quản trị viên — **không hiển thị Header/Footer công khai**.
+
+### /admin (Trang tổng quan Admin)
+- **Mô tả**: Trang chào mừng của khu vực quản trị.
+- **Quyền truy cập**: Private — chỉ dành cho `role = admin`.
+- **Chức năng**: Hiện tại chưa có nội dung (placeholder). Sẽ được phát triển sau thành trang thống kê tổng quan (số người dùng, bài học, bộ từ vựng).
+
+### /admin/decks (Trang quản lý Bộ từ vựng)
+- **Mô tả**: Giao diện quản lý toàn bộ bộ từ vựng trong hệ thống.
+- **Quyền truy cập**: Private — chỉ dành cho `role = admin`.
+- **Chức năng**:
+  - Hiển thị danh sách tất cả bộ từ vựng dạng lưới (grid) kèm ảnh bìa, huy hiệu CEFR, thẻ danh mục, số lượng Topics và Cards.
+  - Hỗ trợ tìm kiếm theo tiêu đề (có debounce 400ms) và lọc theo Trình độ CEFR, Danh mục (Tag).
+  - Lưu trữ deck (archive): bấm icon archive sẽ chuyển trạng thái deck sang `archived`, deck bị làm mờ và hiển thị badge "Đã lưu trữ". Bấm icon bỏ lưu trữ để khôi phục về `draft`.
+  - Thẻ "Tạo bộ từ vựng mới" cuối cùng trong lưới điều hướng sang `/admin/decks/new`.
+  - Phân trang với hiển thị số lượng record hiện tại.
+  - Gọi API `GET /api/v1/admin/decks` (yêu cầu Bearer token admin).
+
+### /admin/decks/new (Trang tạo Bộ từ vựng mới)
+- **Mô tả**: Form tạo mới một bộ từ vựng cho hệ thống.
+- **Quyền truy cập**: Private — chỉ dành cho `role = admin`.
+- **Chức năng**:
+  - **Cột trái**: Nhập tiêu đề (bắt buộc, dùng component `Input` chung), mô tả chi tiết (textarea), khu vực tải ảnh bìa (hiển thị tượng trưng, chưa có chức năng).
+  - **Cột phải**: Chọn trình độ CEFR (multi-select dạng pill — A1 đến C2), chọn thẻ danh mục (có autocomplete từ danh sách tag có sẵn, hiển thị dạng chip có thể xóa), chọn trạng thái (Bản nháp / Công khai).
+  - Gọi API `POST /api/v1/admin/decks`. Thành công sẽ điều hướng về `/admin/decks` sau 1.2 giây.
+  - Nút "Hủy" điều hướng trở lại `/admin/decks` không lưu dữ liệu.

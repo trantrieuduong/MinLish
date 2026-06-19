@@ -8,15 +8,38 @@ import LessonListPage from './features/lessons/pages/LessonListPage'
 import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage'
 import ResetPasswordPage from './features/auth/pages/ResetPasswordPage'
 import DeckListPage from './features/flashcards/pages/DeckListPage'
+import DeckDetailPage from './features/flashcards/pages/DeckDetailPage'
+import AdminLayout from './features/admin/layout/AdminLayout'
+import AdminDeckListPage from './features/admin/pages/AdminDeckListPage'
+import AdminDeckCreatePage from './features/admin/pages/AdminDeckCreatePage'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from './context/AuthContext'
 import './App.css'
 
 
 function App() {
-  const { loading } = useAuth()
+  const { user, loading } = useAuth()
+  const { t } = useTranslation()
   const [currentPath, setCurrentPath] = useState(window.location.pathname)
   const [signupEmail, setSignupEmail] = useState('')
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
+
+  // Route guarding & redirection logic
+  useEffect(() => {
+    if (!loading) {
+      if (user?.role === 'admin') {
+        // Redirect admin users to admin dashboard if they visit public/user pages
+        if (!currentPath.startsWith('/admin')) {
+          navigate('/admin/decks')
+        }
+      } else {
+        // Redirect non-admin users to login if they try to access admin pages
+        if (currentPath.startsWith('/admin')) {
+          navigate('/login')
+        }
+      }
+    }
+  }, [user, loading, currentPath])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -25,14 +48,6 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
-
-  if (loading) {
-    return (
-      <div className="app-loading-screen">
-        <div className="app-loading-spinner"></div>
-      </div>
-    )
-  }
 
   const navigate = (path, emailParam) => {
     window.history.pushState({}, '', path)
@@ -46,7 +61,42 @@ function App() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="app-loading-screen">
+        <div className="app-loading-spinner"></div>
+      </div>
+    )
+  }
+
+  const renderAdminContent = () => {
+    if (currentPath === '/admin/decks/new') {
+      return <AdminDeckCreatePage onNavigate={navigate} />
+    }
+    if (currentPath.startsWith('/admin/decks')) {
+      return <AdminDeckListPage onNavigate={navigate} />
+    }
+    // /admin or /admin/* (overview placeholder)
+    return (
+      <div style={{ padding: '40px', fontFamily: 'var(--font-family)', color: 'var(--color-on-surface-variant)' }}>
+        {t('admin.overviewEmpty')}
+      </div>
+    )
+  }
+
   const renderContent = () => {
+    const systemDeckMatch = currentPath.match(/^\/decks\/([a-fA-F0-9]{24})$/)
+    if (systemDeckMatch) {
+      const deckId = systemDeckMatch[1]
+      return <DeckDetailPage deckId={deckId} isSystem={true} onNavigate={navigate} />
+    }
+
+    const userDeckMatch = currentPath.match(/^\/profile\/decks\/([a-fA-F0-9]{24})$/)
+    if (userDeckMatch) {
+      const deckId = userDeckMatch[1]
+      return <DeckDetailPage deckId={deckId} isSystem={false} onNavigate={navigate} />
+    }
+
     switch (currentPath) {
       case '/login':
         return <LoginPage onNavigate={navigate} />
@@ -72,13 +122,13 @@ function App() {
                   <svg className="hero-badge-icon" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" />
                   </svg>
-                  <span>Phương pháp học mới</span>
+                  <span>{t('home.heroBadge')}</span>
                 </div>
                 <h1 className="hero-title">
-                  MinLish - Học tiếng Anh hiệu quả qua Dictation & Shadowing
+                  {t('home.heroTitle')}
                 </h1>
                 <p className="hero-desc">
-                  Nền tảng học tập hiện đại dành cho người trẻ. Cải thiện kỹ năng nghe và nói một cách tự nhiên thông qua các phương pháp đã được kiểm chứng, trong một không gian tối giản và tập trung.
+                  {t('home.heroDesc')}
                 </p>
                 <a
                   href="/login"
@@ -88,7 +138,7 @@ function App() {
                   }}
                   className="btn-primary"
                 >
-                  <span>Bắt đầu học ngay</span>
+                  <span>{t('home.heroBtn')}</span>
                   <svg className="btn-icon" viewBox="0 0 24 24">
                     <path
                       d="M5 12h14M12 5l7 7-7 7"
@@ -108,8 +158,8 @@ function App() {
 
             {/* Features Section */}
             <section className="section features-section">
-              <h2 className="section-title">Công cụ thiết yếu cho sự trôi chảy</h2>
-              <p className="section-subtitle">Ba trụ cột chính giúp bạn làm chủ ngôn ngữ.</p>
+              <h2 className="section-title">{t('home.featuresTitle')}</h2>
+              <p className="section-subtitle">{t('home.featuresSubtitle')}</p>
               <div className="features-grid">
                 {/* Dictation Card */}
                 <div className="feature-card">
@@ -118,9 +168,9 @@ function App() {
                       <path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z" />
                     </svg>
                   </div>
-                  <h3 className="feature-title">Dictation</h3>
+                  <h3 className="feature-title">{t('home.dictationTitle')}</h3>
                   <p className="feature-desc">
-                    Luyện nghe chép chính tả với các đoạn hội thoại thực tế. Cải thiện khả năng nhận diện âm thanh và vốn từ vựng của bạn.
+                    {t('home.dictationDesc')}
                   </p>
                 </div>
 
@@ -131,9 +181,9 @@ function App() {
                       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.72V21h2v-3.28c3.28-.48 6-3.26 6-6.72h-1.7z" />
                     </svg>
                   </div>
-                  <h3 className="feature-title">Shadowing</h3>
+                  <h3 className="feature-title">{t('home.shadowingTitle')}</h3>
                   <p className="feature-desc">
-                    Bắt chước ngữ điệu và phát âm của người bản xứ. Phương pháp hoàn hảo để có một giọng điệu tự nhiên và tự tin.
+                    {t('home.shadowingDesc')}
                   </p>
                 </div>
 
@@ -144,9 +194,9 @@ function App() {
                       <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z" />
                     </svg>
                   </div>
-                  <h3 className="feature-title">Flashcards</h3>
+                  <h3 className="feature-title">{t('home.flashcardsTitle')}</h3>
                   <p className="feature-desc">
-                    Ghi nhớ từ vựng lâu dài thông qua hệ thống lặp lại ngắt quãng (Spaced Repetition).
+                    {t('home.flashcardsDesc')}
                   </p>
                 </div>
               </div>
@@ -158,9 +208,9 @@ function App() {
                 <img src="/why-choose.jpg" alt="Why choose MinLish" className="why-image" />
               </div>
               <div className="why-content">
-                <h2 className="why-title">Tại sao chọn MinLish?</h2>
+                <h2 className="why-title">{t('home.whyTitle')}</h2>
                 <p className="why-desc">
-                  Được thiết kế dựa trên các nguyên lý nhận thức học thuật, MinLish mang đến một trải nghiệm học tập cao cấp, không xao nhãng.
+                  {t('home.whyDesc')}
                 </p>
                 <div className="why-list">
                   <div className="why-item">
@@ -170,9 +220,9 @@ function App() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="why-item-title">Phương pháp học thông minh</h3>
+                      <h3 className="why-item-title">{t('home.whyMethodTitle')}</h3>
                       <p className="why-item-desc">
-                        Tập trung vào chất lượng hơn số lượng. Hệ thống tự động phân tích điểm yếu và đề xuất bài tập phù hợp.
+                        {t('home.whyMethodDesc')}
                       </p>
                     </div>
                   </div>
@@ -184,9 +234,9 @@ function App() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="why-item-title">Tiến bộ rõ ràng</h3>
+                      <h3 className="why-item-title">{t('home.whyProgressTitle')}</h3>
                       <p className="why-item-desc">
-                        Theo dõi sự tiến bộ hàng ngày thông qua các biểu đồ trực quan, giúp bạn luôn giữ được động lực.
+                        {t('home.whyProgressDesc')}
                       </p>
                     </div>
                   </div>
@@ -196,9 +246,9 @@ function App() {
 
             {/* CTA Section */}
             <section className="section cta-section">
-              <h2 className="cta-title">Sẵn sàng nâng tầm tiếng Anh của bạn?</h2>
+              <h2 className="cta-title">{t('home.ctaTitle')}</h2>
               <p className="cta-desc">
-                Tham gia cùng hàng ngàn học viên khác đang cải thiện kỹ năng mỗi ngày với nền tảng học tập cao cấp của chúng tôi.
+                {t('home.ctaDesc')}
               </p>
             </section>
           </main>
@@ -206,9 +256,18 @@ function App() {
     }
   }
 
+  // Admin routes bypass public Header/Footer
+  if (currentPath.startsWith('/admin')) {
+    return (
+      <AdminLayout currentPath={currentPath} onNavigate={navigate}>
+        {renderAdminContent()}
+      </AdminLayout>
+    )
+  }
+
   return (
     <>
-      <Header onNavigate={navigate} />
+      <Header onNavigate={navigate} currentPath={currentPath} />
       {renderContent()}
       <Footer onNavigate={navigate} />
     </>

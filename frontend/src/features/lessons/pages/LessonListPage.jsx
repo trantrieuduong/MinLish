@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getLessons, getCefrLevels, getTags } from '../lessonsApi'
 import Filters from '../../../components/Filters/Filters'
 import LessonCard from '../components/LessonCard'
 import './LessonListPage.css'
 
 function LessonListPage({ onNavigate }) {
+  const { t } = useTranslation()
   // States cho dữ liệu từ API
   const [lessons, setLessons] = useState([])
   const [cefrLevels, setCefrLevels] = useState([])
@@ -81,10 +83,10 @@ function LessonListPage({ onNavigate }) {
             setTotalPages(response.data.pagination.totalPages || 1)
           }
         } else {
-          setError(response.message || 'Không thể lấy danh sách bài học')
+          setError(response.message || t('lessons.fetchError'))
         }
       } catch (err) {
-        setError('Có lỗi xảy ra khi kết nối với máy chủ. Vui lòng thử lại sau.')
+        setError(t('lessons.serverError'))
       } finally {
         setLoading(false)
       }
@@ -128,7 +130,7 @@ function LessonListPage({ onNavigate }) {
           <input
             type="text"
             className="search-input"
-            placeholder="Tìm lesson theo tiêu đề..."
+            placeholder={t('lessons.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -149,7 +151,7 @@ function LessonListPage({ onNavigate }) {
       {loading ? (
         <div className="lessons-loading">
           <div className="spinner"></div>
-          <p>Đang tải danh sách bài học...</p>
+          <p>{t('lessons.loading')}</p>
         </div>
       ) : error ? (
         <div className="lessons-error">
@@ -157,7 +159,7 @@ function LessonListPage({ onNavigate }) {
         </div>
       ) : lessons.length === 0 ? (
         <div className="lessons-empty">
-          <p>Không tìm thấy bài học nào phù hợp với bộ lọc hiện tại.</p>
+          <p>{t('lessons.empty')}</p>
         </div>
       ) : (
         <div className="lessons-grid">

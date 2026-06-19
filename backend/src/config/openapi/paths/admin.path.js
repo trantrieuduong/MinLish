@@ -33,20 +33,15 @@ const LessonSlugConflict = {
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        DuplicateSlug: {
-          summary: 'Trùng slug',
-          value: {
-            success: false,
-            message: 'Dữ liệu đã tồn tại',
-            errors: [
-              {
-                field: 'slug',
-                message: 'Slug của lesson đã tồn tại trong hệ thống',
-              },
-            ],
+      example: {
+        success: false,
+        message: 'Dữ liệu đã tồn tại',
+        errors: [
+          {
+            field: 'slug',
+            message: 'Slug của lesson đã tồn tại trong hệ thống',
           },
-        },
+        ],
       },
     },
   },
@@ -305,49 +300,29 @@ const DeckOrTopicNotFound = {
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        DeckNotFound: {
-          summary: 'Lỗi sai deck ID',
-          value: { success: false, message: 'Không tìm thấy deck' },
-        },
-        TopicNotFound: {
-          summary: 'Lỗi sai topic ID',
-          value: { success: false, message: 'Không tìm thấy topic' },
-        },
+      example: {
+        success: false,
+        message: 'Không tìm thấy deck hoặc topic',
       },
     },
   },
 };
 
 const TopicConflict = {
-  description: 'Dữ liệu đã tồn tại (Slug hoặc Order)',
+  description: 'Dữ liệu đã tồn tại',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        DuplicateSlug: {
-          summary: 'Trùng slug',
-          value: {
-            success: false,
-            message: 'Dữ liệu đã tồn tại',
-            errors: [
-              {
-                field: 'slug',
-                message: 'Slug của topic đã tồn tại trong deck',
-              },
-            ],
+      example: {
+        success: false,
+        message: 'Dữ liệu đã tồn tại',
+        errors: [
+          {
+            field: 'slug',
+            message:
+              'Slug của topic đã tồn tại. Vui lòng thay đổi slug hoặc title',
           },
-        },
-        DuplicateOrder: {
-          summary: 'Trùng thứ tự',
-          value: {
-            success: false,
-            message: 'Dữ liệu đã tồn tại',
-            errors: [
-              { field: 'order', message: 'Order này đã tồn tại trong deck' },
-            ],
-          },
-        },
+        ],
       },
     },
   },
@@ -358,27 +333,12 @@ const TopicBadRequest = {
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        MissingFields: {
-          summary: 'Thiếu dữ liệu trường bắt buộc',
-          value: {
-            success: false,
-            message: 'Dữ liệu không hợp lệ',
-            errors: [{ field: 'name', message: 'Trường name là bắt buộc' }],
-          },
-        },
-        InvalidData: {
-          summary: 'Dữ liệu sai định dạng',
-          value: {
-            success: false,
-            message: 'Dữ liệu không hợp lệ',
-            errors: [
-              {
-                field: 'order',
-                message: 'Trường order phải là số nguyên lớn hơn hoặc bằng 1',
-              },
-            ],
-          },
+      example: {
+        summary: 'Thiếu dữ liệu trường bắt buộc',
+        value: {
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: [{ field: 'name', message: 'Trường name là bắt buộc' }],
         },
       },
     },
@@ -1604,8 +1564,8 @@ export default {
     },
     delete: {
       tags: ['Admin decks'],
-      summary: 'Xóa deck',
-      description: 'Xóa hoặc chuyển trạng thái deck sang archived.',
+      summary: 'Xóa mềm deck',
+      description: 'Chuyển trạng thái deck sang archived thay vì xóa cứng.',
       security: [{ BearerAuth: [] }],
       parameters: [
         {

@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import './VerifyEmailPage.css'
 
 function VerifyEmailPage({ email = 'user@example.com', onNavigate }) {
   const { verifyEmail, resendOtp } = useAuth()
+  const { t } = useTranslation()
   const [otp, setOtp] = useState(Array(6).fill(''))
   const cooldownSetting = Number(import.meta.env.OTP_RESEND_COOLDOWN) || 60
   const [timeLeft, setTimeLeft] = useState(cooldownSetting)
@@ -81,7 +83,7 @@ function VerifyEmailPage({ email = 'user@example.com', onNavigate }) {
     setIsSubmitting(false)
 
     if (result.success) {
-      setSuccessMessage(result.message || 'Mã xác thực mới đã được gửi thành công.')
+      setSuccessMessage(result.message || t('auth.verifyOtpResentSuccess'))
       setTimeLeft(cooldownSetting)
     } else {
       setError(result.message)
@@ -95,7 +97,7 @@ function VerifyEmailPage({ email = 'user@example.com', onNavigate }) {
     
     const otpCode = otp.join('')
     if (otpCode.length < 6) {
-      setError('Vui lòng nhập đầy đủ mã xác thực gồm 6 chữ số.')
+      setError(t('auth.verifyOtpRequired'))
       return
     }
 
@@ -104,7 +106,7 @@ function VerifyEmailPage({ email = 'user@example.com', onNavigate }) {
     setIsSubmitting(false)
 
     if (result.success) {
-      setSuccessMessage('Kích hoạt tài khoản thành công! Đang chuyển hướng...')
+      setSuccessMessage(t('auth.verifySuccess'))
       setTimeout(() => {
         if (onNavigate) onNavigate('/login')
       }, 1500)
@@ -130,9 +132,9 @@ function VerifyEmailPage({ email = 'user@example.com', onNavigate }) {
           </svg>
         </div>
 
-        <h2 className="verify-title">Xác thực Email</h2>
+        <h2 className="verify-title">{t('auth.verifyTitle')}</h2>
         <p className="verify-subtitle">
-          Mã xác thực gồm 6 chữ số đã được gửi đến email của bạn:
+          {t('auth.verifySubtitle')}
           <span className="verify-email-text">{email}</span>
         </p>
 
@@ -160,16 +162,16 @@ function VerifyEmailPage({ email = 'user@example.com', onNavigate }) {
           </div>
 
           <button type="submit" className="verify-submit-btn" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang xử lý...' : 'Xác nhận Email'}
+            {isSubmitting ? t('auth.processing') : t('auth.verifyBtn')}
           </button>
         </form>
 
         <div className="verify-footer">
           {timeLeft > 0 ? (
-            <span className="resend-countdown">Gửi lại mã sau ({timeLeft}s)</span>
+            <span className="resend-countdown">{t('auth.resendCooldown', { seconds: timeLeft })}</span>
           ) : (
             <a href="/" onClick={handleResend} className="resend-link">
-              Gửi lại mã ngay
+              {t('auth.resendNowLink')}
             </a>
           )}
 
@@ -180,7 +182,7 @@ function VerifyEmailPage({ email = 'user@example.com', onNavigate }) {
                 fill="currentColor"
               />
             </svg>
-            Quay lại Đăng nhập
+            {t('auth.backToLogin')}
           </a>
         </div>
       </div>

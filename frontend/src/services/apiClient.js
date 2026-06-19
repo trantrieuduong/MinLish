@@ -91,7 +91,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null)
         isRefreshing = false
-        
+
         // Refresh token thất bại -> Xoá thông tin đăng nhập ở client
         localStorage.removeItem('accessToken')
         localStorage.removeItem('user')
@@ -99,6 +99,13 @@ apiClient.interceptors.response.use(
         // Phát sự kiện logout để cập nhật giao diện
         window.dispatchEvent(new Event('auth:logout'))
         
+        // Chuyển hướng sang trang đăng nhập nếu không ở các trang auth công khai
+        const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email']
+        if (!publicPaths.includes(window.location.pathname)) {
+          window.history.pushState({}, '', '/login')
+          window.dispatchEvent(new PopStateEvent('popstate'))
+        }
+
         return Promise.reject(refreshError)
       }
     }

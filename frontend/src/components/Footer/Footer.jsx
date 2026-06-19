@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next'
 import './Footer.css'
 
 function Footer({ onNavigate }) {
+  const { t } = useTranslation()
   const handleClick = (path, e) => {
     e.preventDefault()
     if (onNavigate) {
@@ -19,16 +21,16 @@ function Footer({ onNavigate }) {
         </div>
         <nav className="footer-right">
           <a href="/" onClick={(e) => handleClick('/', e)} className="footer-link">
-            About
+            {t('footer.about')}
           </a>
           <a href="/" onClick={(e) => handleClick('/', e)} className="footer-link">
-            Privacy Policy
+            {t('footer.privacy')}
           </a>
           <a href="/" onClick={(e) => handleClick('/', e)} className="footer-link">
-            Terms of Service
+            {t('footer.terms')}
           </a>
           <a href="/" onClick={(e) => handleClick('/', e)} className="footer-link">
-            Contact
+            {t('footer.contact')}
           </a>
         </nav>
       </div>
