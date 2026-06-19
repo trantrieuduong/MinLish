@@ -91,6 +91,27 @@ Hàm điều hướng:
   - Hiển thị danh sách bộ từ dạng lưới (grid) responsive thông qua component `DeckCard` hiển thị tối giản (ảnh đại diện, huy hiệu số lượng từ, các nhãn cấp độ/chủ đề, tiêu đề, và mô tả).
   - Hỗ trợ phân trang danh sách bộ từ và xử lý các trạng thái tải dữ liệu (Loading, Error, Empty).
 
+### /decks/:deckId (Trang chi tiết bộ từ vựng hệ thống)
+- **Mô tả**: Trang chi tiết của một bộ từ vựng hệ thống giúp học từ mới theo chủ đề.
+- **Quyền truy cập**: Private (Yêu cầu đăng nhập).
+- **Tham số nhận vào**: `deckId` (ObjectId của bộ từ hệ thống).
+- **Chức năng**:
+  - Giao diện 2 cột: Cột bên trái hiển thị danh sách chủ đề (topics) kèm tiến độ học (số từ đã học / tổng số từ); cột bên phải hiển thị thanh tiến độ lớn tổng quan, bộ chuyển đổi chế độ học (FlashCard/Quiz) và khu vực học thẻ.
+  - Cho phép người dùng học các từ mới (các từ có `userCardState === null` từ API).
+  - Học qua 2 chế độ:
+    - **FlashCard**: Hiển thị ảnh minh họa (vuông cố định `220px x 220px` ở trung tâm), từ vựng, phiên âm US/UK, nút phát âm, lật 3D xem nghĩa, ví dụ và 4 nút đánh giá SRS (Học lại, Khó, Tốt, Dễ).
+    - **Quiz**: Giao diện câu hỏi trắc nghiệm chọn từ tương ứng nghĩa. Sau khi chọn đáp án, tự động phát âm thanh, hiển thị thông tin chi tiết từ vựng và 4 nút đánh giá SRS.
+  - Tích hợp cơ chế tự động cập nhật tiến độ học của chủ đề ngay sau khi người dùng đánh giá thẻ thành công.
+  - Hiển thị màn hình hoàn thành chúc mừng khi học hết tất cả từ mới trong chủ đề hiện tại.
+
+### /profile/decks/:deckId (Trang chi tiết bộ từ vựng cá nhân)
+- **Mô tả**: Trang chi tiết của một bộ từ vựng cá nhân do chính người dùng tạo.
+- **Quyền truy cập**: Private (Yêu cầu đăng nhập).
+- **Tham số nhận vào**: `deckId` (ObjectId của bộ từ cá nhân).
+- **Chức năng**:
+  - Tương tự như trang chi tiết bộ từ vựng hệ thống, nhưng lấy dữ liệu thông tin bộ từ và danh sách chủ đề thông qua các API riêng dành cho cá nhân người dùng (`/users/me/decks/{deckId}` và `/users/me/decks/{deckId}/topics`).
+  - Hỗ trợ đầy đủ các tính năng học từ mới qua FlashCard, trắc nghiệm Quiz, đánh giá SRS và tự động cập nhật tiến độ tương ứng.
+
 ---
 
 ## 3. Routes dành riêng cho Quản trị viên (Admin)
