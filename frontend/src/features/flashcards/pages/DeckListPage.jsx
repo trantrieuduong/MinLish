@@ -11,7 +11,12 @@ import './DeckListPage.css'
 function DeckListPage({ onNavigate }) {
   const { t } = useTranslation()
   // Trạng thái tab: 'system' (Bộ từ hệ thống) hoặc 'user' (Bộ từ của bạn)
-  const [activeTab, setActiveTab] = useState('system')
+  const [activeTab, setActiveTab] = useState(() => {
+    if (window.history.state && window.history.state.tab) {
+      return window.history.state.tab
+    }
+    return 'system'
+  })
 
   // States dữ liệu từ API
   const [decks, setDecks] = useState([])

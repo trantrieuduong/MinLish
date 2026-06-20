@@ -127,7 +127,7 @@ function DeckDetailPage({ deckId, isSystem = true, onNavigate }) {
   const handleBackClick = (e) => {
     e.preventDefault()
     if (onNavigate) {
-      onNavigate('/decks')
+      onNavigate('/decks', { tab: isSystem ? 'system' : 'user' })
     }
   }
 

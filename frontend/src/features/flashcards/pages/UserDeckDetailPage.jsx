@@ -195,7 +195,7 @@ function UserDeckDetailPage({ deckId, onNavigate }) {
   const handleBackClick = (e) => {
     e.preventDefault()
     if (onNavigate) {
-      onNavigate('/decks')
+      onNavigate('/decks', { tab: 'user' })
     }
   }
 

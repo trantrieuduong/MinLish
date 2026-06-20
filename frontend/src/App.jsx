@@ -52,14 +52,15 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  const navigate = (path, emailParam) => {
-    window.history.pushState({}, '', path)
+  const navigate = (path, param) => {
+    const stateObj = (param && typeof param === 'object') ? param : {}
+    window.history.pushState(stateObj, '', path)
     setCurrentPath(path)
-    if (emailParam) {
+    if (param && typeof param === 'string') {
       if (path === '/reset-password') {
-        setForgotPasswordEmail(emailParam)
+        setForgotPasswordEmail(param)
       } else {
-        setSignupEmail(emailParam)
+        setSignupEmail(param)
       }
     }
   }
