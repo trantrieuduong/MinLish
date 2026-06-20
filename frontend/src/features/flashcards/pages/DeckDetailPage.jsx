@@ -70,13 +70,15 @@ function DeckDetailPage({ deckId, isSystem = true, onNavigate }) {
     }
   }, [deckId, isSystem, t])
 
+  const selectedTopicId = selectedTopic?.topic?._id
+
   // 2. Tải danh sách cards khi topic thay đổi
   useEffect(() => {
     const fetchTopicCards = async () => {
-      if (!selectedTopic) return
+      if (!selectedTopicId) return
       setLoadingCards(true)
       try {
-        const response = await getTopicCards(deckId, selectedTopic.topic._id)
+        const response = await getTopicCards(deckId, selectedTopicId)
         if (response.success && Array.isArray(response.data.cards)) {
           // CHỈ LỌC lấy các thẻ từ mới (userCardState === null)
           const newWords = response.data.cards.filter((item) => !item.userCardState)
@@ -91,7 +93,7 @@ function DeckDetailPage({ deckId, isSystem = true, onNavigate }) {
     }
 
     fetchTopicCards()
-  }, [selectedTopic, deckId])
+  }, [selectedTopicId, deckId])
 
   // Hàm tải lại topics để đồng bộ tiến độ học tức thời
   const refreshTopicsProgress = async () => {
