@@ -11,9 +11,10 @@ import DeckListPage from './features/flashcards/pages/DeckListPage'
 import DeckDetailPage from './features/flashcards/pages/DeckDetailPage'
 import UserDeckDetailPage from './features/flashcards/pages/UserDeckDetailPage'
 import AdminLayout from './features/admin/layout/AdminLayout'
-import AdminDeckListPage from './features/admin/pages/AdminDeckListPage'
-import AdminDeckCreatePage from './features/admin/pages/AdminDeckCreatePage'
-import AdminDeckEditPage from './features/admin/pages/AdminDeckEditPage'
+import AdminDeckListPage from './features/admin/pages/deck/AdminDeckListPage'
+import AdminDeckCreatePage from './features/admin/pages/deck/AdminDeckCreatePage'
+import AdminDeckEditPage from './features/admin/pages/deck/AdminDeckEditPage'
+import AdminDeckTopicPage from './features/admin/pages/topic/AdminDeckTopicPage'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './context/AuthContext'
 import './App.css'
@@ -79,6 +80,12 @@ function App() {
     if (currentPath.startsWith('/admin/decks/') && currentPath.endsWith('/edit')) {
       const deckId = currentPath.split('/')[3]
       return <AdminDeckEditPage onNavigate={navigate} deckId={deckId} />
+    }
+    // Match /admin/decks/:deckId pattern
+    const deckDetailMatch = currentPath.match(/^\/admin\/decks\/([a-fA-F0-9]{24})$/)
+    if (deckDetailMatch) {
+      const deckId = deckDetailMatch[1]
+      return <AdminDeckTopicPage onNavigate={navigate} deckId={deckId} />
     }
     if (currentPath.startsWith('/admin/decks')) {
       return <AdminDeckListPage onNavigate={navigate} />

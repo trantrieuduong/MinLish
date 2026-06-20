@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createTagApi, updateTagApi, deleteTagApi } from '../../adminApi'
+import ConfirmModal from '../../../../components/ConfirmModal/ConfirmModal'
 import './TagPickerModal.css'
 
 function TagPickerModal({
@@ -254,7 +255,6 @@ function TagPickerModal({
               filteredTags.map((tag) => {
                 const isSelected = localSelected.find((t) => t._id === tag._id)
                 const isEditing = editingTagId === tag._id
-                const isDeleting = deletingTagId === tag._id
 
                 return (
                   <div key={tag._id} className="tag-modal-item-wrapper">
@@ -291,27 +291,6 @@ function TagPickerModal({
                               <line x1="18" y1="6" x2="6" y2="18" />
                               <line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
-                          </button>
-                        </div>
-                      </div>
-                    ) : isDeleting ? (
-                      // Delete Confirmation
-                      <div className="tag-modal-item-delete">
-                        <span className="tag-modal-delete-text">{t('admin.confirmDeleteTag')}</span>
-                        <div className="tag-modal-delete-actions">
-                          <button
-                            className="tag-modal-delete-confirm"
-                            onClick={handleConfirmDelete}
-                            disabled={isDeletingTag}
-                          >
-                            {isDeletingTag ? <div className="tag-modal-spinner" /> : t('admin.deleteBtn')}
-                          </button>
-                          <button
-                            className="tag-modal-delete-cancel"
-                            onClick={handleCancelDelete}
-                            disabled={isDeletingTag}
-                          >
-                            {t('admin.cancelBtn')}
                           </button>
                         </div>
                       </div>
@@ -354,7 +333,7 @@ function TagPickerModal({
                             }}
                             title={t('admin.deleteTag')}
                           >
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="3 6 5 6 21 6" />
                               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                             </svg>
@@ -383,6 +362,18 @@ function TagPickerModal({
           </button>
         </div>
       </div>
+
+      {/* Delete Category Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deletingTagId !== null}
+        title={t('admin.confirmDeleteTagTitle') || 'Xóa danh mục'}
+        message={t('admin.confirmDeleteTag') || 'Xác nhận xóa danh mục này?'}
+        confirmText={t('admin.deleteBtn')}
+        cancelText={t('admin.cancelBtn')}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDanger={true}
+      />
     </div>
   )
 }

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import Input from '../../../components/Input/Input'
-import TagPickerModal from '../components/TagPickerModal/TagPickerModal'
-import { createAdminDeckApi, listCefrLevelsApi, listTagsApi } from '../adminApi'
+import Input from '../../../../components/Input/Input'
+import TagPickerModal from '../../components/TagPickerModal/TagPickerModal'
+import { getAdminDeckByIdApi, updateAdminDeckApi, listCefrLevelsApi, listTagsApi } from '../../adminApi'
 import './AdminDeckCreatePage.css'
 
-function AdminDeckCreatePage({ onNavigate }) {
+function AdminDeckEditPage({ onNavigate, deckId }) {
   const { t } = useTranslation()
 
   // Form state
@@ -23,19 +23,53 @@ function AdminDeckCreatePage({ onNavigate }) {
   const [isTagModalOpen, setIsTagModalOpen] = useState(false)
 
   // UI state
+  const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [titleError, setTitleError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
-    const loadMeta = async () => {
-      const [cefrRes, tagRes] = await Promise.all([listCefrLevelsApi(), listTagsApi()])
-      if (cefrRes.data) setCefrLevels(cefrRes.data)
-      if (tagRes.data) setAvailableTags(tagRes.data)
+    const loadDeckData = async () => {
+      try {
+        setIsLoading(true)
+        setErrorMsg('')
+        
+        // Load deck data using API wrapper
+        const deckRes = await getAdminDeckByIdApi(deckId)
+        const deck = deckRes.data
+        
+        // Populate form fields
+        setTitle(deck.title)
+        setDescription(deck.description || '')
+        setSelectedCefr(deck.cefrLevelIds ? deck.cefrLevelIds.map(c => typeof c === 'object' ? c._id : c) : [])
+        setSelectedTags(deck.tagIds || [])
+        setStatus(deck.status)
+        
+        // Load metadata
+        const [cefrRes, tagRes] = await Promise.all([
+          listCefrLevelsApi(),
+          listTagsApi()
+        ])
+        
+        if (cefrRes.data) setCefrLevels(cefrRes.data)
+        if (tagRes.data) setAvailableTags(tagRes.data)
+        
+        setIsLoading(false)
+      } catch (error) {
+        if (error.response?.status === 404) {
+          setErrorMsg(t('admin.deckNotFound'))
+        } else if (error.response?.status === 403) {
+          setErrorMsg(t('admin.insufficientPermissions'))
+        } else {
+          setErrorMsg(error.response?.data?.message || error.message)
+        }
+        setIsLoading(false)
+      }
     }
-    loadMeta()
-  }, [])
+    
+    loadDeckData()
+  }, [deckId, t])
 
   const toggleCefr = (id) => {
     setSelectedCefr((prev) =>
@@ -77,9 +111,9 @@ function AdminDeckCreatePage({ onNavigate }) {
         tagIds: selectedTags.map((t) => t._id),
         status,
       }
-      const res = await createAdminDeckApi(payload)
+      const res = await updateAdminDeckApi(deckId, payload)
       if (res.success) {
-        setSuccessMsg(res.message) // Message đã được dịch tự động từ code
+        setSuccessMsg(res.message)
         setTimeout(() => {
           if (onNavigate) onNavigate('/admin/decks')
         }, 1200)
@@ -93,13 +127,53 @@ function AdminDeckCreatePage({ onNavigate }) {
     }
   }
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="admin-create-page">
+        <div className="admin-create-page-header">
+          <div>
+            <h1 className="admin-page-title">{t('admin.editTitle')}</h1>
+            <p className="admin-page-subtitle">{t('admin.editSubtitle')}</p>
+          </div>
+        </div>
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-on-surface-variant)' }}>
+          {t('admin.loading')}
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if deck loading failed
+  if (errorMsg && !title) {
+    return (
+      <div className="admin-create-page">
+        <div className="admin-create-page-header">
+          <div>
+            <h1 className="admin-page-title">{t('admin.editTitle')}</h1>
+            <p className="admin-page-subtitle">{t('admin.editSubtitle')}</p>
+          </div>
+          <div className="admin-create-header-actions">
+            <button
+              className="admin-cancel-btn"
+              onClick={() => onNavigate && onNavigate('/admin/decks')}
+            >
+              {t('admin.cancelBtn')}
+            </button>
+          </div>
+        </div>
+        <div className="admin-alert error">{errorMsg}</div>
+      </div>
+    )
+  }
+
   return (
     <div className="admin-create-page">
       {/* Page Header */}
       <div className="admin-create-page-header">
         <div>
-          <h1 className="admin-page-title">{t('admin.createTitle')}</h1>
-          <p className="admin-page-subtitle">{t('admin.createSubtitle')}</p>
+          <h1 className="admin-page-title">{t('admin.editTitle')}</h1>
+          <p className="admin-page-subtitle">{t('admin.editSubtitle')}</p>
         </div>
         <div className="admin-create-header-actions">
           <button
@@ -119,7 +193,7 @@ function AdminDeckCreatePage({ onNavigate }) {
               <polyline points="17 21 17 13 7 13 7 21" />
               <polyline points="7 3 7 8 15 8" />
             </svg>
-            {isSubmitting ? t('admin.creating') : t('admin.saveBtn')}
+            {isSubmitting ? t('admin.saving') : t('admin.saveBtn')}
           </button>
         </div>
       </div>
@@ -299,7 +373,38 @@ function AdminDeckCreatePage({ onNavigate }) {
                     <div className="admin-status-desc">{t('admin.statusPublishedDesc')}</div>
                   </div>
                 </label>
+
+                <label className={`admin-status-card ${status === 'archived' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="status"
+                    value="archived"
+                    checked={status === 'archived'}
+                    onChange={() => setStatus('archived')}
+                    className="admin-status-radio"
+                  />
+                  <div className="admin-status-dot archived" />
+                  <div>
+                    <div className="admin-status-name">{t('admin.statusArchived')}</div>
+                    <div className="admin-status-desc">{t('admin.statusArchivedDesc')}</div>
+                  </div>
+                </label>
               </div>
+            </div>
+
+            {/* Manage Topics Link Button */}
+            <div className="admin-classify-group" style={{ marginTop: '20px' }}>
+              <button
+                type="button"
+                className="admin-manage-topics-btn"
+                onClick={() => onNavigate(`/admin/decks/${deckId}`)}
+              >
+                <span>{t('admin.manageTopicsBtn') || 'Quản lý chủ đề'}</span>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14" />
+                  <path d="M12 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -318,4 +423,4 @@ function AdminDeckCreatePage({ onNavigate }) {
   )
 }
 
-export default AdminDeckCreatePage
+export default AdminDeckEditPage

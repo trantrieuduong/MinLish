@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listAdminDecksApi, deleteAdminDeckApi, updateAdminDeckApi, listCefrLevelsApi, listTagsApi } from '../adminApi'
+import { listAdminDecksApi, deleteAdminDeckApi, updateAdminDeckApi, listCefrLevelsApi, listTagsApi } from '../../adminApi'
 import './AdminDeckListPage.css'
 
 const LIMIT = 8
@@ -231,8 +231,7 @@ function AdminDeckListPage({ onNavigate }) {
                   <div className="admin-deck-stats">
                     <span className="admin-deck-stat">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                       </svg>
                       {deck.topicCount || 0} {t('admin.topics')}
                     </span>

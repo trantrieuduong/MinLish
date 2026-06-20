@@ -49,3 +49,33 @@ export const deleteTagApi = async (id) => {
   const response = await apiClient.delete(`/admin/tags/${id}`);
   return response.data;
 };
+
+export const getDeckTopicsApi = async (deckId) => {
+  const response = await apiClient.get(`/admin/decks/${deckId}/topics`);
+  return response.data;
+};
+
+export const createDeckTopicApi = async (deckId, payload) => {
+  const response = await apiClient.post(`/admin/decks/${deckId}/topics`, payload);
+  return response.data;
+};
+
+export const updateDeckTopicApi = async (deckId, topicId, payload) => {
+  const response = await apiClient.put(`/admin/decks/${deckId}/topics/${topicId}`, payload);
+  return response.data;
+};
+
+export const deleteDeckTopicApi = async (deckId, topicId) => {
+  const response = await apiClient.delete(`/admin/decks/${deckId}/topics/${topicId}`);
+  return response.data;
+};
+
+export const reorderDeckTopicsApi = async (deckId, topics) => {
+  const response = await apiClient.patch(`/admin/decks/${deckId}/topics/reorder`, { topics });
+  return response.data;
+};
+
+export const listDeckCardsApi = async (deckId, filters = {}) => {
+  const response = await apiClient.get(`/admin/decks/${deckId}/cards`, { params: filters });
+  return response.data;
+};
