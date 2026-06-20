@@ -95,35 +95,40 @@ function DeckDetailPage({ deckId, isSystem = true, onNavigate }) {
     fetchTopicCards()
   }, [selectedTopicId, deckId])
 
-  // Hàm tải lại topics để đồng bộ tiến độ học tức thời
-  const refreshTopicsProgress = async () => {
-    try {
-      const deckTopicsRes = isSystem ? await getDeckTopics(deckId) : await getUserDeckTopics(deckId)
-      if (deckTopicsRes.success && Array.isArray(deckTopicsRes.data.topics)) {
-        const updatedTopics = deckTopicsRes.data.topics
-        setTopics(updatedTopics)
-        
-        // Đồng bộ lại userProgress của topic đang chọn hiện tại
-        if (selectedTopic) {
-          const currentUpdated = updatedTopics.find(
-            (t) => t.topic._id === selectedTopic.topic._id
-          )
-          if (currentUpdated) {
-            setSelectedTopic(currentUpdated)
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Lỗi khi cập nhật lại tiến độ topic:', err)
-    }
-  }
-
   // Xử lý học xong 1 thẻ từ (grade hoặc ẩn thành công)
   const handleCardSuccess = (gradeOrAction) => {
     // Chuyển sang thẻ tiếp theo
     setCurrentCardIndex((prev) => prev + 1)
-    // Cập nhật lại tiến độ của topic
-    refreshTopicsProgress()
+
+    // Tự động cập nhật tiến độ học của chủ đề
+    if (selectedTopic) {
+      const topicId = selectedTopic.topic._id
+      setTopics((prevTopics) =>
+        prevTopics.map((item) => {
+          if (item.topic._id === topicId) {
+            const currentProgress = item.userProgress || { learnedCardCount: 0, totalCardCount: 0, progressPct: 0 }
+            const newLearned = Math.min(currentProgress.learnedCardCount + 1, currentProgress.totalCardCount)
+            const newPct = currentProgress.totalCardCount > 0
+              ? Math.round((newLearned / currentProgress.totalCardCount) * 100)
+              : 0
+
+            const updatedItem = {
+              ...item,
+              userProgress: {
+                ...currentProgress,
+                learnedCardCount: newLearned,
+                progressPct: newPct
+              }
+            }
+
+            // Đồng bộ lại selectedTopic
+            setSelectedTopic(updatedItem)
+            return updatedItem
+          }
+          return item
+        })
+      )
+    }
   }
 
   const handleBackClick = (e) => {
