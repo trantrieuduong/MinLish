@@ -62,7 +62,7 @@ export default {
               properties: {
                 text: { type: 'string', example: '/ˈfæməli/' },
                 audio: { type: 'string', example: '' },
-                locale: { type: 'string', example: 'us' },
+                locale: { type: 'string', example: 'en-US' },
               },
             },
           },
