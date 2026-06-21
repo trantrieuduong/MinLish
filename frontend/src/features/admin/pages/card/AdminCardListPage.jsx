@@ -544,20 +544,22 @@ function AdminCardListPage({ deckId, topicId, onNavigate }) {
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="admin-cards-pagination-section">
-          <span className="pagination-text-info">
+        <div className="admin-pagination">
+          <span className="admin-pagination-info">
             {t('admin.paginationCards', { from: displayFrom, to: displayTo, total: totalItems }) ||
               `Đang hiển thị ${displayFrom}-${displayTo} trên ${totalItems} thẻ`}
           </span>
 
-          <div className="pagination-controls-group">
+          <div className="admin-pagination-controls">
             <button
               type="button"
-              className="pagination-arrow-btn"
+              className="admin-pagination-btn"
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
             >
-              &lt;
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
             {Array.from({ length: totalPages }).map((_, idx) => {
               const p = idx + 1
@@ -565,7 +567,7 @@ function AdminCardListPage({ deckId, topicId, onNavigate }) {
                 <button
                   key={p}
                   type="button"
-                  className={`pagination-num-btn ${page === p ? 'active' : ''}`}
+                  className={`admin-pagination-btn ${page === p ? 'active' : ''}`}
                   onClick={() => setPage(p)}
                 >
                   {p}
@@ -574,11 +576,13 @@ function AdminCardListPage({ deckId, topicId, onNavigate }) {
             })}
             <button
               type="button"
-              className="pagination-arrow-btn"
+              className="admin-pagination-btn"
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
             >
-              &gt;
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           </div>
         </div>
