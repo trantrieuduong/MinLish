@@ -25,6 +25,16 @@ export const deleteAdminDeckApi = async (id) => {
   return response.data;
 };
 
+export const listAdminLessonsApi = async (filters = {}) => {
+  const response = await apiClient.get("/admin/lessons", { params: filters });
+  return response.data;
+};
+
+export const updateAdminLessonApi = async (id, payload) => {
+  const response = await apiClient.put(`/admin/lessons/${id}`, payload);
+  return response.data;
+};
+
 export const listCefrLevelsApi = async () => {
   const response = await apiClient.get("/cefr-levels");
   return response.data;

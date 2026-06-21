@@ -17,6 +17,7 @@ import AdminDeckCreatePage from './features/admin/pages/deck/AdminDeckCreatePage
 import AdminDeckEditPage from './features/admin/pages/deck/AdminDeckEditPage'
 import AdminDeckTopicPage from './features/admin/pages/topic/AdminDeckTopicPage'
 import AdminCardListPage from './features/admin/pages/card/AdminCardListPage'
+import AdminLessonListPage from './features/admin/pages/lesson/AdminLessonListPage'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './context/AuthContext'
 import './App.css'
@@ -99,6 +100,16 @@ function App() {
     }
     if (currentPath.startsWith('/admin/decks')) {
       return <AdminDeckListPage onNavigate={navigate} />
+    }
+    if (currentPath === '/admin/lessons') {
+      return <AdminLessonListPage onNavigate={navigate} />
+    }
+    if (currentPath.startsWith('/admin/lessons')) {
+      return (
+        <div style={{ padding: '40px', fontFamily: 'var(--font-family)', color: 'var(--color-on-surface-variant)' }}>
+          {t('admin.lessonDetailPlaceholder')}
+        </div>
+      )
     }
     // /admin or /admin/* (overview placeholder)
     return (
