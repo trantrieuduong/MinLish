@@ -297,7 +297,23 @@
     "posPreposition": "Giới từ",
     "posPronoun": "Đại từ",
     "manageTopicsBtn": "Quản lý chủ đề",
-    "updatedAt": "Cập nhật {{time}}"
+    "updatedAt": "Cập nhật {{time}}",
+    "allPosFilter": "Tất cả từ loại",
+    "searchCardsPlaceholder": "Tìm kiếm từ...",
+    "confirmDeleteCardTitle": "Xóa thẻ từ vựng",
+    "confirmDeleteCardMessage": "Bạn có chắc chắn muốn xóa thẻ từ vựng này không?",
+    "cardReorderTitle": "Sắp xếp thứ tự các thẻ",
+    "cardReorderDesc": "Kéo thả các thẻ để thay đổi trình tự học tập cho học viên.",
+    "addCardBtn": "+ Thêm thẻ mới",
+    "paginationCards": "Đang hiển thị {{from}}-{{to}} trên {{total}} thẻ",
+    "tableHeaderOrder": "STT",
+    "tableHeaderImage": "Hình ảnh",
+    "tableHeaderTerm": "Từ chính",
+    "tableHeaderPhonetic": "Phiên âm",
+    "tableHeaderPos": "Từ loại",
+    "tableHeaderTranslation": "Nghĩa",
+    "tableHeaderDefinition": "Định nghĩa",
+    "tableHeaderActions": "Thao tác"
   },
   "api": {
     "success": {
@@ -354,6 +370,7 @@
       "SEGMENT_UPDATED_SUCCESS": "Cập nhật phần học thành công",
       "SEGMENT_DELETED_SUCCESS": "Xóa phần học thành công",
       "DECK_CREATED_SUCCESS": "Tạo bộ từ thành công",
+      "DECK_UPDATED_SUCCESS": "Cập nhật bộ từ thành công",
       "DECK_DELETED_SUCCESS": "Xóa/lưu trữ bộ từ thành công",
       "TOPIC_CREATED_SUCCESS": "Tạo chủ đề thành công",
       "TOPIC_UPDATED_SUCCESS": "Cập nhật chủ đề thành công",
@@ -361,7 +378,8 @@
       "TOPIC_REORDERED_SUCCESS": "Sắp xếp lại chủ đề thành công",
       "CARD_CREATED_SUCCESS": "Tạo flashcard thành công",
       "CARD_UPDATED_SUCCESS": "Cập nhật flashcard thành công",
-      "CARD_DELETED_SUCCESS": "Xóa flashcard thành công"
+      "CARD_DELETED_SUCCESS": "Xóa flashcard thành công",
+      "CARD_REORDERED_SUCCESS": "Sắp xếp lại thẻ thành công"
     },
     "error": {
       "INVALID_DATA": "Dữ liệu yêu cầu không hợp lệ",

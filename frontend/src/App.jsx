@@ -16,6 +16,7 @@ import AdminDeckListPage from './features/admin/pages/deck/AdminDeckListPage'
 import AdminDeckCreatePage from './features/admin/pages/deck/AdminDeckCreatePage'
 import AdminDeckEditPage from './features/admin/pages/deck/AdminDeckEditPage'
 import AdminDeckTopicPage from './features/admin/pages/topic/AdminDeckTopicPage'
+import AdminCardListPage from './features/admin/pages/card/AdminCardListPage'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './context/AuthContext'
 import './App.css'
@@ -82,6 +83,13 @@ function App() {
     if (currentPath.startsWith('/admin/decks/') && currentPath.endsWith('/edit')) {
       const deckId = currentPath.split('/')[3]
       return <AdminDeckEditPage onNavigate={navigate} deckId={deckId} />
+    }
+    // Match /admin/decks/:deckId/topics/:topicId/cards pattern
+    const cardListMatch = currentPath.match(/^\/admin\/decks\/([a-fA-F0-9]{24})\/topics\/([a-fA-F0-9]{24})\/cards$/)
+    if (cardListMatch) {
+      const deckId = cardListMatch[1]
+      const topicId = cardListMatch[2]
+      return <AdminCardListPage onNavigate={navigate} deckId={deckId} topicId={topicId} />
     }
     // Match /admin/decks/:deckId pattern
     const deckDetailMatch = currentPath.match(/^\/admin\/decks\/([a-fA-F0-9]{24})$/)

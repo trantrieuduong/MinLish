@@ -297,7 +297,23 @@
     "posPreposition": "Preposition",
     "posPronoun": "Pronoun",
     "manageTopicsBtn": "Manage topics",
-    "updatedAt": "Updated {{time}}"
+    "updatedAt": "Updated {{time}}",
+    "allPosFilter": "All parts of speech",
+    "searchCardsPlaceholder": "Search words...",
+    "confirmDeleteCardTitle": "Delete flashcard",
+    "confirmDeleteCardMessage": "Are you sure you want to delete this flashcard?",
+    "cardReorderTitle": "Reorder cards",
+    "cardReorderDesc": "Drag and drop cards to change the learning sequence for students.",
+    "addCardBtn": "+ Add new card",
+    "paginationCards": "Showing {{from}}-{{to}} of {{total}} cards",
+    "tableHeaderOrder": "Order",
+    "tableHeaderImage": "Image",
+    "tableHeaderTerm": "Term",
+    "tableHeaderPhonetic": "Phonetic",
+    "tableHeaderPos": "Part of Speech",
+    "tableHeaderTranslation": "Translation",
+    "tableHeaderDefinition": "Definition",
+    "tableHeaderActions": "Actions"
   },
   "api": {
     "success": {
@@ -354,6 +370,7 @@
       "SEGMENT_UPDATED_SUCCESS": "Segment updated successfully",
       "SEGMENT_DELETED_SUCCESS": "Segment deleted successfully",
       "DECK_CREATED_SUCCESS": "Deck created successfully",
+      "DECK_UPDATED_SUCCESS": "Deck updated successfully",
       "DECK_DELETED_SUCCESS": "Deck deleted/archived successfully",
       "TOPIC_CREATED_SUCCESS": "Topic created successfully",
       "TOPIC_UPDATED_SUCCESS": "Topic updated successfully",
@@ -361,7 +378,8 @@
       "TOPIC_REORDERED_SUCCESS": "Topics reordered successfully",
       "CARD_CREATED_SUCCESS": "Card created successfully",
       "CARD_UPDATED_SUCCESS": "Card updated successfully",
-      "CARD_DELETED_SUCCESS": "Card deleted successfully"
+      "CARD_DELETED_SUCCESS": "Card deleted successfully",
+      "CARD_REORDERED_SUCCESS": "Cards reordered successfully"
     },
     "error": {
       "INVALID_DATA": "Invalid request data",

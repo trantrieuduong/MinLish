@@ -79,3 +79,14 @@ export const listDeckCardsApi = async (deckId, filters = {}) => {
   const response = await apiClient.get(`/admin/decks/${deckId}/cards`, { params: filters });
   return response.data;
 };
+
+export const reorderTopicCardsApi = async (topicId, cards) => {
+  const response = await apiClient.patch(`/admin/topics/${topicId}/cards/reorder`, { cards });
+  return response.data;
+};
+
+export const deleteDeckCardApi = async (deckId, cardId) => {
+  const response = await apiClient.delete(`/admin/decks/${deckId}/cards/${cardId}`);
+  return response.data;
+};
+
