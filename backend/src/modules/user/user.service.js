@@ -2,6 +2,7 @@ import UserSegmentProgress from '../../models/userSegmentProgress.model.js';
 import LessonSegment from '../../models/lessonSegment.model.js';
 import Lesson from '../../models/lesson.model.js';
 import UserCardState from '../../models/userCardState.model.js';
+import UserLessonProgress from '../../models/userLessonProgress.model.js';
 import AppError from '../../utils/AppError.js';
 import { config } from '../../config/env.js';
 import {
@@ -200,6 +201,40 @@ export const updateSegmentProgress = async (
     resultObj.shadowing.wordsAccuracy = wordsAccuracy;
   }
 
+  // Tính user lesson progress
+  const allSegments = await LessonSegment.countDocuments({ lessonId });
+  if (allSegments > 0) {
+    const lessonUpdate = { updatedAt: new Date() };
+    if (data.dictation) {
+      const completedSegments = await UserSegmentProgress.countDocuments({
+        userId,
+        lessonId,
+        'dictation.attemptCount': { $gt: 0 },
+      });
+      const pct = Math.round((completedSegments / allSegments) * 100);
+      lessonUpdate['dictation.progressPct'] = pct;
+      lessonUpdate['dictation.lastSegmentOrder'] = segment.startMs;
+      lessonUpdate['dictation.status'] =
+        pct === 100 ? 'completed' : 'in_progress';
+    }
+    if (data.shadowing) {
+      const completedSegments = await UserSegmentProgress.countDocuments({
+        userId,
+        lessonId,
+        'shadowing.attemptCount': { $gt: 0 },
+      });
+      const pct = Math.round((completedSegments / allSegments) * 100);
+      lessonUpdate['shadowing.progressPct'] = pct;
+      lessonUpdate['shadowing.lastSegmentOrder'] = segment.startMs;
+      lessonUpdate['shadowing.status'] =
+        pct === 100 ? 'completed' : 'in_progress';
+    }
+    await UserLessonProgress.findOneAndUpdate(
+      { userId, lessonId },
+      { $set: lessonUpdate },
+      { upsert: true }
+    );
+  }
   return resultObj;
 };
 
