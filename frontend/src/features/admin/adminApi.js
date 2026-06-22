@@ -76,52 +76,78 @@ export const getDeckTopicsApi = async (deckId) => {
 };
 
 export const createDeckTopicApi = async (deckId, payload) => {
-  const response = await apiClient.post(`/admin/decks/${deckId}/topics`, payload);
+  const response = await apiClient.post(
+    `/admin/decks/${deckId}/topics`,
+    payload,
+  );
   return response.data;
 };
 
 export const updateDeckTopicApi = async (deckId, topicId, payload) => {
-  const response = await apiClient.put(`/admin/decks/${deckId}/topics/${topicId}`, payload);
+  const response = await apiClient.put(
+    `/admin/decks/${deckId}/topics/${topicId}`,
+    payload,
+  );
   return response.data;
 };
 
 export const deleteDeckTopicApi = async (deckId, topicId) => {
-  const response = await apiClient.delete(`/admin/decks/${deckId}/topics/${topicId}`);
+  const response = await apiClient.delete(
+    `/admin/decks/${deckId}/topics/${topicId}`,
+  );
   return response.data;
 };
 
 export const reorderDeckTopicsApi = async (deckId, topics) => {
-  const response = await apiClient.patch(`/admin/decks/${deckId}/topics/reorder`, { topics });
+  const response = await apiClient.patch(
+    `/admin/decks/${deckId}/topics/reorder`,
+    { topics },
+  );
   return response.data;
 };
 
 export const listDeckCardsApi = async (deckId, filters = {}) => {
-  const response = await apiClient.get(`/admin/decks/${deckId}/cards`, { params: filters });
+  const response = await apiClient.get(`/admin/decks/${deckId}/cards`, {
+    params: filters,
+  });
   return response.data;
 };
 
 export const createDeckCardApi = async (deckId, payload) => {
-  const response = await apiClient.post(`/admin/decks/${deckId}/cards`, payload);
+  const response = await apiClient.post(
+    `/admin/decks/${deckId}/cards`,
+    payload,
+  );
   return response.data;
 };
 
 export const getDeckCardByIdApi = async (deckId, cardId) => {
-  const response = await apiClient.get(`/admin/decks/${deckId}/cards/${cardId}`);
+  const response = await apiClient.get(
+    `/admin/decks/${deckId}/cards/${cardId}`,
+  );
   return response.data;
 };
 
 export const updateDeckCardApi = async (deckId, cardId, payload) => {
-  const response = await apiClient.put(`/admin/decks/${deckId}/cards/${cardId}`, payload);
+  const response = await apiClient.put(
+    `/admin/decks/${deckId}/cards/${cardId}`,
+    payload,
+  );
   return response.data;
 };
 
 export const reorderTopicCardsApi = async (topicId, cards) => {
-  const response = await apiClient.patch(`/admin/topics/${topicId}/cards/reorder`, { cards });
+  const response = await apiClient.patch(
+    `/admin/topics/${topicId}/cards/reorder`,
+    { cards },
+  );
   return response.data;
 };
 
 export const deleteDeckCardApi = async (deckId, cardId) => {
-  const response = await apiClient.delete(`/admin/decks/${deckId}/cards/${cardId}`);
+  const response = await apiClient.delete(
+    `/admin/decks/${deckId}/cards/${cardId}`,
+  );
   return response.data;
 };
 
@@ -130,3 +156,41 @@ export const autoFillCardApi = async (word) => {
   return response.data;
 };
 
+export const listAdminLessonSegmentsApi = async (lessonId) => {
+  const response = await apiClient.get(`/admin/lessons/${lessonId}/segments`);
+  return response.data;
+};
+
+export const createAdminLessonSegmentApi = async (lessonId, payload) => {
+  const response = await apiClient.post(
+    `/admin/lessons/${lessonId}/segments`,
+    payload,
+  );
+  return response.data;
+};
+
+export const getAdminLessonSegmentByIdApi = async (lessonId, segmentId) => {
+  const response = await apiClient.get(
+    `/admin/lessons/${lessonId}/segments/${segmentId}`,
+  );
+  return response.data;
+};
+
+export const updateAdminLessonSegmentApi = async (
+  lessonId,
+  segmentId,
+  payload,
+) => {
+  const response = await apiClient.put(
+    `/admin/lessons/${lessonId}/segments/${segmentId}`,
+    payload,
+  );
+  return response.data;
+};
+
+export const deleteAdminLessonSegmentApi = async (lessonId, segmentId) => {
+  const response = await apiClient.delete(
+    `/admin/lessons/${lessonId}/segments/${segmentId}`,
+  );
+  return response.data;
+};
