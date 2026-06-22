@@ -1,9 +1,26 @@
 .admin-lesson-form-page .admin-create-body {
   grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: start;
+}
+
+.admin-lesson-form-page .admin-create-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-self: start;
 }
 
 .admin-lesson-description {
   min-height: 160px;
+}
+
+@media (min-width: 769px) {
+  .admin-lesson-form-page .admin-create-page-header {
+    align-items: center;
+  }
+  .admin-lesson-form-page .admin-create-page-header .admin-manage-topics-btn {
+    width: auto;
+  }
 }
 
 .admin-lesson-media-row {
@@ -79,7 +96,8 @@
 }
 
 .admin-lesson-segments-action {
-  margin-top: 20px;
+  margin-top: 0 !important;
+  margin-bottom: 20px;
 }
 
 @media (max-width: 992px) {

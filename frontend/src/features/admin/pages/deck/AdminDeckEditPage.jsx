@@ -114,9 +114,11 @@ function AdminDeckEditPage({ onNavigate, deckId }) {
       const res = await updateAdminDeckApi(deckId, payload)
       if (res.success) {
         setSuccessMsg(res.message)
+        setIsSubmitting(false)
+        // Tự động ẩn thông báo sau 3 giây
         setTimeout(() => {
-          if (onNavigate) onNavigate('/admin/decks')
-        }, 1200)
+          setSuccessMsg('')
+        }, 3000)
       } else {
         setErrorMsg(res.message)
         setIsSubmitting(false)
@@ -177,23 +179,15 @@ function AdminDeckEditPage({ onNavigate, deckId }) {
         </div>
         <div className="admin-create-header-actions">
           <button
-            className="admin-cancel-btn"
-            onClick={() => onNavigate && onNavigate('/admin/decks')}
-            disabled={isSubmitting}
+            type="button"
+            className="admin-manage-topics-btn"
+            onClick={() => onNavigate(`/admin/decks/${deckId}`)}
           >
-            {t('admin.cancelBtn')}
-          </button>
-          <button
-            className="admin-save-btn"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
+            <span>{t('admin.manageTopicsBtn') || 'Quản lý chủ đề'}</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
             </svg>
-            {isSubmitting ? t('admin.saving') : t('admin.saveBtn')}
           </button>
         </div>
       </div>
@@ -392,18 +386,25 @@ function AdminDeckEditPage({ onNavigate, deckId }) {
               </div>
             </div>
 
-            {/* Manage Topics Link Button */}
-            <div className="admin-classify-group" style={{ marginTop: '20px' }}>
+            <div className="admin-form-footer-actions">
               <button
-                type="button"
-                className="admin-manage-topics-btn"
-                onClick={() => onNavigate(`/admin/decks/${deckId}`)}
+                className="admin-cancel-btn"
+                onClick={() => onNavigate && onNavigate('/admin/decks')}
+                disabled={isSubmitting}
               >
-                <span>{t('admin.manageTopicsBtn') || 'Quản lý chủ đề'}</span>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14" />
-                  <path d="M12 5l7 7-7 7" />
+                {t('admin.cancelBtn')}
+              </button>
+              <button
+                className="admin-save-btn"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
                 </svg>
+                {isSubmitting ? t('admin.saving') : t('admin.saveBtn')}
               </button>
             </div>
           </div>

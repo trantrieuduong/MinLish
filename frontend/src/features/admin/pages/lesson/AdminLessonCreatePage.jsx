@@ -125,23 +125,6 @@ function AdminLessonCreatePage({ onNavigate }) {
           <h1 className="admin-page-title">{t('admin.lessonCreateTitle')}</h1>
           <p className="admin-page-subtitle">{t('admin.lessonCreateSubtitle')}</p>
         </div>
-        <div className="admin-create-header-actions">
-          <button
-            className="admin-cancel-btn"
-            onClick={() => onNavigate && onNavigate('/admin/lessons')}
-            disabled={isSubmitting}
-          >
-            {t('admin.cancelBtn')}
-          </button>
-          <button className="admin-save-btn" onClick={handleSubmit} disabled={isSubmitting}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
-            {isSubmitting ? t('admin.creating') : t('admin.lessonSaveBtn')}
-          </button>
-        </div>
       </div>
 
       {successMsg && <div className="admin-alert success">{successMsg}</div>}
@@ -315,6 +298,24 @@ function AdminLessonCreatePage({ onNavigate }) {
                   </div>
                 </label>
               </div>
+            </div>
+
+            <div className="admin-form-footer-actions">
+              <button
+                className="admin-cancel-btn"
+                onClick={() => onNavigate && onNavigate('/admin/lessons')}
+                disabled={isSubmitting}
+              >
+                {t('admin.cancelBtn')}
+              </button>
+              <button className="admin-save-btn" onClick={handleSubmit} disabled={isSubmitting}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                {isSubmitting ? t('admin.creating') : t('admin.lessonSaveBtn')}
+              </button>
             </div>
           </div>
         </div>
