@@ -69,12 +69,22 @@ export async function startMatch(socket1, socket2, mode, matchType = 'queue') {
     currentDeadlineTs: null,
     roundTimer: null,
     revealTimer: null,
+    startTimer: null,
     graceTimers: {}, // userId -> reconnect grace setTimeout handle
   };
   activeMatches.set(matchId, liveState);
 
-  // 5. Kick off round 0.
-  runRound(liveState, io);
+  // 5. Pre-game countdown — let both clients render the battle screen before the
+  //    first question's timer starts. Round 0 only begins after the countdown.
+  io.to(matchId).emit('battle:starting', {
+    countdownMs: BATTLE.startCountdownMs,
+    mode,
+    total: questions.length,
+  });
+  liveState.startTimer = setTimeout(
+    () => runRound(liveState, io),
+    BATTLE.startCountdownMs
+  );
 
   return match;
 }
@@ -195,6 +205,7 @@ async function finalizeMatch(liveState, io) {
   liveState.status = 'finishing';
   clearTimeout(liveState.roundTimer);
   clearTimeout(liveState.revealTimer);
+  clearTimeout(liveState.startTimer);
   for (const t of Object.values(liveState.graceTimers)) clearTimeout(t);
 
   const { matchId } = liveState;
@@ -383,6 +394,7 @@ async function finalizeAsForfeit(liveState, io, forfeitUserId) {
   liveState.status = 'finishing';
   clearTimeout(liveState.roundTimer);
   clearTimeout(liveState.revealTimer);
+  clearTimeout(liveState.startTimer);
   for (const t of Object.values(liveState.graceTimers)) clearTimeout(t);
 
   const { matchId } = liveState;
@@ -431,6 +443,7 @@ async function abandonMatch(liveState, io) {
   liveState.status = 'finishing';
   clearTimeout(liveState.roundTimer);
   clearTimeout(liveState.revealTimer);
+  clearTimeout(liveState.startTimer);
   for (const t of Object.values(liveState.graceTimers)) clearTimeout(t);
 
   const { matchId } = liveState;

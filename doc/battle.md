@@ -84,6 +84,9 @@ Sai:   score = 0
 **Vòng lặp round (server-authoritative):**
 
 ```
+startMatch → emit 'battle:starting' { countdownMs, mode, total }  ← đếm ngược pre-game
+           → pause startCountdownMs (3s) để 2 client render màn battle
+           → runRound câu 0
 runRound → emit 'battle:question' { index, total, term, mode, options, deadlineTs }
          → roundTimer (12s) | hoặc cả 2 đã answer → advanceRound
 advanceRound → emit 'battle:roundResult' { index, correctAnswer, scores }  ← lộ đáp án + điểm
@@ -91,6 +94,7 @@ advanceRound → emit 'battle:roundResult' { index, correctAnswer, scores }  ←
              → runRound câu kế (deadlineTs mới full 12s) | hoặc finalizeMatch
 ```
 
+- Start countdown (`startCountdownMs`) đặt **server-side**: timer câu 0 chỉ chạy sau countdown nên 2 client kịp render, không mất giây oan.
 - Đáp án đúng chỉ lộ ở `battle:roundResult` (không bao giờ gửi kèm `battle:question`).
 - Reveal pause (`roundRevealMs`) đặt **server-side**: câu kế chỉ broadcast sau pause nên `deadlineTs` luôn đủ 12s, đồng bộ 2 client.
 
@@ -154,6 +158,7 @@ Reward được wrap trong `try/catch` riêng — lỗi gamification không bao 
 | Constant                  | Giá trị | Ý nghĩa                             |
 | :------------------------ | :------ | :---------------------------------- |
 | `BATTLE.rounds`           | 10      | Số câu hỏi mỗi trận                 |
+| `BATTLE.startCountdownMs` | 3000    | Đếm ngược pre-game trước câu 0 (ms) |
 | `BATTLE.perQuestionMs`    | 12000   | Thời gian mỗi câu (ms)              |
 | `BATTLE.roundRevealMs`    | 3000    | Pause hiện đáp án giữa các round (ms) |
 | `BATTLE.speedBonusMax`    | 50      | Speed bonus tối đa mỗi câu          |

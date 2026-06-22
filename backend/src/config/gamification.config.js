@@ -21,8 +21,9 @@ export const XP = {
 
 export const BATTLE = {
   rounds: 10,
+  startCountdownMs: 3000, 
   perQuestionMs: 12000,
-  roundRevealMs: 3000, 
+  roundRevealMs: 3000,
   speedBonusMax: 50,
   queueTimeoutMs: 30000,
   reconnectGraceMs: 15000,
