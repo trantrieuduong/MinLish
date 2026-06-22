@@ -19,6 +19,18 @@ export const XP = {
   dailyStreakBonus: 20,
 };
 
+
+export const SEGMENT_XP = {
+  dictation: { pass: 60, xp: 10 },
+  shadowing: { pass: 55, xp: 12 },
+};
+
+export function segmentXp(mode, score) {
+  const cfg = SEGMENT_XP[mode];
+  if (!cfg || typeof score !== 'number' || score < cfg.pass) return 0;
+  return cfg.xp;
+}
+
 export const BATTLE = {
   rounds: 10,
   perQuestionMs: 12000,

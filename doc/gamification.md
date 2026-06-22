@@ -38,7 +38,8 @@ backend/src/
 
 | Hành động | Source key | XP |
 | :--- | :--- | :--- |
-| Hoàn thành 1 segment (dictation/shadowing) | `segment_complete` | 10 |
+| Hoàn thành 1 segment dictation (đạt pass) | `segment_complete` | 10 |
+| Hoàn thành 1 segment shadowing (đạt pass) | `segment_complete` | 12 |
 | Review 1 thẻ qua SRS grade | `card_review` | 3 |
 | Tham gia 1 trận battle | `battle_play` | 15 |
 | Thắng trận battle | `battle_win` | 35 |
@@ -46,7 +47,19 @@ backend/src/
 
 > Bonus streak chỉ tặng **một lần mỗi ngày**, dù user làm bao nhiêu hoạt động đi nữa.
 > Học 1 card dù là hình thức review, flashcard hay MCQ đều chỉ tặng **một lần mỗi ngày** (hôm sau học lại thẻ đó vẫn tặng).
-> Hoàn thành 1 segment chỉ tặng **một lần duy nhất suốt đời** — hoàn thành lại cùng segment vào ngày khác cũng không tặng thêm.
+> Hoàn thành 1 segment chỉ tặng **một lần duy nhất suốt đời cho mỗi mode** — `dictation` và `shadowing` của cùng segment là 2 lần thưởng độc lập; làm lại cùng (segment, mode) không tặng thêm.
+
+### XP segment — tính theo ngưỡng pass, riêng từng mode
+
+Định nghĩa trong `SEGMENT_XP` (`gamification.config.js`). Chỉ tặng khi điểm chất lượng `score` đạt `pass`:
+
+| Mode | Nguồn `score` | `pass` | XP khi đạt |
+| :--- | :--- | :---: | :---: |
+| `dictation` | % từ tự gõ đúng (không tính từ đã reveal) | 60 | 10 |
+| `shadowing` | điểm phát âm Azure (PronScore) | 55 | 12 |
+
+> `score < pass` → **0 XP**: gõ/nói bậy, hoặc reveal hết gợi ý (dictation score về 0) đều không được thưởng. Chống cào điểm.
+> `recordActivity` nhận tham số `amountOverride` để truyền lượng XP segment.
 ---
 
 ## 4. Idempotency — không bao giờ tặng XP 2 lần
@@ -55,7 +68,7 @@ Mỗi sự kiện XP được lưu vào collection `xp_events` với unique inde
 
 | Hành động | refId được dùng |
 | :--- | :--- |
-| Segment complete | `segmentId` |
+| Segment complete | `${segmentId}:${mode}` — 1 lần/segment/mode (`dictation`/`shadowing`) |
 | Card review | `${cardId}:${dayKey}` — 1 lần/thẻ/ngày |
 | Battle play | `matchId` |
 | Battle win | `matchId` |
@@ -108,11 +121,18 @@ await gamificationService.recordActivity(userId, source, refId);
 
 ```js
 try {
-  await gamificationService.recordActivity(userId, 'segment_complete', segmentId);
+  await gamificationService.recordActivity(
+    userId,
+    'segment_complete',
+    `${segmentId}:${mode}`, // refId per-mode: <segmentId>:dictation | <segmentId>:shadowing
+    xp // amountOverride: lượng XP động theo chất lượng (>0 mới award)
+  );
 } catch (e) {
   logger.warn('gamification recordActivity failed', e);
 }
 ```
+
+> Tham số 4 `amountOverride` tùy chọn — bỏ trống thì dùng XP cố định theo `source` (vd `card_review` = 3).
 
 ---
 

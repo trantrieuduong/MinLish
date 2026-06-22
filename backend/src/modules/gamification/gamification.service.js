@@ -52,13 +52,15 @@ export async function awardXp(userId, source, refId, amount) {
 
 // Single entry point for all real learning actions.
 // Updates streak + awards XP atomically (idempotent via xpEvent unique index).
-export async function recordActivity(userId, source, refId) {
+export async function recordActivity(userId, source, refId, amountOverride) {
   const dayKey = getDayKey();
   const yesterdayKey = getDayKey(new Date(Date.now() - 86400000));
 
-  const amount = SOURCE_XP_MAP[source];
+  const amount = amountOverride ?? SOURCE_XP_MAP[source];
   if (amount === undefined)
     throw new Error(`Unknown gamification source: ${source}`);
+  // Non-positive amount -> no event written, no streak update.
+  if (amount <= 0) return;
 
   // Idempotency: duplicate activity returns early, no double XP.
   try {

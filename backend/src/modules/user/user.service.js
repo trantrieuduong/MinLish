@@ -17,6 +17,8 @@ import {
 } from '../../constants/codes/index.js';
 import { calculateNextSRS } from '../../utils/srs.util.js';
 import { generateQuizOptions } from '../deck/deck.service.js';
+import { recordActivity } from '../gamification/gamification.service.js';
+import { segmentXp, getDayKey } from '../../config/gamification.config.js';
 //import fs from 'fs';
 
 export const evaluatePronunciation = async (audioUrl, referenceText) => {
@@ -246,6 +248,24 @@ export const updateSegmentProgress = async (
       { upsert: true }
     );
   }
+
+  const awardSegmentXp = async (mode) => {
+    const xp = segmentXp(mode, progress[mode]?.bestScore);
+    if (xp <= 0) return;
+    try {
+      await recordActivity(
+        userId,
+        'segment_complete',
+        `${segmentId}:${mode}`,
+        xp
+      );
+    } catch (e) {
+      console.warn(`[gamification] segment XP (${mode}) failed:`, e.message);
+    }
+  };
+  if (data.dictation) await awardSegmentXp('dictation');
+  if (data.shadowing) await awardSegmentXp('shadowing');
+
   return resultObj;
 };
 
@@ -338,10 +358,20 @@ export const upsertCardState = async (userId, cardId, data) => {
       if (flags.hidden !== undefined) cardState.flags.hidden = flags.hidden;
     }
   }
-  if (srs && srs.lastGrade !== undefined) {
+  const graded = srs && srs.lastGrade !== undefined;
+  if (graded) {
     cardState.srs = calculateNextSRS(srs.lastGrade, cardState.srs);
   }
   await cardState.save();
+
+  if (graded) {
+    try {
+      await recordActivity(userId, 'card_review', `${cardId}:${getDayKey()}`);
+    } catch (e) {
+      console.warn('[gamification] card_review XP failed:', e.message);
+    }
+  }
+
   return cardState;
 };
 
