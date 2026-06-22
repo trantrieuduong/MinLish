@@ -212,6 +212,3 @@ export const getUserDueCardStates = async (params = {}) => {
   })
   return response.data
 }
-
-
-

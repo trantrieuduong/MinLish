@@ -27,7 +27,7 @@ function ReviewPage({ onNavigate }) {
       setLoading(true)
       setError('')
       try {
-        const response = await getUserDueCardStates({ due: true, limit: 20, hidden: false })
+        const response = await getUserDueCardStates({ due: true, limit: 100, hidden: false })
         if (response.success) {
           const list = response.data || []
           setCardStates(list)

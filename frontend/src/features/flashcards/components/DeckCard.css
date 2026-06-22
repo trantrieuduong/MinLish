@@ -93,14 +93,8 @@
 }
 
 .cefr-badge {
-  background-color: var(--color-secondary-container, #e8f0fe);
-  color: var(--color-secondary, #055db6);
-}
-
-/* Chỉnh màu cho badge CEFR trong Dark Mode để dễ đọc hơn */
-[data-theme='dark'] .cefr-badge {
-  background-color: rgba(13, 71, 161, 0.2);
-  color: var(--color-secondary);
+  background-color: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
 }
 
 .tag-badge {
