@@ -55,7 +55,12 @@ export default {
     properties: {
       _id: { type: 'string', example: '664f1a2b3c4d5e6f7a8b9c0d' },
       mode: { type: 'string', enum: ['mcq', 'typing'], example: 'mcq' },
-      matchType: { type: 'string', enum: ['queue', 'invite'], example: 'queue' },
+      matchType: {
+        type: 'string',
+        enum: ['queue', 'invite'],
+        description: 'queue = ghép random (được trao XP). invite = phòng riêng (friendly-only, KHÔNG trao XP).',
+        example: 'queue',
+      },
       status: {
         type: 'string',
         enum: ['waiting', 'in_progress', 'finished', 'abandoned'],

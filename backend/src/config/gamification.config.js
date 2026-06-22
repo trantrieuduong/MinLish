@@ -25,6 +25,7 @@ export const BATTLE = {
   speedBonusMax: 50,
   queueTimeoutMs: 30000,
   reconnectGraceMs: 15000,
+  minCorrectForReward: 3,
 };
 
 export function getDayKey(date = new Date()) {

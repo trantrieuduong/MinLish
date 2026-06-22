@@ -164,7 +164,7 @@ battle_matches
 | :------------- | :---------------------------------------------------------------------------------------------- |
 | `_id`          | ID trận đấu (dùng làm matchId trong socket).                                                    |
 | `mode`         | Dạng câu hỏi: `mcq` (chọn đáp án) hoặc `typing` (gõ nghĩa).                                   |
-| `matchType`    | Cách ghép trận: `queue` (random) hoặc `invite` (dùng room code).                               |
+| `matchType`    | Cách ghép trận: `queue` (random) hoặc `invite` (dùng room code). **Chỉ `queue` được trao XP**; `invite` là friendly-only (chống farm điểm). |
 | `roomCode`     | Mã phòng 6 ký tự (chỉ có với invite). Sparse unique index.                                     |
 | `status`       | `waiting` → `in_progress` → `finished` hoặc `abandoned`.                                       |
 | `players`      | Mảng 2 phần tử `[{ userId, score, correctCount, connected }]`. `connected` = còn kết nối cuối trận. |

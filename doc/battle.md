@@ -105,7 +105,7 @@ server: emit 'battle:rejoined'
 Trận tiếp tục bình thường
 ```
 
-**Forfeit** (`finalizeAsForfeit`): persist DB, emit `battle:opponentLeft`, trao XP nếu đã chơi ≥ 1 round.
+**Forfeit** (`finalizeAsForfeit`): persist DB, emit `battle:opponentLeft`, gọi `grantRewards` nếu đã chơi ≥ 1 round (cùng luật gate như finish — xem mục 6).
 
 **Abandon** (`abandonMatch`): persist `status='abandoned'`, emit `battle:abandoned`, **không trao XP**.
 
@@ -113,12 +113,22 @@ Trận tiếp tục bình thường
 
 ## 6. Reward sau trận
 
-Tích hợp với `gamification.service.js`:
+Tích hợp với `gamification.service.js`. Logic thưởng dùng chung cho finish + forfeit (`grantRewards`), gate 2 lớp:
 
-| Hành động     | XP  | Điều kiện                      |
-| :------------ | :-- | :----------------------------- |
-| `battle_play` | +15 | Cả 2 player, bất kể thắng/thua |
-| `battle_win`  | +35 | Chỉ người thắng (winnerId)     |
+**Lớp 1 — Streak (luôn tính).** Mọi player đã chơi ≥ 1 vòng đều cập nhật streak + daily bonus (1 lần/ngày), bất kể loại trận hay kết quả. Player đạt ngưỡng nỗ lực dùng `recordActivity` (vừa +15 XP vừa streak); player dưới ngưỡng / trận invite dùng `touchStreak` (chỉ streak, không XP).
+
+**Lớp 2 — XP battle (có điều kiện).**
+
+| Hành động     | XP  | Điều kiện                                                        |
+| :------------ | :-- | :-------------------------------------------------------------- |
+| Streak + bonus | +20/ngày | Mọi trận, chơi ≥ 1 vòng. Idempotent theo `dayKey`         |
+| `battle_play` | +15 | `matchType='queue'` **và** `correctCount >= minCorrectForReward` |
+| `battle_win`  | +35 | `queue` **và** thắng **và** winner `correctCount >= min`        |
+
+**Lý do gate:**
+- `invite` (phòng riêng) cho phép chọn đối thủ -> 2 người thông đồng farm vô hạn **không** XP battle. Nhưng vẫn là học thật vẫn tính streak.
+- Ngưỡng `minCorrectForReward` (mặc định 3/10) chặn "vào queue trả lời bừa lấy 15 XP".
+- Không phạt (không trừ XP): dưới ngưỡng/thua = 0 XP battle.
 
 **Idempotency:** Unique index `(userId, source, refId)` trong collection `xp_events` — `refId = matchId`. Gọi `recordActivity` nhiều lần với cùng matchId không bị cộng XP trùng.
 
@@ -135,6 +145,7 @@ Reward được wrap trong `try/catch` riêng — lỗi gamification không bao 
 | `BATTLE.speedBonusMax`    | 50      | Speed bonus tối đa mỗi câu          |
 | `BATTLE.queueTimeoutMs`   | 30000   | Thời gian chờ ghép trận tối đa (ms) |
 | `BATTLE.reconnectGraceMs` | 15000   | Thời gian reconnect (ms)            |
+| `BATTLE.minCorrectForReward` | 3    | Số câu đúng tối thiểu để nhận XP battle (chống farm) |
 
 ---
 

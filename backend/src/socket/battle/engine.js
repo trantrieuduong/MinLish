@@ -6,6 +6,7 @@ import {
 import {
   recordActivity,
   awardXp,
+  touchStreak,
 } from '../../modules/gamification/gamification.service.js';
 import { BATTLE, XP } from '../../config/gamification.config.js';
 import { getIo } from '../index.js';
@@ -44,6 +45,7 @@ export async function startMatch(socket1, socket2, mode, matchType = 'queue') {
   const liveState = {
     matchId,
     mode,
+    matchType, // 'queue' awards ranked XP; 'invite' (private) does not
     players: {
       [userId1]: {
         userId: userId1,
@@ -62,7 +64,7 @@ export async function startMatch(socket1, socket2, mode, matchType = 'queue') {
         connected: true,
       },
     },
-    questions, // mutated in-place to stash per-round deadlineTs
+    questions,
     currentRound: 0,
     currentDeadlineTs: null,
     roundTimer: null,
@@ -185,12 +187,15 @@ function advanceRound(liveState, io) {
 // ---- finalize match + reward hooks ----
 
 async function finalizeMatch(liveState, io) {
+  if (liveState.status === 'finishing') return;
+  liveState.status = 'finishing';
   clearTimeout(liveState.roundTimer);
+  for (const t of Object.values(liveState.graceTimers)) clearTimeout(t);
 
   const { matchId } = liveState;
   const players = Object.values(liveState.players);
 
-  // 2. Winner (null on tie).
+  // 2. Winner 
   const [p1, p2] = players;
   let winnerId = null;
   if (p1.score > p2.score) winnerId = p1.userId;
@@ -212,7 +217,7 @@ async function finalizeMatch(liveState, io) {
             userId: p.userId,
             score: p.score,
             correctCount: p.correctCount,
-            connected: true,
+            connected: p.connected,
           })),
         },
       }
@@ -235,20 +240,46 @@ async function finalizeMatch(liveState, io) {
   // 5. Drop live state.
   activeMatches.delete(matchId);
 
-  // 6. Rewards — each call isolated so gamification errors never crash the match.
+  // 6. Rewards. Each call isolated so gamification errors never crash the match.
+  await grantRewards(liveState, players, winnerId);
+}
+
+// Shared reward logic for finish + forfeit.
+// Rules:
+//  - Streak always counts (player did real learning this match).
+//  - battle_play XP (+15) only for ranked (queue) matches AND if the player hit
+//    the min-correct effort threshold — stops "join + answer garbage" farming.
+//  - battle_win XP (+35) only for ranked matches AND if the winner also hit the
+//    threshold — no reward for winning purely on an opponent's collapse.
+//  - Invite (private) matches grant NO action XP at all (anti-collusion).
+async function grantRewards(liveState, players, winnerId) {
+  const matchId = liveState.matchId.toString();
+  const ranked = liveState.matchType === 'queue';
+  const MIN = BATTLE.minCorrectForReward;
+
   for (const player of players) {
+    const earnsPlayXp = ranked && player.correctCount >= MIN;
     try {
-      await recordActivity(player.userId, 'battle_play', matchId.toString());
+      if (earnsPlayXp) {
+        // recordActivity grants +15 AND updates streak (idempotent per day).
+        await recordActivity(player.userId, 'battle_play', matchId);
+      } else {
+        // Streak only
+        await touchStreak(player.userId);
+      }
     } catch (e) {
-      console.warn('[battle] battle_play reward failed:', e);
+      console.warn('[battle] play reward/streak failed:', e);
     }
   }
 
-  if (winnerId) {
-    try {
-      await awardXp(winnerId, 'battle_win', matchId.toString(), XP.battleWin);
-    } catch (e) {
-      console.warn('[battle] battle_win reward failed:', e);
+  if (ranked && winnerId) {
+    const winner = players.find((p) => p.userId === winnerId);
+    if (winner && winner.correctCount >= MIN) {
+      try {
+        await awardXp(winnerId, 'battle_win', matchId, XP.battleWin);
+      } catch (e) {
+        console.warn('[battle] battle_win reward failed:', e);
+      }
     }
   }
 }
@@ -258,8 +289,7 @@ async function finalizeMatch(liveState, io) {
 export function handleDisconnect(socket) {
   const io = getIo();
 
-  // 1. Locate live state. Prefer the socket tag; fall back to a scan
-  //    (socketId may differ from currentMatchId after odd lifecycles).
+  // 1. Locate live state.
   let liveState = socket.currentMatchId
     ? activeMatches.get(socket.currentMatchId)
     : null;
@@ -273,10 +303,14 @@ export function handleDisconnect(socket) {
   }
   if (!liveState) return;
 
-  // Identify the player by userId (more stable than socketId).
   const userId = socket.user?.id;
   const player = userId ? liveState.players[userId] : null;
   if (!player) return;
+
+  // Ignore a stale socket's disconnect: if the player already rebound to a new
+  // socket (reconnected), this delayed disconnect must NOT mark them offline,
+  // otherwise a connected player gets forfeited by mistake.
+  if (player.socketId !== socket.id) return;
 
   // 2. Only meaningful while the match is live.
   if (liveState.status === 'finishing') return;
@@ -340,6 +374,7 @@ export function handleRejoin(socket, { matchId }) {
 }
 
 async function finalizeAsForfeit(liveState, io, forfeitUserId) {
+  if (liveState.status === 'finishing') return;
   liveState.status = 'finishing';
   clearTimeout(liveState.roundTimer);
   for (const t of Object.values(liveState.graceTimers)) clearTimeout(t);
@@ -379,26 +414,14 @@ async function finalizeAsForfeit(liveState, io, forfeitUserId) {
   // 5. Drop live state.
   activeMatches.delete(matchId);
 
-  // 4. Rewards — battle_play for both only if at least one round was played.
-  if (liveState.currentRound >= 1) {
-    for (const player of players) {
-      try {
-        await recordActivity(player.userId, 'battle_play', matchId.toString());
-      } catch (e) {
-        console.warn('[battle] battle_play reward failed:', e);
-      }
-    }
-  }
-  if (winnerId) {
-    try {
-      await awardXp(winnerId, 'battle_win', matchId.toString(), XP.battleWin);
-    } catch (e) {
-      console.warn('[battle] battle_win reward failed:', e);
-    }
-  }
+  // 6. Rewards — only if at least one round was played. Same effort-gated rules
+  //    as a normal finish (see grantRewards).
+  if (liveState.currentRound < 1) return;
+  await grantRewards(liveState, players, winnerId);
 }
 
 async function abandonMatch(liveState, io) {
+  if (liveState.status === 'finishing') return;
   liveState.status = 'finishing';
   clearTimeout(liveState.roundTimer);
   for (const t of Object.values(liveState.graceTimers)) clearTimeout(t);

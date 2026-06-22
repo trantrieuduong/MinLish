@@ -6,9 +6,17 @@ export function registerBattleHandlers(io) {
     socket.on('battle:queue:join', async ({ mode }) => {
       if (!['mcq', 'typing'].includes(mode)) return socket.emit('battle:error', { code: 'INVALID_MODE' });
       const paired = joinQueue(socket, mode);
-      if (paired) {
-        const opponentSocket = io.sockets.sockets.get(paired.opponent.socketId);
-        if (opponentSocket) await startMatch(socket, opponentSocket, mode, 'queue');
+      if (!paired) return;
+
+      const opponentSocket = io.sockets.sockets.get(paired.opponent.socketId);
+      if (!opponentSocket) return socket.emit('battle:error', { code: 'OPPONENT_UNAVAILABLE' });
+
+      try {
+        await startMatch(socket, opponentSocket, mode, 'queue');
+      } catch (e) {
+        console.warn('[battle] startMatch (queue) failed:', e);
+        socket.emit('battle:error', { code: 'MATCH_START_FAILED' });
+        opponentSocket.emit('battle:error', { code: 'MATCH_START_FAILED' });
       }
     });
 
@@ -25,7 +33,14 @@ export function registerBattleHandlers(io) {
       if (!result) return socket.emit('battle:error', { code: 'ROOM_NOT_FOUND' });
       const hostSocket = io.sockets.sockets.get(result.hostSocketId);
       if (!hostSocket) return socket.emit('battle:error', { code: 'HOST_DISCONNECTED' });
-      await startMatch(hostSocket, socket, result.mode, 'invite');
+
+      try {
+        await startMatch(hostSocket, socket, result.mode, 'invite');
+      } catch (e) {
+        console.warn('[battle] startMatch (invite) failed:', e);
+        socket.emit('battle:error', { code: 'MATCH_START_FAILED' });
+        hostSocket.emit('battle:error', { code: 'MATCH_START_FAILED' });
+      }
     });
 
     socket.on('battle:answer', (payload) => handleAnswer(socket, payload));
