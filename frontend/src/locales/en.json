@@ -534,5 +534,29 @@
     "scoreLabel": "Your Score: {{score}}",
     "hintUsed": "Hints used: {{count}}",
     "attempts": "Attempts: {{count}}"
+  },
+  "shadowing": {
+    "title": "Shadowing Study",
+    "listenAndRepeat": "Listen and repeat the sentence below",
+    "startBtn": "Start",
+    "replayBtn": "Replay",
+    "recordStart": "Record",
+    "recordStop": "Stop",
+    "recordingState": "Recording...",
+    "processing": "Analyzing...",
+    "nextBtn": "Continue",
+    "progressTitle": "PROGRESS",
+    "loading": "Loading lesson...",
+    "errorLoad": "Could not load this lesson. Please try again later.",
+    "completedTitle": "Congratulations!",
+    "completedSubtitle": "You have completed all shadowing segments of this lesson.",
+    "backToList": "Back to List",
+    "accuracyLabel": "Accuracy",
+    "analysisTitle": "PRONUNCIATION ANALYSIS",
+    "micPermissionDenied": "Could not access microphone. Please allow microphone permissions.",
+    "errorUpload": "Failed to upload recording to server.",
+    "errorUpdateProgress": "Failed to update shadowing progress.",
+    "playAudioBtn": "Play your voice",
+    "stopAudioBtn": "Stop"
   }
 }

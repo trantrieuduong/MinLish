@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getLessonDetail, getLessonSegments, patchSegmentProgress } from '../lessonsApi'
+import LessonYoutubePlayer from '../components/LessonYoutubePlayer'
+import StudySegmentSidebar from '../components/StudySegmentSidebar'
 import './DictationStudyPage.css'
 
 // Hàm trích xuất ID video YouTube
@@ -103,140 +105,7 @@ function DictationStudyPage({ lessonId, onNavigate }) {
     }
   }, [currentSegmentIndex, segments])
 
-  // Đảm bảo script YouTube API được tải
-  useEffect(() => {
-    if (!window.YT) {
-      const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]')
-      if (!existingScript) {
-        const tag = document.createElement('script')
-        tag.src = 'https://www.youtube.com/iframe_api'
-        const firstScriptTag = document.getElementsByTagName('script')[0]
-        if (firstScriptTag) {
-          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-        } else {
-          document.head.appendChild(tag)
-        }
-      }
-
-      const previousCallback = window.onYouTubeIframeAPIReady
-      window.onYouTubeIframeAPIReady = () => {
-        if (previousCallback) previousCallback()
-        window.dispatchEvent(new Event('youtube-api-ready'))
-      }
-    }
-  }, [])
-
   const videoId = lesson ? getYouTubeVideoId(lesson.sourceUrl) : ''
-
-  // Khởi tạo YouTube Player
-  useEffect(() => {
-    if (loading || !videoId) return
-
-    let active = true
-    let checkInterval = null
-
-    const initPlayer = () => {
-      if (!active) return
-      if (playerRef.current) {
-        return
-      }
-
-      const container = document.getElementById('dictation-yt-player')
-      if (!container) {
-        setTimeout(initPlayer, 50)
-        return
-      }
-
-      if (window.YT && window.YT.Player) {
-        playerRef.current = new window.YT.Player('dictation-yt-player', {
-          height: '100%',
-          width: '100%',
-          videoId: videoId,
-          playerVars: {
-            autoplay: 1,
-            controls: 1,
-            rel: 0,
-            showinfo: 0,
-            enablejsapi: 1
-          },
-          events: {
-            onReady: (event) => {
-              if (!active) return
-              setIsPlayerReady(true)
-              const startSec = Math.floor((segments[currentSegmentIndex]?.segment?.startMs || 0) / 1000)
-              event.target.seekTo(startSec, true)
-              event.target.playVideo()
-            }
-          }
-        })
-      }
-    }
-
-    const handleApiReady = () => {
-      initPlayer()
-    }
-
-    if (window.YT && window.YT.Player) {
-      initPlayer()
-    } else {
-      window.addEventListener('youtube-api-ready', handleApiReady)
-      checkInterval = setInterval(() => {
-        if (window.YT && window.YT.Player) {
-          initPlayer()
-          clearInterval(checkInterval)
-        }
-      }, 500)
-    }
-
-    return () => {
-      active = false
-      window.removeEventListener('youtube-api-ready', handleApiReady)
-      if (checkInterval) clearInterval(checkInterval)
-      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
-        playerRef.current.destroy()
-        playerRef.current = null
-        setIsPlayerReady(false)
-      }
-    }
-  }, [videoId, loading])
-
-  // Tua và phát khi thay đổi segment
-  useEffect(() => {
-    if (isPlayerReady && playerRef.current && segments[currentSegmentIndex]) {
-      const startSec = Math.floor(segments[currentSegmentIndex].segment.startMs / 1000)
-      if (typeof playerRef.current.seekTo === 'function') {
-        playerRef.current.seekTo(startSec, true)
-        playerRef.current.playVideo()
-      }
-    }
-  }, [currentSegmentIndex, isPlayerReady, segments])
-
-  // Theo dõi thời gian của video để tự động tạm dừng khi hết segment
-  useEffect(() => {
-    if (!isPlayerReady || !playerRef.current || !segments[currentSegmentIndex]) return
-
-    const currentSegment = segments[currentSegmentIndex].segment
-    const startSec = Math.floor(currentSegment.startMs / 1000)
-    const endSec = Math.ceil(currentSegment.endMs / 1000)
-
-    const intervalId = setInterval(() => {
-      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
-        const currentTime = playerRef.current.getCurrentTime()
-        if (currentTime >= endSec) {
-          if (typeof playerRef.current.pauseVideo === 'function') {
-            playerRef.current.pauseVideo()
-          }
-          if (typeof playerRef.current.seekTo === 'function') {
-            playerRef.current.seekTo(startSec, true)
-          }
-        }
-      }
-    }, 200)
-
-    return () => {
-      clearInterval(intervalId)
-    }
-  }, [currentSegmentIndex, isPlayerReady, segments])
 
   if (loading) {
     return (
@@ -342,14 +211,10 @@ function DictationStudyPage({ lessonId, onNavigate }) {
     setRevealedIndices(allIndices)
   }
 
-  // Xử lý phát lại đoạn segment hiện tại
+  // Phát lại phân đoạn hiện tại
   const handleReplaySegment = () => {
-    if (!segment) return
-    setAttemptCount(prev => prev + 1)
-    if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
-      const startSec = Math.floor(segment.startMs / 1000)
-      playerRef.current.seekTo(startSec, true)
-      playerRef.current.playVideo()
+    if (playerRef.current && typeof playerRef.current.replay === 'function') {
+      playerRef.current.replay()
     }
   }
 
@@ -400,24 +265,7 @@ function DictationStudyPage({ lessonId, onNavigate }) {
     }
   }
 
-  // Tính toán tiến độ học tập tổng thể của bài học (dựa vào số segment đã hoàn thành)
-  const completedSegmentsCount = segments.filter(
-    (item) => item.userProgress && item.userProgress.dictation
-  ).length
-  const lessonProgressPct = Math.round((completedSegmentsCount / segments.length) * 100)
 
-  // Xử lý click chọn segment từ danh sách cột phải (chỉ cho phép click segment đã hoàn thành hoặc đang học)
-  const handleSelectSegment = (index) => {
-    // Tìm segment đầu tiên chưa hoàn thành
-    const firstIncompleteIdx = segments.findIndex(
-      (item) => !item.userProgress || !item.userProgress.dictation
-    )
-
-    // Chỉ cho phép chọn các segment đã hoàn thành (chỉ số < firstIncompleteIdx) hoặc chính segment đang dang dở
-    if (index <= (firstIncompleteIdx === -1 ? segments.length - 1 : firstIncompleteIdx)) {
-      setCurrentSegmentIndex(index)
-    }
-  }
 
   return (
     <div className="dictation-study-container">
@@ -426,38 +274,22 @@ function DictationStudyPage({ lessonId, onNavigate }) {
       <div className="dictation-study-layout">
 
         {/* CỘT 1: MEDIA PLAYER (BÊN TRÁI) */}
-        <aside className="dictation-left-aside">
-          <div className="media-player-card">
-            <div className="media-preview-container">
-              {videoId ? (
-                <div id="dictation-yt-player" className="media-iframe"></div>
-              ) : (
-                <div className="media-preview-placeholder">
-                  <img src={lesson.thumbnailUrl || '/hero.jpg'} alt={lesson.title} className="media-thumbnail" />
-                  <div className="play-button-overlay">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="media-info-box">
-              <h2 className="media-lesson-title">{lesson.title}</h2>
-              <p className="media-lesson-desc">
-                {lesson.description}
-              </p>
-
-              {/* Nút Nghe lại đoạn này */}
-              <div className="media-action-buttons">
-                <button onClick={handleReplaySegment} className="btn-replay-segment">
-                  {t('dictation.replayBtn')}
-                </button>
-              </div>
-            </div>
+        <div className="dictation-left-aside">
+          <LessonYoutubePlayer
+            ref={playerRef}
+            lesson={lesson}
+            videoId={videoId}
+            startMs={segments[currentSegmentIndex]?.segment?.startMs || 0}
+            endMs={segments[currentSegmentIndex]?.segment?.endMs || 0}
+            onPlayerReadyStateChange={setIsPlayerReady}
+          />
+          {/* Nút Nghe lại đoạn này */}
+          <div className="media-action-buttons">
+            <button onClick={handleReplaySegment} className="btn-replay-segment">
+              {t('dictation.replayBtn')}
+            </button>
           </div>
-        </aside>
+        </div>
 
         {/* CỘT 2: KHU VỰC HỌC CHÉP CHÍNH TẢ (Ở GIỮA) */}
         <main className="dictation-center-main">
@@ -573,82 +405,12 @@ function DictationStudyPage({ lessonId, onNavigate }) {
         </main>
 
         {/* CỘT 3: TIẾN ĐỘ & DANH SÁCH SEGMENT (BÊN PHẢI) */}
-        <aside className="dictation-right-aside">
-          <div className="progress-list-card">
-
-            {/* Thanh tiến độ tổng quan */}
-            <div className="right-progress-header">
-              <span className="progress-title">{t('dictation.progressTitle')}</span>
-              <span className="progress-pct-value">{lessonProgressPct}%</span>
-            </div>
-            <div className="right-progress-bar-container">
-              <div className="right-progress-bar-fill" style={{ width: `${lessonProgressPct}%` }}></div>
-            </div>
-
-            {/* Danh sách các segment */}
-            <div className="sidebar-segments-scroller">
-              {segments.map((item, idx) => {
-                const isSelected = idx === currentSegmentIndex
-                const isFinished = !!(item.userProgress && item.userProgress.dictation)
-                const score = item.userProgress?.dictation?.bestScore
-
-                // Tìm segment đầu tiên chưa hoàn thành để quyết định khóa các segment sau
-                const firstIncompleteIdx = segments.findIndex(
-                  (s) => !s.userProgress || !s.userProgress.dictation
-                )
-                const isLocked = firstIncompleteIdx !== -1 && idx > firstIncompleteIdx
-
-                let segmentStateClass = 'state-locked'
-                if (isSelected) segmentStateClass = 'state-studying'
-                else if (isFinished) segmentStateClass = 'state-completed'
-
-                return (
-                  <button
-                    key={item.segment._id}
-                    onClick={() => !isLocked && handleSelectSegment(idx)}
-                    className={`segment-sidebar-card ${segmentStateClass} ${isLocked ? 'disabled' : ''}`}
-                    disabled={isLocked}
-                  >
-                    <div className="segment-card-header-row">
-                      <span className="segment-order-number">{String(idx + 1).padStart(2, '0')}</span>
-
-                      {/* Trạng thái hoặc điểm số */}
-                      {isFinished && score !== undefined && score !== null ? (
-                        <span className={`segment-score-badge ${score < 50 ? 'score-red' : score < 80 ? 'score-yellow' : 'score-green'}`}>
-                          {score}
-                        </span>
-                      ) : isSelected ? (
-                        <span className="status-badge-icon studying" title="Studying">
-                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                          </svg>
-                        </span>
-                      ) : isLocked ? (
-                        <span className="status-badge-icon locked" title="Locked">
-                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                          </svg>
-                        </span>
-                      ) : null}
-                    </div>
-
-                    <div className="segment-card-preview-body">
-                      {isFinished ? (
-                        <p className="segment-text-preview">{item.segment.transcript.original}</p>
-                      ) : (
-                        <div className="segment-text-mask-placeholder">
-                          {'-'.repeat(30)}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-
-          </div>
-        </aside>
+        <StudySegmentSidebar
+          segments={segments}
+          currentSegmentIndex={currentSegmentIndex}
+          onSelectSegment={setCurrentSegmentIndex}
+          mode="dictation"
+        />
 
       </div>
     </div>

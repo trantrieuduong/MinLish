@@ -116,6 +116,35 @@ Hàm điều hướng:
   - Tái sử dụng component `Input` dùng chung của dự án có xử lý custom validity khi người dùng bỏ trống các trường bắt buộc (`required`).
   - Hỗ trợ đa ngôn ngữ (VI/EN).
 
+### /lessons/dictation/:lessonId (Trang học Nghe chép chính tả)
+- **Mô tả**: Trang học luyện nghe chép chính tả cho bài học video YouTube.
+- **Quyền truy cập**: Private (Yêu cầu đăng nhập).
+- **Tham số nhận vào**: `lessonId` (ObjectId của bài học).
+- **Chức năng**:
+  - Giao diện 3 cột:
+    - **Cột trái**: Trình phát video YouTube dùng chung (`LessonYoutubePlayer`) hiển thị phân đoạn đang học và nút phát lại "Nghe lại đoạn này".
+    - **Cột giữa**: Vùng nhập văn bản nghe được (`textarea`), hiển thị kết quả so khớp ký tự trực quan theo thời gian thực dưới dạng các nhãn màu (xanh lá cho đúng, đỏ cho sai, cam cho từ đã hiển thị gợi ý, xám cho từ chưa làm). Hỗ trợ nút "Gợi ý tất cả" và nút chuyển phân đoạn tiếp theo.
+    - **Cột phải**: Sidebar hiển thị tiến độ học tập và danh sách phân đoạn dùng chung (`StudySegmentSidebar`).
+  - Tích hợp gọi API `PATCH /users/me/lessons/{lessonId}/segments/{segmentId}/progress` lưu số lần thử, điểm tốt nhất và số lần sử dụng gợi ý.
+
+### /lessons/shadowing/:lessonId (Trang học Nhại giọng)
+- **Mô tả**: Trang học nhại giọng nói theo phân đoạn video bài học YouTube.
+- **Quyền truy cập**: Private (Yêu cầu đăng nhập).
+- **Tham số nhận vào**: `lessonId` (ObjectId của bài học).
+- **Chức năng**:
+  - Giao diện 3 cột:
+    - **Cột trái**: Trình phát video YouTube dùng chung (`LessonYoutubePlayer`).
+    - **Cột giữa**: Khối nhại giọng gồm hiển thị lời thoại gốc, các nút thao tác tròn màu sắc (Phát lại mẫu, Bắt đầu ghi âm/Dừng ghi âm, Tiếp tục). Thu âm mic trực tiếp định dạng `.wav`, tải lên AWS S3 bằng Presigned URL và lưu tiến độ học tập.
+    - Khối phân tích chi tiết phát âm từng từ (đỏ/vàng/xanh theo độ chuẩn xác) và đồ thị tròn hiển thị độ chính xác trung bình (radial gauge) đổi màu sắc động theo thang điểm. Hỗ trợ nút "Nghe giọng bạn" phát lại file ghi âm cá nhân.
+    - **Cột phải**: Sidebar hiển thị tiến độ học tập và danh sách phân đoạn dùng chung (`StudySegmentSidebar`).
+
+### /review (Trang ôn tập từ vựng hàng ngày)
+- **Mô tả**: Trang ôn tập các thẻ từ vựng của người dùng theo thời gian nhắc nhở của thuật toán lặp lại ngắt quãng SRS.
+- **Quyền truy cập**: Private (Yêu cầu đăng nhập).
+- **Chức năng**:
+  - Tự động thống kê số lượng thẻ cần ôn tập trong ngày.
+  - Ôn tập bằng cách lật thẻ Flashcard 3D (Xem nghĩa, từ loại, ví dụ) và đánh giá độ thuộc (Học lại, Khó, Tốt, Dễ) để thiết lập chu kỳ lặp lại tiếp theo.
+
 ---
 
 ## 3. Routes dành riêng cho Quản trị viên (Admin)

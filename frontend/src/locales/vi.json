@@ -532,5 +532,29 @@
     "scoreLabel": "Điểm số của bạn: {{score}}",
     "hintUsed": "Gợi ý đã dùng: {{count}}",
     "attempts": "Số lần thử: {{count}}"
+  },
+  "shadowing": {
+    "title": "Nhại giọng (Shadowing)",
+    "listenAndRepeat": "Nghe và đọc lại câu dưới đây",
+    "startBtn": "Bắt đầu",
+    "replayBtn": "Phát lại",
+    "recordStart": "Ghi âm",
+    "recordStop": "Dừng ghi",
+    "recordingState": "Đang ghi âm...",
+    "processing": "Đang phân tích...",
+    "nextBtn": "Tiếp tục",
+    "progressTitle": "TIẾN ĐỘ",
+    "loading": "Đang tải bài học...",
+    "errorLoad": "Không thể tải bài học này. Vui lòng thử lại sau.",
+    "completedTitle": "Chúc mừng!",
+    "completedSubtitle": "Bạn đã hoàn thành tất cả các phần học nhại giọng của bài học này.",
+    "backToList": "Quay lại danh sách",
+    "accuracyLabel": "Độ chính xác",
+    "analysisTitle": "PHÂN TÍCH PHÁT ÂM",
+    "micPermissionDenied": "Không thể truy cập microphone. Vui lòng cho phép quyền truy cập micro.",
+    "errorUpload": "Tải file ghi âm lên máy chủ thất bại.",
+    "errorUpdateProgress": "Cập nhật tiến độ shadowing thất bại.",
+    "playAudioBtn": "Nghe giọng bạn",
+    "stopAudioBtn": "Dừng phát"
   }
 }
