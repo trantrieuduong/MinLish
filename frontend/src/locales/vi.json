@@ -8,10 +8,17 @@
     "more": "Xem thêm",
     "profile": "Thông tin cá nhân",
     "logout": "Đăng xuất",
-    "login": "Đăng nhập"
+    "login": "Đăng nhập",
+    "savedWords": "Từ đã lưu"
   },
   "pagination": {
     "jumpToPage": "Đi đến trang"
+  },
+  "saved": {
+    "title": "Từ vựng đã lưu",
+    "empty": "Bạn chưa lưu từ vựng nào.",
+    "unstarredSuccess": "Đã bỏ lưu từ vựng thành công.",
+    "errorLoad": "Không thể tải danh sách từ đã lưu."
   },
   "review": {
     "title": "Ôn tập từ vựng",

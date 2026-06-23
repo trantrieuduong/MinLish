@@ -8,10 +8,17 @@
     "more": "More",
     "profile": "Profile",
     "logout": "Log out",
-    "login": "Log in"
+    "login": "Log in",
+    "savedWords": "Saved Words"
   },
   "pagination": {
     "jumpToPage": "Go to page"
+  },
+  "saved": {
+    "title": "Saved Vocabulary",
+    "empty": "You have no saved vocabulary.",
+    "unstarredSuccess": "Word unstarred successfully.",
+    "errorLoad": "Could not load saved vocabulary."
   },
   "review": {
     "title": "Vocabulary Review",

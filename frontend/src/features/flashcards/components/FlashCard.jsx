@@ -8,6 +8,7 @@ function FlashCard({ cardItem, mode = 'learn', onSuccess, onHide }) {
   const [isFlipped, setIsFlipped] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [isStarred, setIsStarred] = useState(false)
 
   // Reset trạng thái lật khi cardItem thay đổi
   useEffect(() => {
@@ -20,6 +21,39 @@ function FlashCard({ cardItem, mode = 'learn', onSuccess, onHide }) {
   }
 
   const { card, userCardState } = cardItem
+
+  // Đồng bộ trạng thái starred khi userCardState thay đổi
+  useEffect(() => {
+    setIsStarred(userCardState?.flags?.starred || false)
+  }, [userCardState])
+
+  const handleStarClick = async (e) => {
+    e.stopPropagation()
+    setIsSubmitting(true)
+    setError('')
+    try {
+      const nextStarred = !isStarred
+      const payload = {
+        deckId: card.deckId,
+        topicId: card.topicId,
+        flags: {
+          starred: nextStarred,
+          hidden: userCardState?.flags?.hidden || false
+        }
+      }
+      const response = await patchCardState(card._id, payload)
+      if (response.success) {
+        setIsStarred(nextStarred)
+      } else {
+        setError(response.message || t('api.common.UNKNOWN_ERROR'))
+      }
+    } catch (err) {
+      console.error('Lỗi cập nhật star state:', err)
+      setError(t('api.common.UNKNOWN_ERROR'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
   const currentLang = i18n.language === 'vi' ? 'vi' : 'en'
 
   // Lấy giải thích theo ngôn ngữ hiện tại
@@ -49,10 +83,6 @@ function FlashCard({ cardItem, mode = 'learn', onSuccess, onHide }) {
         topicId: card.topicId,
         srs: {
           lastGrade: gradeValue
-        },
-        flags: {
-          starred: userCardState?.flags?.starred || false,
-          hidden: userCardState?.flags?.hidden || false
         }
       }
       const response = await patchCardState(card._id, payload)
@@ -91,6 +121,18 @@ function FlashCard({ cardItem, mode = 'learn', onSuccess, onHide }) {
 
           {/* MẶT TRƯỚC */}
           <div className="flashcard-face flashcard-front">
+            {/* Nút Lưu (Star) ở góc trái trên cùng */}
+            <button
+              className={`flashcard-star-btn ${isStarred ? 'starred' : ''}`}
+              onClick={handleStarClick}
+              disabled={isSubmitting}
+              title={isStarred ? 'Starred' : 'Star'}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill={isStarred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            </button>
+
             {/* Nút Ẩn thẻ (chỉ hiển thị ở chế độ ôn tập và nằm ở góc phải trên cùng) */}
             {mode === 'review' && (
               <button
