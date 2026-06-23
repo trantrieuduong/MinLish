@@ -477,7 +477,11 @@ export const changeUserPassword = async (req, res, next) => {
 
 export const changeUserStatus = async (req, res, next) => {
   try {
-    await userService.changeAdminUserStatus(req.params.userId, req.body.status);
+    await userService.changeAdminUserStatus(
+      req.params.userId,
+      req.body.status,
+      req.body.banReason
+    );
     return res
       .status(200)
       .json(successResponse(ADMIN.USER_STATUS_UPDATED_SUCCESS));

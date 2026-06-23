@@ -484,7 +484,7 @@ export const changeAdminUserPassword = async (userId, newPassword) => {
   await user.save();
 };
 
-export const changeAdminUserStatus = async (userId, status) => {
+export const changeAdminUserStatus = async (userId, status, banReason = '') => {
   const user = await User.findById(userId);
   if (!user) {
     throw new AppError(ADMIN.USER_NOT_FOUND, 404);
@@ -492,8 +492,10 @@ export const changeAdminUserStatus = async (userId, status) => {
   if (status === 'active') {
     user.isActive = true;
     user.isVerified = true;
+    user.banReason = '';
   } else if (status === 'banned') {
     user.isActive = false;
+    user.banReason = banReason;
   } else
     throw new AppError(USER.INVALID_STATUS, 404, [
       { field: 'status', message: 'Status must be active or banned' },
