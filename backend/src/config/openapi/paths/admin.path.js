@@ -34,7 +34,7 @@ const UserInvalidStatus = {
       example: {
         success: false,
         code: 'INVALID_STATUS',
-        message: 'INVALID_STATUS',
+        message: 'Status must be active or banned',
         errors: [
           {
             field: 'status',

@@ -14,6 +14,7 @@ import {
   USER_SEGMENT_PROGRESS,
   COMMON,
   ADMIN,
+  USER,
 } from '../../constants/codes/index.js';
 import { calculateNextSRS } from '../../utils/srs.util.js';
 import { generateQuizOptions } from '../deck/deck.service.js';
@@ -494,7 +495,7 @@ export const changeAdminUserStatus = async (userId, status) => {
   } else if (status === 'banned') {
     user.isActive = false;
   } else
-    throw new AppError('INVALID_STATUS', 404, [
+    throw new AppError(USER.INVALID_STATUS, 404, [
       { field: 'status', message: 'Status must be active or banned' },
     ]);
   await user.save();

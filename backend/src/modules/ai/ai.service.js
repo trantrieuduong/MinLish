@@ -39,7 +39,7 @@ export const responseQuestionService = async (question, mode) => {
 export const extractKeywordsService = async (question) => {
   const prompt = `Trích xuất các từ khóa quan trọng nhất từ câu hỏi sau để dùng cho việc tìm kiếm bài học/từ vựng tiếng Anh trong Database: "${question}"
   Yêu cầu:
-  - Ưu tiên giữ lại các từ / cụm từ tiếng Anh, hoặc chủ đề ngữ pháp cốt lõi.
+  - Ưu tiên giữ lại các từ / cụm từ tiếng Anh hoặc nghĩa tiếng Việt của từ/cụm từ.
   - Lược bỏ các từ để hỏi thông thường (ví dụ: "làm sao", "như thế nào", "cách để", "giúp tôi", "là gì").
   - Trả về kết quả bắt buộc dưới định dạng JSON bao gồm trường:
   + "keywords": một mảng các chuỗi (array of strings) chứa các từ khóa. (Nếu không có từ khóa nào hợp lý, trả về mảng rỗng []).`;
