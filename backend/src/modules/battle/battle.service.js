@@ -40,12 +40,19 @@ export const generateQuestions = async (count, mode) => {
 
   if (mode === 'typing') {
     // Show the Vietnamese meaning, user types the English term.
-    return sampled.map((card) => ({
-      cardId: card._id,
-      term: card.translation,
-      correctAnswer: normalize(card.term),
-      options: [],
-    }));
+    // Send length/pattern/firstChar hints
+    return sampled.map((card) => {
+      const correctAnswer = normalize(card.term);
+      return {
+        cardId: card._id,
+        term: card.translation,
+        correctAnswer,
+        options: [],
+        answerLength: correctAnswer.length,
+        answerPattern: correctAnswer.split(' ').map((w) => w.length),
+        firstChar: correctAnswer[0] || '',
+      };
+    });
   }
 
   // MCQ: fetch distractor pool (exclude sampled cards)

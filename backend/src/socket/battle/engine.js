@@ -113,6 +113,11 @@ function runRound(liveState, io) {
     mode,
     options: question.options,
     deadlineTs,
+    ...(mode === 'typing' && {
+      answerLength: question.answerLength,
+      answerPattern: question.answerPattern,
+      firstChar: question.firstChar,
+    }),
   });
 
   // 5. Round timer — fires if not everyone answered in time.
@@ -383,6 +388,11 @@ export function handleRejoin(socket, { matchId }) {
     mode: liveState.mode,
     options: q.options,
     deadlineTs: liveState.currentDeadlineTs,
+    ...(liveState.mode === 'typing' && {
+      answerLength: q.answerLength,
+      answerPattern: q.answerPattern,
+      firstChar: q.firstChar,
+    }),
   });
 
   // Let the opponent know.
