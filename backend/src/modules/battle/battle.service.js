@@ -95,7 +95,6 @@ export const generateQuestions = async (count, mode) => {
   });
 };
 
-
 export const getHistory = async (userId, { page = 1, limit = 20 } = {}) => {
   const filter = { status: 'finished', 'players.userId': userId };
   const skip = (page - 1) * limit;
