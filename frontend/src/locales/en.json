@@ -10,6 +10,9 @@
     "logout": "Log out",
     "login": "Log in"
   },
+  "pagination": {
+    "jumpToPage": "Go to page"
+  },
   "review": {
     "title": "Vocabulary Review",
     "dueCount": "You have {{count}} cards due for review today.",

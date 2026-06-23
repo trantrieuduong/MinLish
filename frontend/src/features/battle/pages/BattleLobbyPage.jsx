@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBattleSocket } from '../context/BattleSocketContext'
 import { useAuth } from '../../../context/AuthContext'
@@ -6,6 +6,7 @@ import { getBattleHistory } from '../battleApi'
 import QueueModal from '../components/QueueModal'
 import RoomModal from '../components/RoomModal'
 import MatchDetailModal from '../components/MatchDetailModal'
+import Pagination from '../../../components/Pagination/Pagination'
 import '../battle.css'
 
 const BattleLobbyPage = ({ onNavigate }) => {
@@ -34,36 +35,6 @@ const BattleLobbyPage = ({ onNavigate }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const limit = 5
-
-  const getPageNumbers = () => {
-    const pages = []
-    const maxPageButtons = 5
-    if (totalPages <= maxPageButtons) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i)
-      }
-    } else {
-      pages.push(1)
-      let start = Math.max(2, currentPage - 1)
-      let end = Math.min(totalPages - 1, currentPage + 1)
-      if (currentPage <= 3) {
-        end = 4
-      } else if (currentPage >= totalPages - 2) {
-        start = totalPages - 3
-      }
-      if (start > 2) {
-        pages.push('ellipsis-start')
-      }
-      for (let i = start; i <= end; i++) {
-        pages.push(i)
-      }
-      if (end < totalPages - 1) {
-        pages.push('ellipsis-end')
-      }
-      pages.push(totalPages)
-    }
-    return pages
-  }
 
   // Tự động rejoin nếu còn trận đang hoạt động
   useEffect(() => {
@@ -245,56 +216,11 @@ const BattleLobbyPage = ({ onNavigate }) => {
                 })}
               </div>
               
-              {totalPages > 1 && (
-                <div className="battle-pagination-container">
-                  <button 
-                    className={`battle-pagination-btn battle-nav-btn ${currentPage === 1 ? 'disabled' : ''}`}
-                    onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    aria-label="Previous Page"
-                  >
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                      <path
-                        d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </button>
-
-                  {getPageNumbers().map((p, idx) => {
-                    if (p === 'ellipsis-start' || p === 'ellipsis-end') {
-                      return (
-                        <span key={`ellipsis-${idx}`} className="battle-pagination-ellipsis">
-                          ...
-                        </span>
-                      )
-                    }
-                    return (
-                      <button
-                        key={p}
-                        className={`battle-pagination-btn battle-num-btn ${currentPage === p ? 'active' : ''}`}
-                        onClick={() => setCurrentPage(p)}
-                      >
-                        {p}
-                      </button>
-                    )
-                  })}
-
-                  <button 
-                    className={`battle-pagination-btn battle-nav-btn ${currentPage === totalPages ? 'disabled' : ''}`}
-                    onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    aria-label="Next Page"
-                  >
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                      <path
-                        d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              )}
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={setCurrentPage} 
+              />
             </div>
           )}
         </div>

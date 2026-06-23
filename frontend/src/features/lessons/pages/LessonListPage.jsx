@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { getLessons, getCefrLevels, getTags } from '../lessonsApi'
 import Filters from '../../../components/Filters/Filters'
 import LessonCard from '../components/LessonCard'
+import Pagination from '../../../components/Pagination/Pagination'
 import './LessonListPage.css'
 
 function LessonListPage({ onNavigate }) {
@@ -189,47 +190,12 @@ function LessonListPage({ onNavigate }) {
       )}
 
       {/* Thanh Phân trang */}
-      {!loading && !error && totalPages > 1 && (
-        <div className="pagination-container">
-          {/* Nút lùi trang */}
-          <button
-            className={`pagination-btn nav-btn ${page === 1 ? 'disabled' : ''}`}
-            onClick={() => page > 1 && setPage(page - 1)}
-            disabled={page === 1}
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16">
-              <path
-                d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
-
-          {/* Các số trang */}
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              className={`pagination-btn num-btn ${page === p ? 'active' : ''}`}
-              onClick={() => setPage(p)}
-            >
-              {p}
-            </button>
-          ))}
-
-          {/* Nút tiến trang */}
-          <button
-            className={`pagination-btn nav-btn ${page === totalPages ? 'disabled' : ''}`}
-            onClick={() => page < totalPages && setPage(page + 1)}
-            disabled={page === totalPages}
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16">
-              <path
-                d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
-        </div>
+      {!loading && !error && (
+        <Pagination 
+          currentPage={page} 
+          totalPages={totalPages} 
+          onPageChange={setPage} 
+        />
       )}
 
       {/* Modal Chọn Chế độ học */}

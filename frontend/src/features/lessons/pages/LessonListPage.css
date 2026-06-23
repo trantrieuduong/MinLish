@@ -103,65 +103,6 @@
   }
 }
 
-/* Thanh phân trang */
-.pagination-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 48px;
-}
-
-.pagination-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background-color: var(--color-surface-container-lowest);
-  border: 1px solid var(--color-surface-container-high);
-  color: var(--color-on-surface);
-  transition: all 0.2s ease;
-}
-
-.num-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--rounded-full);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.num-btn:hover {
-  background-color: var(--color-surface-container-low);
-  border-color: var(--color-outline-variant);
-}
-
-.num-btn.active {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-on-primary);
-  font-weight: 600;
-}
-
-.nav-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--rounded-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nav-btn:hover:not(:disabled) {
-  background-color: var(--color-surface-container-low);
-  border-color: var(--color-outline-variant);
-}
-
-.nav-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
   .lessons-container {

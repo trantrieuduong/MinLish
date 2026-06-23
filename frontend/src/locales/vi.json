@@ -10,6 +10,9 @@
     "logout": "Đăng xuất",
     "login": "Đăng nhập"
   },
+  "pagination": {
+    "jumpToPage": "Đi đến trang"
+  },
   "review": {
     "title": "Ôn tập từ vựng",
     "dueCount": "Bạn có {{count}} thẻ đến hạn ôn tập hôm nay.",
