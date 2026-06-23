@@ -139,12 +139,6 @@ function ReviewPage({ onNavigate }) {
       {/* Header góc trên */}
       <div className="review-header-row">
         <div className="review-title-wrapper">
-          <button onClick={handleBackClick} className="back-arrow-btn" aria-label="Go back">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </button>
           <div className="review-title-info">
             <h1 className="review-name">{t('review.title')}</h1>
             {totalCards > 0 && currentCardIndex < totalCards && (

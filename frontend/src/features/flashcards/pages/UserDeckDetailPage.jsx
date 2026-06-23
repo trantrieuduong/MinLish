@@ -374,7 +374,7 @@ function UserDeckDetailPage({ deckId, onNavigate }) {
           }
           await fetchDeckData()
         } else {
-          alert(res.message || t('userDeckDetail.deleteTopicFailed'))
+          setError(res.message || t('userDeckDetail.deleteTopicFailed'))
         }
       } else {
         const res = await deleteUserCard(deckId, targetDeleteId)
@@ -384,11 +384,11 @@ function UserDeckDetailPage({ deckId, onNavigate }) {
             await fetchCards(selectedTopic._id)
           }
         } else {
-          alert(res.message || t('userDeckDetail.deleteCardFailed'))
+          setError(res.message || t('userDeckDetail.deleteCardFailed'))
         }
       }
     } catch (err) {
-      alert(t('decks.errorSystem'))
+      setError(t('decks.errorSystem'))
     } finally {
       setIsConfirmOpen(false)
       setTargetDeleteId(null)

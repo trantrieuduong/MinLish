@@ -223,10 +223,10 @@ function DeckListPage({ onNavigate }) {
       if (response.success) {
         setRefreshTrigger(prev => prev + 1)
       } else {
-        alert(response.message || t('decks.deleteFailed'))
+        setError(response.message || t('decks.deleteFailed'))
       }
     } catch (err) {
-      alert(t('decks.deleteSystemError'))
+      setError(t('decks.deleteSystemError'))
     } finally {
       setIsConfirmOpen(false)
       setDeletingDeckId(null)
