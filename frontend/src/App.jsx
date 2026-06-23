@@ -27,6 +27,7 @@ import AdminLessonListPage from './features/admin/pages/lesson/AdminLessonListPa
 import AdminLessonCreatePage from './features/admin/pages/lesson/AdminLessonCreatePage'
 import AdminLessonEditPage from './features/admin/pages/lesson/AdminLessonEditPage'
 import AdminLessonSegmentsPage from './features/admin/pages/lesson/AdminLessonSegmentsPage'
+import AdminDashboardPage from './features/admin/pages/dashboard/AdminDashboardPage'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './context/AuthContext'
 import './App.css'
@@ -45,7 +46,7 @@ function App() {
       if (user?.role === 'admin') {
         // Redirect admin users to admin dashboard if they visit public/user pages
         if (!currentPath.startsWith('/admin')) {
-          navigate('/admin/decks')
+          navigate('/admin')
         }
       } else {
         // Redirect non-admin users to login if they try to access admin pages
@@ -153,12 +154,8 @@ function App() {
         </div>
       )
     }
-    // /admin or /admin/* (overview placeholder)
-    return (
-      <div style={{ padding: '40px', fontFamily: 'var(--font-family)', color: 'var(--color-on-surface-variant)' }}>
-        {t('admin.overviewEmpty')}
-      </div>
-    )
+    // /admin or /admin/* -> render dashboard
+    return <AdminDashboardPage onNavigate={navigate} />
   }
 
   const renderContent = () => {

@@ -28,7 +28,7 @@ function LoginPage({ onNavigate }) {
     if (result.success) {
       if (onNavigate) {
         if (result.user?.role === 'admin') {
-          onNavigate('/admin/decks')
+          onNavigate('/admin')
         } else {
           onNavigate('/')
         }

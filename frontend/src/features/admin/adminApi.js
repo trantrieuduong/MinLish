@@ -194,3 +194,8 @@ export const deleteAdminLessonSegmentApi = async (lessonId, segmentId) => {
   );
   return response.data;
 };
+
+export const getAdminDashboardApi = async () => {
+  const response = await apiClient.get("/admin/dashboard");
+  return response.data;
+};

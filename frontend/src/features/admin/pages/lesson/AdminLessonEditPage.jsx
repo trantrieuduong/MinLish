@@ -92,7 +92,8 @@ function AdminLessonEditPage({ lessonId, onNavigate }) {
         } else if (error.response?.status === 403) {
           setErrorMsg(t('admin.insufficientPermissions'))
         } else {
-          setErrorMsg(error.response?.data?.message || error.message)
+          const code = error.response?.data?.code
+          setErrorMsg(code ? t('api.error.' + code) : (error.response?.data?.message || error.message))
         }
       } finally {
         setIsLoading(false)
@@ -145,7 +146,8 @@ function AdminLessonEditPage({ lessonId, onNavigate }) {
       const url = await uploadFile(file, 'card-image')
       setThumbnailUrl(url)
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || error.message)
+      const code = error.response?.data?.code
+      setErrorMsg(code ? t('api.error.' + code) : (error.response?.data?.message || error.message))
     } finally {
       setIsImageUploading(false)
     }
@@ -162,12 +164,23 @@ function AdminLessonEditPage({ lessonId, onNavigate }) {
     setSuccessMsg('')
 
     if (!title.trim()) {
-      setTitleError(t('admin.lessonTitleRequired'))
+      const errMsg = t('admin.lessonTitleRequired')
+      setTitleError(errMsg)
+      setErrorMsg(errMsg)
       return
     }
 
     if (!sourceUrl.trim()) {
-      setSourceUrlError(t('admin.lessonSourceUrlRequired'))
+      const errMsg = t('admin.lessonSourceUrlRequired')
+      setSourceUrlError(errMsg)
+      setErrorMsg(errMsg)
+      return
+    }
+
+    if (!getYouTubeEmbedUrl(sourceUrl.trim())) {
+      const errMsg = t('api.error.LESSON_SOURCE_URL_INVALID')
+      setSourceUrlError(errMsg)
+      setErrorMsg(errMsg)
       return
     }
 
@@ -196,7 +209,8 @@ function AdminLessonEditPage({ lessonId, onNavigate }) {
         setIsSubmitting(false)
       }
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || error.message)
+      const code = error.response?.data?.code
+      setErrorMsg(code ? t('api.error.' + code) : (error.response?.data?.message || error.message))
       setIsSubmitting(false)
     }
   }

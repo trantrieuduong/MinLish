@@ -508,7 +508,8 @@ function AdminLessonSegmentsPage({ onNavigate, lessonId }) {
         setSuccessMsg('')
       }, 3000)
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || t('admin.segmentActionError'))
+      const code = err.response?.data?.code
+      setErrorMsg(code ? t('api.error.' + code) : (err.response?.data?.message || t('admin.segmentActionError')))
       setTimeout(() => {
         setErrorMsg('')
       }, 3000)
@@ -549,7 +550,8 @@ function AdminLessonSegmentsPage({ onNavigate, lessonId }) {
         setSuccessMsg('')
       }, 3000)
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || t('admin.segmentDeleteError'))
+      const code = err.response?.data?.code
+      setErrorMsg(code ? t('api.error.' + code) : (err.response?.data?.message || t('admin.segmentDeleteError')))
       setTimeout(() => {
         setErrorMsg('')
       }, 3000)

@@ -126,12 +126,23 @@ function AdminLessonCreatePage({ onNavigate }) {
     setSuccessMsg('')
 
     if (!title.trim()) {
-      setTitleError(t('admin.lessonTitleRequired'))
+      const errMsg = t('admin.lessonTitleRequired')
+      setTitleError(errMsg)
+      setErrorMsg(errMsg)
       return
     }
 
     if (!sourceUrl.trim()) {
-      setSourceUrlError(t('admin.lessonSourceUrlRequired'))
+      const errMsg = t('admin.lessonSourceUrlRequired')
+      setSourceUrlError(errMsg)
+      setErrorMsg(errMsg)
+      return
+    }
+
+    if (!getYouTubeEmbedUrl(sourceUrl.trim())) {
+      const errMsg = t('api.error.LESSON_SOURCE_URL_INVALID')
+      setSourceUrlError(errMsg)
+      setErrorMsg(errMsg)
       return
     }
 
@@ -158,7 +169,14 @@ function AdminLessonCreatePage({ onNavigate }) {
         setIsSubmitting(false)
       }
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || error.message)
+      const code = error.response?.data?.code
+      const msg = code ? t('api.error.' + code) : (error.response?.data?.message || error.message)
+      if (code === 'LESSON_SOURCE_URL_INVALID' || code === 'LESSON_SOURCE_URL_REQUIRED') {
+        setSourceUrlError(msg)
+      } else if (code === 'LESSON_TITLE_REQUIRED') {
+        setTitleError(msg)
+      }
+      setErrorMsg(msg)
       setIsSubmitting(false)
     }
   }
