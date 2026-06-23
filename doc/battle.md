@@ -95,6 +95,7 @@ advanceRound → emit 'battle:roundResult' { index, correctAnswer, scores }  ←
 ```
 
 - Start countdown (`startCountdownMs`) đặt **server-side**: timer câu 0 chỉ chạy sau countdown nên 2 client kịp render, không mất giây oan.
+- `battle:starting`, `battle:finished`, `battle:opponentLeft` (forfeit) kèm `players: [{ userId, name, avatarUrl, … }]` (profile load 1 lần lúc startMatch, cache trong `liveState.profiles`) để client render avatar/tên real-time. `opponentLeft` còn kèm `winner` (profile) + `forfeitUserId`. Các event khác (`question`/`roundResult`) vẫn chỉ dùng userId thô.
 - Đáp án đúng chỉ lộ ở `battle:roundResult` (không bao giờ gửi kèm `battle:question`).
 - Typing mode: `battle:question` kèm gợi ý `answerLength`, `answerPattern` (độ dài từng từ), `firstChar` — giúp thu hẹp synonym, **không** lộ đáp án. Hint sống in-memory (`liveState.questions`), không lưu DB.
 - Reveal pause (`roundRevealMs`) đặt **server-side**: câu kế chỉ broadcast sau pause nên `deadlineTs` luôn đủ 12s, đồng bộ 2 client.

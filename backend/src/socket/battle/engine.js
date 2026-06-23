@@ -1,4 +1,5 @@
 import { BattleMatch } from '../../models/battleMatch.model.js';
+import User from '../../models/user.model.js';
 import {
   generateQuestions,
   normalize,
@@ -14,14 +15,30 @@ import { getIo } from '../index.js';
 // matchId (string) -> liveState
 export const activeMatches = new Map();
 
+// Load { userId, name, avatarUrl } for a set of user ids, keyed by userId string.
+async function loadProfiles(userIds) {
+  const users = await User.find({ _id: { $in: userIds } })
+    .select('name avatarUrl')
+    .lean();
+  const map = {};
+  for (const u of users) {
+    const id = u._id.toString();
+    map[id] = { userId: id, name: u.name, avatarUrl: u.avatarUrl };
+  }
+  return map;
+}
+
 export async function startMatch(socket1, socket2, mode, matchType = 'queue') {
   const io = getIo();
 
   const userId1 = socket1.user.id;
   const userId2 = socket2.user.id;
 
-  // 1. Generate questions
-  const questions = await generateQuestions(BATTLE.rounds, mode);
+  // 1. Generate questions + load both players' profiles (name/avatar) once.
+  const [questions, profiles] = await Promise.all([
+    generateQuestions(BATTLE.rounds, mode),
+    loadProfiles([userId1, userId2]),
+  ]);
 
   // 2. Persist match doc.
   const match = await BattleMatch.create({
@@ -65,6 +82,7 @@ export async function startMatch(socket1, socket2, mode, matchType = 'queue') {
       },
     },
     questions,
+    profiles, // userId -> { userId, name, avatarUrl }
     currentRound: 0,
     currentDeadlineTs: null,
     roundTimer: null,
@@ -80,6 +98,10 @@ export async function startMatch(socket1, socket2, mode, matchType = 'queue') {
     countdownMs: BATTLE.startCountdownMs,
     mode,
     total: questions.length,
+    players: [
+      profiles[userId1] || { userId: userId1 },
+      profiles[userId2] || { userId: userId2 },
+    ],
   });
   liveState.startTimer = setTimeout(
     () => runRound(liveState, io),
@@ -252,9 +274,10 @@ async function finalizeMatch(liveState, io) {
     scores,
     winnerId,
     players: players.map((p) => ({
-      userId: p.userId,
+      ...(liveState.profiles?.[p.userId] || { userId: p.userId }),
       score: p.score,
       correctCount: p.correctCount,
+      connected: p.connected,
     })),
   });
 
@@ -436,8 +459,21 @@ async function finalizeAsForfeit(liveState, io, forfeitUserId) {
     console.warn('[battle] forfeit persist failed:', e);
   }
 
-  // 3. Notify room.
-  io.to(matchId).emit('battle:opponentLeft', { winnerId });
+  // 3. Notify room — include winner profile + both players (with profiles) so the
+  //    client can render the result screen without an extra fetch.
+  io.to(matchId).emit('battle:opponentLeft', {
+    winnerId,
+    forfeitUserId,
+    winner: winnerId
+      ? liveState.profiles?.[winnerId] || { userId: winnerId }
+      : null,
+    players: players.map((p) => ({
+      ...(liveState.profiles?.[p.userId] || { userId: p.userId }),
+      score: p.score,
+      correctCount: p.correctCount,
+      connected: p.connected,
+    })),
+  });
 
   // 5. Drop live state.
   activeMatches.delete(matchId);
