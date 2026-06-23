@@ -502,7 +502,6 @@ export const changeAdminUserStatus = async (userId, status, banReason = '') => {
   }
   if (status === 'active') {
     user.isActive = true;
-    user.isVerified = true;
     user.banReason = '';
   } else if (status === 'banned') {
     user.isActive = false;
