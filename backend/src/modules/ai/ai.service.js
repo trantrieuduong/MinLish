@@ -1,12 +1,33 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Card from '../../models/card.model.js';
 import Lesson from '../../models/lesson.model.js';
+import AppError from '../../utils/AppError.js';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
   model: 'gemini-2.5-flash',
   generationConfig: { responseMimeType: 'application/json' },
 });
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const generateWithRetry = async (prompt, retries = 3) => {
+  let lastError;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await model.generateContent(prompt);
+    } catch (error) {
+      lastError = error;
+
+      // chỉ retry lỗi tạm thời
+      if (!error.message.includes('503') && !error.message.includes('429')) {
+        throw new AppError(error.message, 500);
+      }
+      await sleep(1000 * (i + 1));
+    }
+  }
+  throw new AppError(lastError.message, 500);
+};
 
 export const responseQuestionService = async (question, mode) => {
   if (mode === 'network') {
@@ -44,7 +65,7 @@ export const extractKeywordsService = async (question) => {
   - Trả về kết quả bắt buộc dưới định dạng JSON bao gồm trường:
   + "keywords": một mảng các chuỗi (array of strings) chứa các từ khóa. (Nếu không có từ khóa nào hợp lý, trả về mảng rỗng []).`;
 
-  const result = await model.generateContent(prompt);
+  const result = await generateWithRetry(prompt);
   return JSON.parse(result.response.text());
 };
 
@@ -133,17 +154,28 @@ export const queryMinLishDataForAI = async (keywords) => {
 
 export const responseQuestionNetworkService = async (question) => {
   // AI trả lời tự do
-  const prompt = `Trả lời câu hỏi "${question}" bằng tiếng Việt.
+  try {
+    const prompt = `Trả lời câu hỏi "${question}" bằng tiếng Việt.
   Vui lòng trả về kết quả dưới định dạng JSON bao gồm các trường:
   - isValidQuestion: true hoặc false
   - answer: câu trả lời
   (Nếu câu hỏi ngoài phạm vi học tiếng Anh thì trả về isValidQuestion là false và answer là "Câu hỏi không hợp lệ")`;
-  const result = await model.generateContent(prompt);
-  return JSON.parse(result.response.text());
+    const result = await generateWithRetry(prompt);
+    return JSON.parse(result.response.text());
+  } catch (error) {
+    if (error.message.includes('503')) {
+      return {
+        isValidQuestion: false,
+        answer: 'AI đang bận, vui lòng thử lại sau',
+      };
+    }
+    throw new AppError(error.message, 500);
+  }
 };
 
 export const responseQuestionMinLishService = async (question, contextData) => {
-  const prompt = `Dựa vào dữ liệu từ hệ thống MinLish sau đây:
+  try {
+    const prompt = `Dựa vào dữ liệu từ hệ thống MinLish sau đây:
   ---
   ${contextData}
   ---
@@ -152,22 +184,42 @@ export const responseQuestionMinLishService = async (question, contextData) => {
   - isValidQuestion: true hoặc false
   - answer: câu trả lời
   (Nếu câu hỏi ngoài phạm vi học tiếng Anh hoặc dữ liệu không liên quan thì trả về isValidQuestion là false và answer là "Câu hỏi không hợp lệ")`;
-  const result = await model.generateContent(prompt);
-  return JSON.parse(result.response.text());
+    const result = await generateWithRetry(prompt);
+    return JSON.parse(result.response.text());
+  } catch (error) {
+    if (error.message.includes('503')) {
+      return {
+        isValidQuestion: false,
+        answer: 'AI đang bận, vui lòng thử lại sau',
+      };
+    }
+    throw new AppError(error.message, 500);
+  }
 };
 
 export const generateCardDetailsFromAI = async (inputStr) => {
-  const prompt = `Bạn là một chuyên gia ngôn ngữ học. Dựa vào từ vựng hoặc nghĩa sau: "${inputStr}".
+  try {
+    const prompt = `Bạn là một chuyên gia ngôn ngữ học. Dựa vào từ vựng hoặc nghĩa sau: "${inputStr}".
   Hãy cung cấp các thông tin của thẻ từ vựng dưới định dạng JSON bao gồm:
   - term: từ vựng tiếng Anh (bắt buộc)
   - translation: nghĩa tiếng Việt (bắt buộc)
   - pos: từ loại (chọn duy nhất một trong các pos sau theo đúng phát âm: adjective, adverb, auxiliary verb, collocation,
        conjunction, determiner, idiom, interjection, modal verb, noun, phrasal verb, phrase, preposition, pronoun, verb)
-  - phonetics: mảng chứa object có dạng { text: "phát âm IPA", audio: "", locale: "en-UK" hoặc "en-US" hoặc cả 2}
+  - phonetics: mảng chứa object có dạng { text: "phát âm IPA", audio: "url đảm bảo nghe được từ nguồn từ điển uy tín en-GB, en-US", locale: "en-UK" hoặc "en-US" hoặc cả 2}
   - explanation: object chứa { vi: "giải thích tiếng Việt", en: "giải thích tiếng Anh" }
   - examples: object chứa { vi: "ví dụ tiếng Việt", en: "ví dụ tiếng Anh" }
+  - imageUrl: link hình ảnh từ web liên quan
   Đảm bảo kết quả trả về là JSON hợp lệ, đầy đủ ngoặc và đúng format.`;
 
-  const result = await model.generateContent(prompt);
-  return JSON.parse(result.response.text());
+    const result = await generateWithRetry(prompt);
+    return JSON.parse(result.response.text());
+  } catch (error) {
+    if (error.message.includes('503')) {
+      return {
+        isValidQuestion: false,
+        answer: 'AI đang bận, vui lòng thử lại sau',
+      };
+    }
+    throw new AppError(error.message, 500);
+  }
 };
