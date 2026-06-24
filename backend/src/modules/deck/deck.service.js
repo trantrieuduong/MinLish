@@ -576,7 +576,14 @@ export const updateAdminDeckCard = async (deckId, cardId, data) => {
 export const deleteAdminDeckCard = async (deckId, cardId) => {
   const card = await Card.findOne({ _id: cardId, deckId });
   if (!card) throw new AppError(ADMIN.CARD_NOT_FOUND, 404);
-  await Promise.all([card.deleteOne(), UserCardState.deleteMany({ cardId })]);
+  await Promise.all([
+    card.deleteOne(),
+    UserCardState.deleteMany({ cardId }),
+    Card.updateMany(
+      { deckId, topicId: card.topicId, order: { $gt: card.order } },
+      { $inc: { order: -1 } }
+    ),
+  ]);
   await Promise.all([
     Topic.updateOne({ _id: card.topicId }, { $inc: { cardCount: -1 } }),
     Deck.updateOne({ _id: deckId }, { $inc: { cardCount: -1 } }),
