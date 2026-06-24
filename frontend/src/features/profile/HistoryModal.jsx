@@ -11,134 +11,145 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
   const [activeTab, setActiveTab] = useState('lessons')
 
   // Lesson history
-  const [allLessons, setAllLessons] = useState([])
-  const [filteredLessons, setFilteredLessons] = useState([])
+  const [lessons, setLessons] = useState([])
   const [lessonsLoading, setLessonsLoading] = useState(true)
   const [lessonPage, setLessonPage] = useState(1)
+  const [lessonTotalPages, setLessonTotalPages] = useState(1)
+  const [selectedLesson, setSelectedLesson] = useState(null)
   const [lessonSearchQuery, setLessonSearchQuery] = useState('')
-  const [lessonStatusFilter, setLessonStatusFilter] = useState('all')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
 
   // Battle history
-  const [allBattles, setAllBattles] = useState([])
-  const [filteredBattles, setFilteredBattles] = useState([])
+  const [battles, setBattles] = useState([])
+  const [battleTotalPages, setBattleTotalPages] = useState(1)
   const [battlePage, setBattlePage] = useState(1)
   const [battleLoading, setBattleLoading] = useState(true)
   const [selectedMatchId, setSelectedMatchId] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [battleSearchQuery, setBattleSearchQuery] = useState('')
-  const [battleResultFilter, setBattleResultFilter] = useState('all')
+  const [debouncedBattleSearchQuery, setDebouncedBattleSearchQuery] = useState('')
 
   const loadLessonProgress = useCallback(async () => {
     setLessonsLoading(true)
     try {
-      const res = await getLessons({ limit: 100 })
+      const params = {
+        page: lessonPage,
+        limit: 7,
+        q: debouncedSearchQuery || undefined
+      }
+      const res = await getLessons(params)
       if (res.success) {
         const data = res.data?.lessons || []
-        // Filter lessons that have any user progress
-        const learnedLessons = data.filter((l) => l.userProgress && (l.userProgress.dictation?.status || l.userProgress.shadowing?.status))
-        // Map lesson with userProgress data
-        const lessonsWithData = learnedLessons.map((l) => ({
+        // Map lesson with userProgress data (null if no progress)
+        const lessonsWithData = data.map((l) => ({
           ...l.lesson,
           userProgress: l.userProgress,
-          lastStudiedAt: l.userProgress.updatedAt || l.userProgress.createdAt
+          lastStudiedAt: l.userProgress?.updatedAt || l.userProgress?.createdAt || null
         }))
-        setAllLessons(lessonsWithData)
-        setFilteredLessons(lessonsWithData)
-        setLessonPage(1)
+        setLessons(lessonsWithData)
+        // Use totalPages from API response
+        if (res.data?.pagination) {
+          setLessonTotalPages(res.data.pagination.totalPages || 1)
+        }
       }
     } catch (err) {
       console.error('Failed to load lessons:', err)
     } finally {
       setLessonsLoading(false)
     }
-  }, [])
+  }, [lessonPage, debouncedSearchQuery])
+
+  // Debounce search for lessons
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(lessonSearchQuery)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [lessonSearchQuery])
+
+  // Reset lesson page to 1 when search changes
+  useEffect(() => {
+    setLessonPage(1)
+  }, [debouncedSearchQuery])
+
+  // Debounce search for battles
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBattleSearchQuery(battleSearchQuery)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [battleSearchQuery])
+
+  // Reset battle page to 1 when search changes
+  useEffect(() => {
+    setBattlePage(1)
+  }, [debouncedBattleSearchQuery])
 
 
   const loadBattleHistory = useCallback(async () => {
     setBattleLoading(true)
     try {
-      const res = await getBattleHistory(1, 100)
+      const res = await getBattleHistory(battlePage, 10)
       if (res.success) {
         const items = res.data?.items || []
-        setAllBattles(items)
-        setFilteredBattles(items)
-        setBattlePage(1)
+        // Client-side filtering for search
+        let filteredItems = items
+        if (debouncedBattleSearchQuery && debouncedBattleSearchQuery.trim()) {
+          const searchLower = debouncedBattleSearchQuery.trim().toLowerCase()
+          filteredItems = items.filter(match => {
+            const modeText = match.mode === 'mcq' ? t('battle.modeMcq') : t('battle.modeTyping')
+            const typeText = match.matchType === 'queue' ? t('battle.typeQueue') : t('battle.typeInvite')
+            return modeText.toLowerCase().includes(searchLower) || 
+                   typeText.toLowerCase().includes(searchLower)
+          })
+        }
+        setBattles(filteredItems)
+        // Calculate totalPages from total and limit
+        const total = res.data?.total || 0
+        setBattleTotalPages(Math.ceil(total / 10) || 1)
       }
     } catch (err) {
       console.error('Failed to load battle history:', err)
     } finally {
       setBattleLoading(false)
     }
-  }, [])
+  }, [battlePage, debouncedBattleSearchQuery, t])
 
   useEffect(() => {
     loadLessonProgress()
     loadBattleHistory()
   }, [])
 
+  useEffect(() => {
+    loadLessonProgress()
+  }, [lessonPage, loadLessonProgress])
+
+  useEffect(() => {
+    loadBattleHistory()
+  }, [battlePage, loadBattleHistory])
+
   const handleLessonPageChange = (page) => {
     setLessonPage(page)
   }
-
-  // Get paginated lessons
-  const getPaginatedLessons = () => {
-    const startIndex = (lessonPage - 1) * 7
-    const endIndex = startIndex + 7
-    return filteredLessons.slice(startIndex, endIndex)
-  }
-
-  // Filter lessons by search and status
-  useEffect(() => {
-    let filtered = allLessons
-    if (lessonSearchQuery) {
-      filtered = filtered.filter(l => 
-        l.title.toLowerCase().includes(lessonSearchQuery.toLowerCase())
-      )
-    }
-    if (lessonStatusFilter !== 'all') {
-      filtered = filtered.filter(l => {
-        const status = getOverallStatus(l)
-        return status === lessonStatusFilter
-      })
-    }
-    setFilteredLessons(filtered)
-    setLessonPage(1)
-  }, [allLessons, lessonSearchQuery, lessonStatusFilter])
 
   const handleBattlePageChange = (page) => {
     setBattlePage(page)
   }
 
-  // Get paginated battles
-  const getPaginatedBattles = () => {
-    const startIndex = (battlePage - 1) * 10
-    const endIndex = startIndex + 10
-    return filteredBattles.slice(startIndex, endIndex)
+  const handleLessonClick = (lesson) => {
+    setSelectedLesson(lesson)
   }
 
-  // Filter battles by search and result
-  useEffect(() => {
-    let filtered = allBattles
-    if (battleSearchQuery) {
-      filtered = filtered.filter(m => 
-        (m.mode === 'mcq' ? t('battle.modeMcq') : t('battle.modeTyping')).toLowerCase().includes(battleSearchQuery.toLowerCase()) ||
-        (m.matchType === 'queue' ? t('battle.typeQueue') : t('battle.typeInvite')).toLowerCase().includes(battleSearchQuery.toLowerCase())
-      )
+  const handleSelectMode = (mode) => {
+    if (!selectedLesson) return
+    const lessonId = selectedLesson._id
+    setSelectedLesson(null)
+    if (onNavigate) {
+      onNavigate(`/lessons/${mode}/${lessonId}`)
     }
-    if (battleResultFilter !== 'all') {
-      filtered = filtered.filter(m => {
-        const winnerId = typeof m.winnerId === 'object' ? m.winnerId?._id : m.winnerId
-        const isWinner = winnerId === user?.id
-        const isDraw = m.winnerId === null
-        if (battleResultFilter === 'win') return isWinner && !isDraw
-        if (battleResultFilter === 'lose') return !isWinner && !isDraw
-        if (battleResultFilter === 'draw') return isDraw
-        return true
-      })
-    }
-    setFilteredBattles(filtered)
-    setBattlePage(1)
-  }, [battleSearchQuery, battleResultFilter, user, t])
+  }
 
   const handleViewBattleDetail = (matchId) => {
     setSelectedMatchId(matchId)
@@ -198,28 +209,14 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
             className="hm-search-input"
             placeholder={activeTab === 'lessons' ? t('profile.searchLessonPlaceholder') : t('profile.searchBattlePlaceholder')}
             value={activeTab === 'lessons' ? lessonSearchQuery : battleSearchQuery}
-            onChange={(e) => activeTab === 'lessons' ? setLessonSearchQuery(e.target.value) : setBattleSearchQuery(e.target.value)}
+            onChange={(e) => {
+              if (activeTab === 'lessons') {
+                setLessonSearchQuery(e.target.value)
+              } else {
+                setBattleSearchQuery(e.target.value)
+              }
+            }}
           />
-          <select
-            className="hm-filter-select"
-            value={activeTab === 'lessons' ? lessonStatusFilter : battleResultFilter}
-            onChange={(e) => activeTab === 'lessons' ? setLessonStatusFilter(e.target.value) : setBattleResultFilter(e.target.value)}
-          >
-            {activeTab === 'lessons' ? (
-              <>
-                <option value="all">{t('profile.filterAll')}</option>
-                <option value="completed">{t('profile.completed')}</option>
-                <option value="in_progress">{t('profile.learning')}</option>
-              </>
-            ) : (
-              <>
-                <option value="all">{t('profile.filterAll')}</option>
-                <option value="win">{t('profile.win')}</option>
-                <option value="lose">{t('profile.lose')}</option>
-                <option value="draw">{t('profile.draw')}</option>
-              </>
-            )}
-          </select>
         </div>
 
         <div className="hm-body">
@@ -227,7 +224,7 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
           {activeTab === 'lessons' && (
             lessonsLoading ? (
               <div className="hm-loading-state">{t('profile.loading')}</div>
-            ) : filteredLessons.length > 0 ? (
+            ) : lessons.length > 0 ? (
               <>
                 <table className="hm-table">
                   <thead>
@@ -240,12 +237,16 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {getPaginatedLessons().map((lesson) => {
+                    {lessons.map((lesson) => {
                       const dictationPct = lesson.userProgress?.dictation?.progressPct || 0
                       const shadowingPct = lesson.userProgress?.shadowing?.progressPct || 0
                       const status = getOverallStatus(lesson)
                       return (
-                        <tr key={lesson._id}>
+                        <tr
+                          key={lesson._id}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleLessonClick(lesson)}
+                        >
                           <td style={{ fontWeight: 600 }}>{lesson.title}</td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -277,7 +278,7 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
                 <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
                   <Pagination
                     currentPage={lessonPage}
-                    totalPages={Math.ceil(filteredLessons.length / 7)}
+                    totalPages={lessonTotalPages}
                     onPageChange={handleLessonPageChange}
                   />
                 </div>
@@ -292,7 +293,7 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
           {activeTab === 'battle' && (
             battleLoading ? (
               <div className="hm-loading-state">{t('profile.loading')}</div>
-            ) : filteredBattles.length > 0 ? (
+            ) : battles.length > 0 ? (
               <>
                 <table className="hm-table">
                   <thead>
@@ -306,7 +307,7 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {getPaginatedBattles().map((match, idx) => {
+                    {battles.map((match, idx) => {
                       const playerData = match.players?.find(p => p.userId?._id === user?.id)
                       const userScore = playerData?.score ?? 0
                       const userCorrectCount = playerData?.correctCount ?? 0
@@ -341,7 +342,7 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
                 <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
                   <Pagination
                     currentPage={battlePage}
-                    totalPages={Math.ceil(filteredBattles.length / 10)}
+                    totalPages={battleTotalPages}
                     onPageChange={handleBattlePageChange}
                   />
                 </div>
@@ -363,6 +364,72 @@ function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {
           }}
           matchId={selectedMatchId}
         />
+      )}
+
+      {/* Mode Selection Modal */}
+      {selectedLesson && (
+        <div className="modal-overlay" onClick={() => setSelectedLesson(null)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t('lessons.selectModeTitle')}</h3>
+              <p className="modal-subtitle">{selectedLesson.title}</p>
+              <button className="modal-close-icon-btn" onClick={() => setSelectedLesson(null)} aria-label="Close">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {/* Dictation Card */}
+              <button
+                className={`mode-select-card ${!selectedLesson.modes?.includes('dictation') ? 'disabled' : ''}`}
+                onClick={() => selectedLesson.modes?.includes('dictation') && handleSelectMode('dictation')}
+                disabled={!selectedLesson.modes?.includes('dictation')}
+              >
+                <div className="mode-card-icon-wrapper icon-blue">
+                  <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path
+                      d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </div>
+                <div className="mode-card-info">
+                  <h4 className="mode-card-title">Dictation</h4>
+                  <p className="mode-card-desc">{t('lessons.dictationDesc')}</p>
+                </div>
+              </button>
+
+              {/* Shadowing Card */}
+              <button
+                className={`mode-select-card ${!selectedLesson.modes?.includes('shadowing') ? 'disabled' : ''}`}
+                onClick={() => selectedLesson.modes?.includes('shadowing') && handleSelectMode('shadowing')}
+                disabled={!selectedLesson.modes?.includes('shadowing')}
+              >
+                <div className="mode-card-icon-wrapper icon-red">
+                  <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path
+                      d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.72V21h2v-3.28c3.28-.48 6-3.26 6-6.72h-1.7z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </div>
+                <div className="mode-card-info">
+                  <h4 className="mode-card-title">Shadowing</h4>
+                  <p className="mode-card-desc">{t('lessons.shadowingDesc')}</p>
+                </div>
+              </button>
+            </div>
+
+            <div className="modal-footer">
+              <button className="modal-cancel-btn" onClick={() => setSelectedLesson(null)}>
+                {t('lessons.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

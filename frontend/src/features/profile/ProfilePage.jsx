@@ -79,7 +79,7 @@ function ProfilePage({ onNavigate }) {
       safeGet(() => getBattleHistory(1, 10), setMiniBattleHistory, (r) => r.data?.items || []),
       (async () => {
         try {
-          const res = await getLessons({ limit: 100 })
+          const res = await getLessons({ page: 1, limit: 5 })
           if (res?.success) {
             const data = res.data?.lessons || []
             // Filter lessons that have any user progress (in_progress or completed)
