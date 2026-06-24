@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import gamificationRouter from './modules/gamification/gamification.router.js';
 import battleRouter from './modules/battle/battle.router.js';
+import vocabularyRouter from './modules/vocabulary/vocabulary.router.js';
 import lessonRouter from './modules/lesson/lesson.router.js';
 import deckRouter from './modules/deck/deck.router.js';
 import userDeckRouter from './modules/userDeck/userDeck.router.js';
@@ -42,6 +43,7 @@ app.use('/api/v1/cefr-levels', cefrLevelRouter);
 app.use('/api/v1/tags', tagRouter);
 app.use('/api/v1/s3', fileRouter);
 app.use('/api/v1/gamification', gamificationRouter);
+app.use('/api/v1/vocabulary', vocabularyRouter);
 app.use('/api/v1/battle', battleRouter);
 app.use('/api/v1/ai', aiRouter);
 app.use('/api/v1/admin', adminRouter);
