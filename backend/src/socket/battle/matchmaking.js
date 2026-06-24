@@ -41,7 +41,7 @@ export const leaveQueue = (socketId) => {
 
 // ---- invite codes (private rooms) ----
 
-const invites = new Map(); // code -> { hostUserId, socketId, mode, timer }
+const invites = new Map(); // code -> { hostUserId, socketId, mode }
 
 const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -53,20 +53,18 @@ const genCode = () => {
   return code;
 };
 
+// A private room has no expiry
 export const createRoom = (socket, mode) => {
+  // One room per host: drop any room this socket already owns first.
+  cancelRoom(socket.id);
+
   let code = genCode();
   while (invites.has(code)) code = genCode();
-
-  const timer = setTimeout(() => {
-    invites.delete(code);
-    socket.emit('battle:room:expired');
-  }, BATTLE.queueTimeoutMs);
 
   invites.set(code, {
     hostUserId: socket.user.id,
     socketId: socket.id,
     mode,
-    timer,
   });
   return code;
 };
@@ -77,7 +75,6 @@ export const joinRoom = (socket, code) => {
   // Host can't join their own room.
   if (invite.hostUserId === socket.user.id) return null;
 
-  clearTimeout(invite.timer);
   invites.delete(code);
   return {
     hostSocketId: invite.socketId,
@@ -86,10 +83,10 @@ export const joinRoom = (socket, code) => {
   };
 };
 
+// Drop any room hosted by this socket (host disconnect, or before opening a new one).
 export const cancelRoom = (socketId) => {
   for (const [code, invite] of invites) {
     if (invite.socketId === socketId) {
-      clearTimeout(invite.timer);
       invites.delete(code);
     }
   }
