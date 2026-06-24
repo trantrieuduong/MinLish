@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Input from '../../components/Input/Input'
-import { updateProfile } from './profileApi'
+import Input from '../../../../components/Input/Input'
+import { updateProfile } from '../../profileApi'
 import './ChangePasswordModal.css'
 
 function ChangePasswordModal({ onClose, onSuccess }) {

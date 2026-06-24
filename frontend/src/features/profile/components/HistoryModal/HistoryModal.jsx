@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getBattleHistory } from './profileApi'
-import { getLessons } from '../lessons/lessonsApi'
-import MatchDetailModal from '../battle/components/MatchDetailModal'
-import Pagination from '../../components/Pagination/Pagination'
+import { getBattleHistory } from '../../profileApi'
+import { getLessons } from '../../../lessons/lessonsApi'
+import MatchDetailModal from '../../../battle/components/MatchDetailModal'
+import Pagination from '../../../../components/Pagination/Pagination'
 import './HistoryModal.css'
 
 function HistoryModal({ onClose, lessonsMap, user, onNavigate }) {

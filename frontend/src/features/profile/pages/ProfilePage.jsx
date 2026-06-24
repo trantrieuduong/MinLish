@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import Input from '../../components/Input/Input'
-import { useAuth } from '../../context/AuthContext'
+import Input from '../../../components/Input/Input'
+import { useAuth } from '../../../context/AuthContext'
 import {
   getProfileStats,
   updateProfile as updateProfileApi,
@@ -9,11 +9,11 @@ import {
   getMyRank,
   getMyStreak,
   getBattleHistory,
-} from './profileApi'
-import { getLessons } from '../lessons/lessonsApi'
-import { getPresignedUrl } from '../../utils/s3Upload'
-import ChangePasswordModal from './ChangePasswordModal'
-import HistoryModal from './HistoryModal'
+} from '../profileApi'
+import { getLessons } from '../../lessons/lessonsApi'
+import { getPresignedUrl } from '../../../utils/s3Upload'
+import ChangePasswordModal from '../components/ChangePasswordModal/ChangePasswordModal'
+import HistoryModal from '../components/HistoryModal/HistoryModal'
 import './ProfilePage.css'
 
 function ProfilePage({ onNavigate }) {
