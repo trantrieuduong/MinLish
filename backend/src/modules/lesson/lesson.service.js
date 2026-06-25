@@ -238,7 +238,19 @@ export const updateAdminLesson = async (lessonId, data) => {
   if (data.description !== undefined) lesson.description = data.description;
   if (data.tagIds !== undefined) lesson.tagIds = data.tagIds;
   if (data.cefrLevelIds !== undefined) lesson.cefrLevelIds = data.cefrLevelIds;
-  if (data.status !== undefined) lesson.status = data.status;
+  
+  if (data.status !== undefined) {
+    if (data.status === 'published' && lesson.status !== 'published') {
+      const segmentCount = await LessonSegment.countDocuments({ lessonId });
+      if (segmentCount === 0) {
+        throw new AppError(ADMIN.LESSON_NO_SEGMENT, 400);
+      }
+      lesson.status = 'published';
+      lesson.publishedAt = new Date();
+    } else {
+      lesson.status = data.status;
+    }
+  }
 
   if (data.sourceUrl !== undefined) {
     if (lesson.sourceUrl !== data.sourceUrl) {
@@ -271,25 +283,6 @@ export const deleteAdminLesson = async (lessonId) => {
   const lesson = await Lesson.findById(lessonId);
   if (!lesson) throw new AppError(LESSON.LESSON_NOT_FOUND, 404);
   lesson.status = 'archived';
-  await lesson.save();
-  return lesson;
-};
-
-export const publishAdminLesson = async (lessonId) => {
-  const lesson = await Lesson.findById(lessonId);
-  if (!lesson) throw new AppError(LESSON.LESSON_NOT_FOUND, 404);
-
-  if (lesson.status === 'published') {
-    throw new AppError(ADMIN.LESSON_ALREADY_PUBLISHED, 400);
-  }
-
-  const segmentCount = await LessonSegment.countDocuments({ lessonId });
-  if (segmentCount === 0) {
-    throw new AppError(ADMIN.LESSON_NO_SEGMENT, 400);
-  }
-
-  lesson.status = 'published';
-  lesson.publishedAt = new Date();
   await lesson.save();
   return lesson;
 };
