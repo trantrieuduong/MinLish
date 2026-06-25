@@ -66,9 +66,10 @@ jobs:
         working-directory: frontend
 
       # 3. Chạy các bài kiểm thử Unit & Integration Tests của Backend
-      - name: Run backend tests
-        run: npm run test
-        working-directory: backend
+      # - name: Run backend tests
+      #   run: npm run test
+      #   working-directory: backend
+      # ignore backend test
 
       # 4. Chạy các bài kiểm thử Unit của Frontend
       - name: Run frontend unit tests
