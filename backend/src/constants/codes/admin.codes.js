@@ -109,7 +109,7 @@ export const ADMIN_MESSAGES = {
   LESSON_PUBLISHED_SUCCESS: 'Lesson published successfully',
   LESSON_NOT_FOUND: 'Lesson not found',
   LESSON_SLUG_EXISTS:
-    'The lesson slug already exists in the system. Please adjust the slug or title.',
+    'The lesson slug already exists in the system. Please adjust the title.',
   LESSON_TITLE_REQUIRED: 'The title field is required.',
   LESSON_SOURCE_URL_REQUIRED: 'The sourceURL field is required.',
   LESSON_SOURCE_URL_INVALID: 'The sourceUrl must be a valid YouTube link.',
