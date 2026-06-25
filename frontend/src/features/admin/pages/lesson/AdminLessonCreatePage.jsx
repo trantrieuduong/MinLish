@@ -43,8 +43,6 @@ function AdminLessonCreatePage({ onNavigate }) {
   const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [selectedCefr, setSelectedCefr] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
-  const [status, setStatus] = useState('draft')
-
   const [cefrLevels, setCefrLevels] = useState([])
   const [availableTags, setAvailableTags] = useState([])
   const [isTagModalOpen, setIsTagModalOpen] = useState(false)
@@ -155,7 +153,6 @@ function AdminLessonCreatePage({ onNavigate }) {
         thumbnailUrl: thumbnailUrl.trim(),
         cefrLevelIds: selectedCefr,
         tagIds: selectedTags.map((tag) => tag._id),
-        status
       }
 
       const res = await createAdminLessonApi(payload)
@@ -352,29 +349,6 @@ function AdminLessonCreatePage({ onNavigate }) {
                   <line x1="8" y1="12" x2="16" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
-            </div>
-
-            <div className="admin-classify-group">
-              <label className="admin-classify-label">{t('admin.statusLabel')}</label>
-              <div className="admin-status-options">
-                <label className={`admin-status-card ${status === 'draft' ? 'active' : ''}`}>
-                  <input type="radio" name="lesson-status" value="draft" checked={status === 'draft'} onChange={() => setStatus('draft')} className="admin-status-radio" />
-                  <div className="admin-status-dot draft" />
-                  <div>
-                    <div className="admin-status-name">{t('admin.statusDraft')}</div>
-                    <div className="admin-status-desc">{t('admin.statusDraftDesc')}</div>
-                  </div>
-                </label>
-
-                <label className={`admin-status-card ${status === 'published' ? 'active' : ''}`}>
-                  <input type="radio" name="lesson-status" value="published" checked={status === 'published'} onChange={() => setStatus('published')} className="admin-status-radio" />
-                  <div className="admin-status-dot published" />
-                  <div>
-                    <div className="admin-status-name">{t('admin.statusPublished')}</div>
-                    <div className="admin-status-desc">{t('admin.statusPublishedDesc')}</div>
-                  </div>
-                </label>
-              </div>
             </div>
 
             <div className="admin-form-footer-actions">
