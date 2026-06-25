@@ -38,6 +38,10 @@ const userSegmentProgressSchema = new mongoose.Schema(
       latestAudioUrl: {
         type: String,
       },
+      wordsAccuracy: {
+        type: Map,
+        of: Number,
+      },
     },
   },
   {

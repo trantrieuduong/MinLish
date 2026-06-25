@@ -186,6 +186,7 @@ export const updateSegmentProgress = async (
       aiScore = evaluationResult.score;
       displayText = evaluationResult.displayText;
       wordsAccuracy = evaluationResult.wordsAccuracy;
+      set['shadowing.wordsAccuracy'] = wordsAccuracy;
     }
 
     const attempt = data.shadowing.attemptCount || 1;
