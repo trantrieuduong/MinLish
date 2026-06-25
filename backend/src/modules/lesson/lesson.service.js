@@ -1,7 +1,6 @@
 import AppError from '../../utils/AppError.js';
 import {
   LESSON,
-  COMMON,
   ADMIN,
   MESSAGES,
 } from '../../constants/codes/index.js';
@@ -186,7 +185,17 @@ export const createAdminLesson = async (data) => {
     });
   }
 
-  const durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+  let durationMs;
+  try {
+    durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+  } catch (err) {
+    if (err.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
+      throw new AppError(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK, 400);
+    }
+    throw err;
+  }
+  if(!durationMs)
+    throw new AppError(ADMIN.LESSON_SOURCE_URL_INVALID, 400);
 
   const lesson = await Lesson.create({
     title: data.title,
@@ -234,9 +243,19 @@ export const updateAdminLesson = async (lessonId, data) => {
   if (data.sourceUrl !== undefined) {
     if (lesson.sourceUrl !== data.sourceUrl) {
       lesson.sourceUrl = data.sourceUrl;
-      const durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+      let durationMs;
+      try {
+        durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+      } catch (err) {
+        if (err.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
+          throw new AppError(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK, 400);
+        }
+        throw err;
+      }
       if (durationMs !== null) {
         lesson.durationMs = durationMs;
+      } else {
+        throw new AppError(ADMIN.LESSON_SOURCE_URL_INVALID, 400);
       }
     } else {
       lesson.sourceUrl = data.sourceUrl;
@@ -319,7 +338,6 @@ export const createAdminLessonSegment = async (lessonId, data) => {
 
   if (
     lesson.durationMs &&
-    lesson.durationMs >= 0 &&
     data.endMs > lesson.durationMs
   ) {
     throw new AppError(ADMIN.SEGMENT_END_MS_EXCEEDS_DURATION, 400);
@@ -364,7 +382,6 @@ export const updateAdminLessonSegment = async (lessonId, segmentId, data) => {
 
   if (
     lesson.durationMs &&
-    lesson.durationMs > 0 &&
     data.endMs > lesson.durationMs
   ) {
     throw new AppError(ADMIN.SEGMENT_END_MS_EXCEEDS_DURATION, 400);

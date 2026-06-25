@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { ADMIN } from '../constants/codes/index.js';
 
 /**
  * Gọi yt-dlp (qua `python -m yt_dlp`) để lấy duration (ms) của 1 video YouTube.
@@ -9,7 +10,22 @@ export const getDurationMsViaYtdlp = async (
   sourceUrl,
   pythonBin = 'python'
 ) => {
-  const ytDlpDuration = await new Promise((resolve) => {
+  if (/youtube\.com|youtu\.be/.test(sourceUrl)) {
+    try {
+      const oembedRes = await fetch(
+        `https://www.youtube.com/oembed?url=${encodeURIComponent(sourceUrl)}&format=json`
+      );
+      if (oembedRes.status === 401 || oembedRes.status === 404) {
+        throw new Error(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK);
+      }
+    } catch (error) {
+      if (error.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
+        throw error;
+      }
+    }
+  }
+
+  const ytDlpDuration = await new Promise((resolve, reject) => {
     const child = spawn(
       pythonBin,
       [
@@ -42,6 +58,17 @@ export const getDurationMsViaYtdlp = async (
         console.error(
           `[yt-dlp error] ${sourceUrl} -> code ${code}: ${stderrData.trim()}`
         );
+        const lowerStderr = stderrData.toLowerCase();
+        if (
+          lowerStderr.includes('disabled playback') ||
+          lowerStderr.includes('tắt tính năng phát') ||
+          lowerStderr.includes('video unavailable') ||
+          lowerStderr.includes('video không có sẵn') ||
+          lowerStderr.includes('unsupported url') ||
+          lowerStderr.includes('private video')
+        ) {
+          return reject(new Error(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK));
+        }
         return resolve(null);
       }
       const raw = stdoutData.trim();
