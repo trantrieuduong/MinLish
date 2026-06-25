@@ -2,9 +2,9 @@ name: Run MinLish Tests
 
 on:
   push:
-    branches: [ feat/impl-test-fe ]
+    branches: [ "dev", "main" ]
   pull_request:
-    branches: [ feat/impl-test-fe ]
+    branches: [ "dev", "main" ]
 
 jobs:
   test:
