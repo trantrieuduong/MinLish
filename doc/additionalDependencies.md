@@ -1,1 +1,1 @@
-deno, yt-dlp, ffprobe (dự phòng)
+deno, yt-dlp
