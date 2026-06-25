@@ -686,6 +686,7 @@
       "LESSON_TITLE_REQUIRED": "Trường tiêu đề là bắt buộc.",
       "LESSON_SOURCE_URL_REQUIRED": "Trường sourceURL là bắt buộc.",
       "LESSON_SOURCE_URL_INVALID": "sourceUrl phải là một liên kết YouTube hợp lệ.",
+      "LESSON_SOURCE_URL_DISABLED_PLAYBACK": "Video không khả dụng. Chủ sở hữu video đã vô hiệu hóa phát trên các trang web khác.",
       "LESSON_STATUS_INVALID": "Trạng thái phải là draft, published hoặc archived.",
       "LESSON_ALREADY_PUBLISHED": "Bài học đã được xuất bản.",
       "LESSON_NO_SEGMENT": "Không thể xuất bản bài học chưa có segment.",

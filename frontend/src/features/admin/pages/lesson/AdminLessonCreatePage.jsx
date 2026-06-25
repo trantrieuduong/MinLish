@@ -171,7 +171,7 @@ function AdminLessonCreatePage({ onNavigate }) {
     } catch (error) {
       const code = error.response?.data?.code
       const msg = code ? t('api.error.' + code) : (error.response?.data?.message || error.message)
-      if (code === 'LESSON_SOURCE_URL_INVALID' || code === 'LESSON_SOURCE_URL_REQUIRED') {
+      if (code === 'LESSON_SOURCE_URL_INVALID' || code === 'LESSON_SOURCE_URL_REQUIRED' || code === 'LESSON_SOURCE_URL_DISABLED_PLAYBACK') {
         setSourceUrlError(msg)
       } else if (code === 'LESSON_TITLE_REQUIRED') {
         setTitleError(msg)
