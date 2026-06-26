@@ -214,6 +214,7 @@ function AdminLessonCreatePage({ onNavigate }) {
                   if (titleError) setTitleError('')
                 }}
                 error={titleError}
+                autoFocus
               />
 
               <div className="admin-textarea-group">
