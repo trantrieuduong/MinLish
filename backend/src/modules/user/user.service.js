@@ -20,7 +20,7 @@ import { calculateNextSRS } from '../../utils/srs.util.js';
 import { generateQuizOptions, generateQuizOptionsBatch } from '../deck/deck.service.js';
 import { recordActivity } from '../gamification/gamification.service.js';
 import { segmentXp, getDayKey } from '../../config/gamification.config.js';
-import { sendChangePasswordEmail } from '../../utils/mail.util.js';
+import { sendChangePasswordEmail, sendBanEmail } from '../../utils/mail.util.js';
 //import fs from 'fs';
 
 export const evaluatePronunciation = async (audioUrl, referenceText) => {
@@ -517,6 +517,9 @@ export const changeAdminUserStatus = async (userId, status, banReason = '') => {
   } else if (status === 'banned') {
     user.isActive = false;
     user.banReason = banReason;
+    sendBanEmail(user.email, user.name, banReason).catch((error) => {
+      console.error('Lỗi gửi email thông báo khóa tài khoản:', error);
+    });
   } else
     throw new AppError(USER.INVALID_STATUS, 404, [
       { field: 'status', message: 'Status must be active or banned' },

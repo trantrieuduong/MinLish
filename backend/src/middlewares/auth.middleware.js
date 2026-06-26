@@ -23,9 +23,16 @@ export const protect = async (req, res, next) => {
       return next(new AppError(AUTH.INVALID_TOKEN, 401));
     }
 
-    const user = await User.findById(decoded.id).select('isActive passwordChangedAt');
+    const user = await User.findById(decoded.id).select('isActive passwordChangedAt banReason');
     if (!user || !user.isActive) {
-      return next(new AppError(AUTH.ACCOUNT_BANNED, 401));
+      return next(
+        new AppError(
+          AUTH.ACCOUNT_BANNED,
+          401,
+          [],
+          user?.banReason ? `Account has been locked: ${user.banReason}` : undefined
+        )
+      );
     }
 
     if (
