@@ -7,7 +7,7 @@ export const DECK = Object.freeze({
   // error
   DECK_NOT_FOUND: 'DECK_NOT_FOUND',
   DECK_OR_TOPIC_NOT_FOUND: 'DECK_OR_TOPIC_NOT_FOUND',
-  DECK_SLUG_EXISTS: 'DECK_SLUG_EXISTS',
+  DECK_TITLE_EXISTS: 'DECK_TITLE_EXISTS',
   TOPIC_SLUG_EXISTS: 'TOPIC_SLUG_EXISTS',
   TOPIC_NAME_REQUIRED: 'TOPIC_NAME_REQUIRED',
   TOPIC_NOT_FOUND: 'TOPIC_NOT_FOUND',
@@ -20,7 +20,7 @@ export const DECK_MESSAGES = {
   DECK_LIST_SUCCESS: 'Decks retrieved successfully',
   DECK_NOT_FOUND: 'Deck not found',
   DECK_OR_TOPIC_NOT_FOUND: 'Deck or topic not found',
-  DECK_SLUG_EXISTS: 'Deck slug already exists. Please change the slug or title',
+  DECK_TITLE_EXISTS: 'Deck title already exists. Please change the title',
   TOPIC_SLUG_EXISTS:
     'Topic slug already exists. Please change the slug or title',
   TOPIC_NAME_REQUIRED: 'The name field is required',

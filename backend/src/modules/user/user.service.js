@@ -17,7 +17,7 @@ import {
   USER,
 } from '../../constants/codes/index.js';
 import { calculateNextSRS } from '../../utils/srs.util.js';
-import { generateQuizOptions } from '../deck/deck.service.js';
+import { generateQuizOptions, generateQuizOptionsBatch } from '../deck/deck.service.js';
 import { recordActivity } from '../gamification/gamification.service.js';
 import { segmentXp, getDayKey } from '../../config/gamification.config.js';
 //import fs from 'fs';
@@ -292,19 +292,24 @@ export const getCardStates = async (userId, queryParams) => {
     ).filter((state) => state.cardId != null),
     UserCardState.countDocuments(filter),
   ]);
-  const items = await Promise.all(
-    data.map(async (state) => {
-      const stateObj = state.toObject();
-      if (stateObj.cardId) {
-        stateObj.cardId.quizOptions = await generateQuizOptions(
-          stateObj.topicId || stateObj.cardId.topicId,
-          stateObj.cardId.term,
-          stateObj.cardId._id
-        );
-      }
-      return stateObj;
-    })
-  );
+  const cardRequests = data
+    .filter((state) => state.cardId)
+    .map((state) => ({
+      topicId: state.topicId || state.cardId.topicId,
+      term: state.cardId.term,
+      cardId: state.cardId._id.toString(),
+    }));
+
+  const quizOptionsMap = await generateQuizOptionsBatch(cardRequests);
+
+  const items = data.map((state) => {
+    const stateObj = state.toObject();
+    if (stateObj.cardId) {
+      stateObj.cardId.quizOptions =
+        quizOptionsMap[stateObj.cardId._id.toString()] || [];
+    }
+    return stateObj;
+  });
 
   return {
     data: items,

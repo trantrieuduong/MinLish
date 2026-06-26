@@ -748,7 +748,7 @@
       "DECK_NOT_FOUND": "Deck not found",
       "DECK_OR_TOPIC_NOT_FOUND": "Deck or topic not found",
       "DECK_OR_CARD_NOT_FOUND": "Deck or card not found",
-      "DECK_SLUG_EXISTS": "Deck slug already exists. Please change the slug or title",
+      "DECK_TITLE_EXISTS": "Deck title already exists. Please change the title",
       "TOPIC_SLUG_EXISTS": "Topic slug already exists. Please change the slug or title",
       "TOPIC_NAME_REQUIRED": "The name field is required",
       "MAX_DECKS_REACHED": "You have reached the maximum number of decks allowed",
