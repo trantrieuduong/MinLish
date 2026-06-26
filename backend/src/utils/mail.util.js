@@ -61,3 +61,20 @@ export const sendForgotPasswordEmail = async (email, otp) => {
   `;
   return sendEmail({ to: email, subject, html });
 };
+
+export const sendBanEmail = async (email, name, banReason) => {
+  const subject = 'Thông báo khóa tài khoản MinLish';
+  const lockTime = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+      <h2 style="color: #f44336; text-align: center;">Thông báo khóa tài khoản</h2>
+      <p>Chào <strong>${name}</strong>,</p>
+      <p>Tài khoản MinLish của bạn đã bị khóa vào lúc <strong>${lockTime}</strong>.</p>
+      <p><strong>Lý do khóa:</strong> ${banReason || 'Vi phạm chính sách của chúng tôi.'}</p>
+      <p>Nếu bạn cho rằng việc khóa tài khoản này là nhầm lẫn, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi qua email phản hồi lại email này để được xem xét và hỗ trợ.</p>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="font-size: 12px; color: #888; text-align: center;">&copy; ${new Date().getFullYear()} MinLish. All rights reserved.</p>
+    </div>
+  `;
+  return sendEmail({ to: email, subject, html });
+};
