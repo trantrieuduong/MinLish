@@ -9,16 +9,17 @@
 Cơ chế access token \+ refresh token  
 (access token lưu localstorage / refresh token lưu cookie \- chỉ đính kèm với api refresh)
 
-POST /auth/login  
-POST /auth/signup
-POST /auth/refresh (kèm cookie refresh token)  
-POST /auth/logout
+POST /api/v1/auth/login — **rate limit: 5 req / 15 phút / IP** (429 nếu vượt)  
+POST /api/v1/auth/signup — **rate limit: 3 req / 1 giờ / IP** (429 nếu vượt)  
+POST /api/v1/auth/refresh (kèm cookie refresh token)  
+POST /api/v1/auth/logout
 
-Cơ chế otp: cache redis
+Cơ chế OTP: cache Redis, TTL 10 phút. Mỗi mục đích có endpoint riêng:
 
-POST /auth/otp/send kèm payload { "email": "user@example.com", "purpose": "verify_email" }  
-POST /auth/otp/verify kèm payload { "email": "user@example.com", "otp": "482913", "purpose": "verify_email" }  
-forgot-password, reset-password tương tự
+POST /api/v1/auth/verify-email/send — gửi OTP kích hoạt tài khoản; body `{ email }`  
+POST /api/v1/auth/verify-email — xác thực OTP kích hoạt; body `{ email, otp }`  
+POST /api/v1/auth/forgot-password — gửi OTP đặt lại mật khẩu; body `{ email }`  
+POST /api/v1/auth/reset-password — đặt lại mật khẩu với OTP; body `{ email, otp, newPassword }`
 
 ## **Lessons công khai**
 
