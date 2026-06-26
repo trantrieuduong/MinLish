@@ -20,7 +20,6 @@ router.post(
   rateLimiter({
     windowMs: config.registerLimitWindowMs,
     max: config.registerLimitMax,
-    message: 'Bạn đã đăng ký quá số lần cho phép. Vui lòng thử lại sau.',
   }),
   validate(signupSchema),
   authController.signup
@@ -32,8 +31,6 @@ router.post(
   rateLimiter({
     windowMs: config.loginLimitWindowMs,
     max: config.loginLimitMax,
-    message:
-      'Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.',
   }),
   validate(loginSchema),
   authController.login

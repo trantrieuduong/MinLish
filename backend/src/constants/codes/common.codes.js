@@ -6,6 +6,7 @@ export const COMMON = Object.freeze({
   FORBIDDEN: 'FORBIDDEN',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+  RATE_LIMITED: 'RATE_LIMITED',
 });
 
 export const COMMON_MESSAGES = {
@@ -17,4 +18,5 @@ export const COMMON_MESSAGES = {
   INTERNAL_ERROR: 'Internal server error',
   SERVICE_UNAVAILABLE:
     'Service temporarily unavailable, please try again later',
+  RATE_LIMITED: 'Too many requests, please try again later',
 };

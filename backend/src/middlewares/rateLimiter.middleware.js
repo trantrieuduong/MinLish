@@ -1,7 +1,8 @@
 import AppError from '../utils/AppError.js';
 import client from '../config/redis.js';
+import { COMMON } from '../constants/codes/index.js';
 
-export const rateLimiter = ({ windowMs, max, message }) => {
+export const rateLimiter = ({ windowMs, max, code } = {}) => {
   return async (req, res, next) => {
     if (!client.isOpen) {
       return next();
@@ -30,12 +31,7 @@ export const rateLimiter = ({ windowMs, max, message }) => {
       }
 
       if (current > max) {
-        return next(
-          new AppError(
-            message || 'Quá nhiều yêu cầu, vui lòng thử lại sau',
-            429
-          )
-        );
+        return next(new AppError(code || COMMON.RATE_LIMITED, 429));
       }
 
       next();
