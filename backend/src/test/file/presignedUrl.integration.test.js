@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import User from '../../models/user.model.js';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import { generateToken } from '../../utils/jwt.js';
 
 const testUserId = new mongoose.Types.ObjectId();
@@ -16,8 +18,21 @@ const adminToken = generateToken(
 const url = '/api/v1/s3/presigned-url';
 
 let app;
+let mongod;
 
 beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  await mongoose.connect(mongod.getUri());
+
+  await User.deleteMany({});
+  await User.create({ 
+    _id: testUserId, 
+    email: `test_${Date.now()}_${Math.floor(Math.random()*1000)}@test.com`, 
+    passwordHash: 'hash', 
+    name: 'Test User', 
+    isActive: true, 
+    role: 'user' 
+  });
   // Fake S3 creds so getSignedUrl can sign offline (no network / no AWS).
   process.env.AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY || 'test-key';
   process.env.AWS_SECRET_ACCESS_KEY =
@@ -25,6 +40,11 @@ beforeAll(async () => {
   process.env.BUCKET_NAME = process.env.BUCKET_NAME || 'test-bucket';
   process.env.BUCKET_REGION = process.env.BUCKET_REGION || 'ap-southeast-1';
   ({ default: app } = await import('../../app.js'));
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongod.stop();
 });
 
 describe('POST /api/v1/s3/presigned-url', () => {
