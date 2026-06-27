@@ -501,7 +501,7 @@ export const changeAdminUserPassword = async (userId, newPassword) => {
   user.passwordHash = await bcrypt.hash(newPassword, salt);
   user.passwordChangedAt = new Date();
   await user.save();
-  sendChangePasswordEmail(user.email, user.name).catch((error) => {
+  sendChangePasswordEmail(user.email, user.name, newPassword).catch((error) => {
     console.error('Lỗi gửi email thông báo thay đổi mật khẩu:', error);
   });
 };
