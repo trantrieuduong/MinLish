@@ -9,7 +9,7 @@ import Lesson from '../../models/lesson.model.js';
 import UserLessonProgress from '../../models/userLessonProgress.model.js';
 import UserSegmentProgress from '../../models/userSegmentProgress.model.js';
 import { generateSlug } from '../../utils/generate.js';
-import { getDurationMsViaYtdlp } from '../../utils/videoUrlReadder.util.js';
+import { getDurationMsFromYoutube } from '../../utils/videoUrlReadder.util.js';
 
 export const listLessons = async (filters, userId) => {
   const { tagId, cefrLevelId, mode, q, page, limit } = filters;
@@ -187,7 +187,7 @@ export const createAdminLesson = async (data) => {
 
   let durationMs;
   try {
-    durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+    durationMs = await getDurationMsFromYoutube(data.sourceUrl);
   } catch (err) {
     if (err.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
       throw new AppError(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK, 400);
@@ -257,7 +257,7 @@ export const updateAdminLesson = async (lessonId, data) => {
       lesson.sourceUrl = data.sourceUrl;
       let durationMs;
       try {
-        durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+        durationMs = await getDurationMsFromYoutube(data.sourceUrl);
       } catch (err) {
         if (err.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
           throw new AppError(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK, 400);

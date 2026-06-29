@@ -39,6 +39,7 @@ export const getDashboardMetrics = async () => {
   const userRegistrationChart12Months = [];
   for (let i = 11; i >= 0; i--) {
     const d = new Date();
+    d.setDate(1); // Đặt ngày thành 1 để tránh lỗi tràn ngày khi tháng tiếp theo có ít ngày hơn (Tránh 31 về 29 -> Tháng 2 thành tháng 3 => 2 tháng 3)
     d.setMonth(d.getMonth() - i);
     const year = d.getFullYear();
     const month = d.getMonth() + 1; // +1 do Date.getMonth() trả về tháng bắt đầu từ 0
