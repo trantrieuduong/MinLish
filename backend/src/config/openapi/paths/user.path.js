@@ -143,20 +143,6 @@ const CardStatePatchBadRequest = {
   },
 };
 
-const UserNotFound = {
-  description: 'User not found',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      example: {
-        success: false,
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      },
-    },
-  },
-};
-
 const ProfileUpdateBadRequest = {
   description: 'Invalid input data (validation error or format error)',
   content: {
@@ -213,6 +199,48 @@ const ProfileUpdateBadRequest = {
               {
                 field: 'confirmPassword',
                 message: 'Password confirmation does not match.',
+              },
+            ],
+          },
+        },
+        EmptyName: {
+          summary: 'Display name cannot be empty',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'name',
+                message: 'Display name cannot be empty',
+              },
+            ],
+          },
+        },
+        NameTooLong: {
+          summary: 'Display name must be at most 50 characters',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'name',
+                message: 'Display name must be at most 50 characters',
+              },
+            ],
+          },
+        },
+        PasswordTooShort: {
+          summary: 'Password must be at least 6 characters',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'newPassword',
+                message: 'Password must be at least 6 characters',
               },
             ],
           },
@@ -576,7 +604,6 @@ export default {
           },
         },
         400: ProfileUpdateBadRequest,
-        404: UserNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         500: { $ref: '#/components/responses/ServerError' },
       },
@@ -591,7 +618,7 @@ export default {
       security: [{ BearerAuth: [] }],
       responses: {
         200: {
-          description: 'Lấy số liệu thống kê của user thành công',
+          description: 'Get current user stats successfully',
           content: {
             'application/json': {
               schema: {
