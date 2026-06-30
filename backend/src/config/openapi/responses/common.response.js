@@ -23,8 +23,8 @@ export default {
         },
         example: {
           success: false,
-          code: 'UNAUTHORIZED',
-          message: 'Not authenticated or token is invalid',
+          code: 'INVALID_TOKEN',
+          message: 'Invalid token',
         },
       },
     },

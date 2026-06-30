@@ -100,7 +100,7 @@ const TagNotFound = {
 };
 
 const LessonNotFound = {
-  description: 'Không tìm thấy lesson',
+  description: 'Lesson not found',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
@@ -170,35 +170,8 @@ const LessonBadRequest = {
   },
 };
 
-const LessonPublishBadRequest = {
-  description: 'Không đủ điều kiện publish',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        AlreadyPublished: {
-          summary: 'Bài học đã được publish',
-          value: {
-            success: false,
-            code: 'INVALID_DATA',
-            message: 'Lesson is already published',
-          },
-        },
-        MissingSegments: {
-          summary: 'Chưa có nội dung',
-          value: {
-            success: false,
-            code: 'INVALID_DATA',
-            message: 'Cannot publish a lesson with no segments',
-          },
-        },
-      },
-    },
-  },
-};
-
 const LessonOrSegmentNotFound = {
-  description: 'Không tìm thấy lesson hoặc segment',
+  description: 'Lesson not found hoặc segment',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
