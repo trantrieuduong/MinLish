@@ -5,6 +5,7 @@ import UserCardState from '../../models/userCardState.model.js';
 import UserLessonProgress from '../../models/userLessonProgress.model.js';
 import User from '../../models/user.model.js';
 import bcrypt from 'bcrypt';
+import redisClient from '../../config/redis.js';
 import { validateMediaUrl } from '../file/file.service.js';
 import AppError from '../../utils/AppError.js';
 import { config } from '../../config/env.js';
@@ -17,9 +18,10 @@ import {
   USER,
 } from '../../constants/codes/index.js';
 import { calculateNextSRS } from '../../utils/srs.util.js';
-import { generateQuizOptions } from '../deck/deck.service.js';
+import { generateQuizOptions, generateQuizOptionsBatch } from '../deck/deck.service.js';
 import { recordActivity } from '../gamification/gamification.service.js';
 import { segmentXp, getDayKey } from '../../config/gamification.config.js';
+import { sendChangePasswordEmail, sendBanEmail } from '../../utils/mail.util.js';
 //import fs from 'fs';
 
 export const evaluatePronunciation = async (audioUrl, referenceText) => {
@@ -292,19 +294,24 @@ export const getCardStates = async (userId, queryParams) => {
     ).filter((state) => state.cardId != null),
     UserCardState.countDocuments(filter),
   ]);
-  const items = await Promise.all(
-    data.map(async (state) => {
-      const stateObj = state.toObject();
-      if (stateObj.cardId) {
-        stateObj.cardId.quizOptions = await generateQuizOptions(
-          stateObj.topicId || stateObj.cardId.topicId,
-          stateObj.cardId.term,
-          stateObj.cardId._id
-        );
-      }
-      return stateObj;
-    })
-  );
+  const cardRequests = data
+    .filter((state) => state.cardId)
+    .map((state) => ({
+      topicId: state.topicId || state.cardId.topicId,
+      term: state.cardId.term,
+      cardId: state.cardId._id.toString(),
+    }));
+
+  const quizOptionsMap = await generateQuizOptionsBatch(cardRequests);
+
+  const items = data.map((state) => {
+    const stateObj = state.toObject();
+    if (stateObj.cardId) {
+      stateObj.cardId.quizOptions =
+        quizOptionsMap[stateObj.cardId._id.toString()] || [];
+    }
+    return stateObj;
+  });
 
   return {
     data: items,
@@ -395,6 +402,10 @@ export const updateProfile = async (userId, data) => {
     }
     const salt = await bcrypt.genSalt(10);
     user.passwordHash = await bcrypt.hash(data.newPassword, salt);
+    user.passwordChangedAt = new Date();
+    if (redisClient.isOpen) {
+      await redisClient.del(`user:auth:${userId}`);
+    }
   }
   if (data.avatarUrl) {
     const key = await validateMediaUrl(
@@ -493,7 +504,14 @@ export const changeAdminUserPassword = async (userId, newPassword) => {
   }
   const salt = await bcrypt.genSalt(10);
   user.passwordHash = await bcrypt.hash(newPassword, salt);
+  user.passwordChangedAt = new Date();
   await user.save();
+  if (redisClient.isOpen) {
+    await redisClient.del(`user:auth:${userId}`);
+  }
+  sendChangePasswordEmail(user.email, user.name, newPassword).catch((error) => {
+    console.error('Lỗi gửi email thông báo thay đổi mật khẩu:', error);
+  });
 };
 
 export const changeAdminUserStatus = async (userId, status, banReason = '') => {
@@ -507,9 +525,15 @@ export const changeAdminUserStatus = async (userId, status, banReason = '') => {
   } else if (status === 'banned') {
     user.isActive = false;
     user.banReason = banReason;
+    sendBanEmail(user.email, user.name, banReason).catch((error) => {
+      console.error('Lỗi gửi email thông báo khóa tài khoản:', error);
+    });
   } else
     throw new AppError(USER.INVALID_STATUS, 404, [
       { field: 'status', message: 'Status must be active or banned' },
     ]);
   await user.save();
+  if (redisClient.isOpen) {
+    await redisClient.del(`user:auth:${userId}`);
+  }
 };

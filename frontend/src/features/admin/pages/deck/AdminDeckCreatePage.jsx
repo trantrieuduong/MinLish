@@ -4,6 +4,7 @@ import Input from '../../../../components/Input/Input'
 import TagPickerModal from '../../components/TagPickerModal/TagPickerModal'
 import { createAdminDeckApi, listCefrLevelsApi, listTagsApi } from '../../adminApi'
 import { getPresignedUrl, uploadAudioToS3 } from '../../../../utils/s3Upload'
+import { validateImageMagicBytes } from '../../../../utils/imageValidation'
 import './AdminDeckCreatePage.css'
 
 function AdminDeckCreatePage({ onNavigate }) {
@@ -14,7 +15,6 @@ function AdminDeckCreatePage({ onNavigate }) {
   const [description, setDescription] = useState('')
   const [selectedCefr, setSelectedCefr] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
-  const [status, setStatus] = useState('draft')
   const [coverImage, setCoverImage] = useState('')
 
   // Meta data
@@ -83,6 +83,26 @@ function AdminDeckCreatePage({ onNavigate }) {
     event.target.value = ''
     if (!file) return
 
+    // Validate format
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMsg(t('admin.invalidImageFormat') || 'Invalid file format')
+      return
+    }
+
+    // Validate magic bytes
+    const isValidImage = await validateImageMagicBytes(file)
+    if (!isValidImage) {
+      setErrorMsg(t('admin.invalidImageFile') || 'Invalid image file')
+      return
+    }
+
+    // Validate size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg(t('admin.fileTooLarge') || 'File too large')
+      return
+    }
+
     setIsImageUploading(true)
     setErrorMsg('')
     try {
@@ -113,7 +133,6 @@ function AdminDeckCreatePage({ onNavigate }) {
         cefrLevelIds: selectedCefr,
         tagIds: selectedTags.map((t) => t._id),
         coverImage: coverImage.trim(),
-        status,
       }
       const res = await createAdminDeckApi(payload)
       if (res.success) {
@@ -288,44 +307,6 @@ function AdminDeckCreatePage({ onNavigate }) {
                   <line x1="8" y1="12" x2="16" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
-            </div>
-
-            {/* Status */}
-            <div className="admin-classify-group">
-              <label className="admin-classify-label">{t('admin.statusLabel')}</label>
-              <div className="admin-status-options">
-                <label className={`admin-status-card ${status === 'draft' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="status"
-                    value="draft"
-                    checked={status === 'draft'}
-                    onChange={() => setStatus('draft')}
-                    className="admin-status-radio"
-                  />
-                  <div className="admin-status-dot draft" />
-                  <div>
-                    <div className="admin-status-name">{t('admin.statusDraft')}</div>
-                    <div className="admin-status-desc">{t('admin.statusDraftDesc')}</div>
-                  </div>
-                </label>
-
-                <label className={`admin-status-card ${status === 'published' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="status"
-                    value="published"
-                    checked={status === 'published'}
-                    onChange={() => setStatus('published')}
-                    className="admin-status-radio"
-                  />
-                  <div className="admin-status-dot published" />
-                  <div>
-                    <div className="admin-status-name">{t('admin.statusPublished')}</div>
-                    <div className="admin-status-desc">{t('admin.statusPublishedDesc')}</div>
-                  </div>
-                </label>
-              </div>
             </div>
 
             <div className="admin-form-footer-actions">

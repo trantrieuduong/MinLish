@@ -26,13 +26,12 @@ export const ADMIN = Object.freeze({
   LESSON_DELETED_SUCCESS: 'LESSON_DELETED_SUCCESS',
   LESSON_PUBLISHED_SUCCESS: 'LESSON_PUBLISHED_SUCCESS',
   LESSON_NOT_FOUND: 'LESSON_NOT_FOUND',
-  LESSON_SLUG_EXISTS: 'LESSON_SLUG_EXISTS',
+  LESSON_TITLE_EXISTS: 'LESSON_TITLE_EXISTS',
   LESSON_TITLE_REQUIRED: 'LESSON_TITLE_REQUIRED',
   LESSON_SOURCE_URL_REQUIRED: 'LESSON_SOURCE_URL_REQUIRED',
   LESSON_SOURCE_URL_INVALID: 'LESSON_SOURCE_URL_INVALID',
   LESSON_SOURCE_URL_DISABLED_PLAYBACK: 'LESSON_SOURCE_URL_DISABLED_PLAYBACK',
   LESSON_STATUS_INVALID: 'LESSON_STATUS_INVALID',
-  LESSON_ALREADY_PUBLISHED: 'LESSON_ALREADY_PUBLISHED',
   LESSON_NO_SEGMENT: 'LESSON_NO_SEGMENT',
 
   SEGMENT_LIST_SUCCESS: 'SEGMENT_LIST_SUCCESS',
@@ -108,16 +107,16 @@ export const ADMIN_MESSAGES = {
   LESSON_DELETED_SUCCESS: 'Lesson deleted/archived successfully',
   LESSON_PUBLISHED_SUCCESS: 'Lesson published successfully',
   LESSON_NOT_FOUND: 'Lesson not found',
-  LESSON_SLUG_EXISTS:
-    'The lesson slug already exists in the system. Please adjust the title.',
+  LESSON_TITLE_EXISTS:
+    'The lesson title already exists in the system. Please adjust the title.',
   LESSON_TITLE_REQUIRED: 'The title field is required.',
   LESSON_SOURCE_URL_REQUIRED: 'The sourceURL field is required.',
   LESSON_SOURCE_URL_INVALID: 'The sourceUrl must be a valid YouTube link.',
   LESSON_STATUS_INVALID:
     'The status field must be draft, published or archived.',
-  LESSON_ALREADY_PUBLISHED: 'Lesson is already published',
   LESSON_NO_SEGMENT: 'Cannot publish a lesson with no segment',
-  LESSON_SOURCE_URL_DISABLED_PLAYBACK: 'Video is unavailable. Video owner has disabled playback on other websites',
+  LESSON_SOURCE_URL_DISABLED_PLAYBACK:
+    'Video is unavailable. Video owner has disabled playback on other websites',
 
   SEGMENT_LIST_SUCCESS: 'Segments retrieved successfully',
   SEGMENT_CREATED_SUCCESS: 'Segment created successfully',

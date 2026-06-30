@@ -9,7 +9,7 @@ import Lesson from '../../models/lesson.model.js';
 import UserLessonProgress from '../../models/userLessonProgress.model.js';
 import UserSegmentProgress from '../../models/userSegmentProgress.model.js';
 import { generateSlug } from '../../utils/generate.js';
-import { getDurationMsViaYtdlp } from '../../utils/videoUrlReadder.util.js';
+import { getDurationMsFromYoutube } from '../../utils/videoUrlReadder.util.js';
 
 export const listLessons = async (filters, userId) => {
   const { tagId, cefrLevelId, mode, q, page, limit } = filters;
@@ -179,15 +179,15 @@ export const createAdminLesson = async (data) => {
   if (!data.slug) slug = generateSlug(data.title);
   const existing = await Lesson.findOne({ slug });
   if (existing) {
-    throw new AppError(ADMIN.LESSON_SLUG_EXISTS, 400, {
+    throw new AppError(ADMIN.LESSON_TITLE_EXISTS, 400, {
       field: 'slug',
-      message: MESSAGES[ADMIN.LESSON_SLUG_EXISTS],
+      message: MESSAGES[ADMIN.LESSON_TITLE_EXISTS],
     });
   }
 
   let durationMs;
   try {
-    durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+    durationMs = await getDurationMsFromYoutube(data.sourceUrl);
   } catch (err) {
     if (err.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
       throw new AppError(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK, 400);
@@ -227,9 +227,9 @@ export const updateAdminLesson = async (lessonId, data) => {
   if (!data.slug) slug = generateSlug(data.title);
   const existing = await Lesson.findOne({ slug, _id: { $ne: lessonId } });
   if (existing) {
-    throw new AppError(ADMIN.LESSON_SLUG_EXISTS, 400, {
+    throw new AppError(ADMIN.LESSON_TITLE_EXISTS, 400, {
       field: 'slug',
-      message: MESSAGES[ADMIN.LESSON_SLUG_EXISTS],
+      message: MESSAGES[ADMIN.LESSON_TITLE_EXISTS],
     });
   }
   lesson.slug = slug;
@@ -238,14 +238,26 @@ export const updateAdminLesson = async (lessonId, data) => {
   if (data.description !== undefined) lesson.description = data.description;
   if (data.tagIds !== undefined) lesson.tagIds = data.tagIds;
   if (data.cefrLevelIds !== undefined) lesson.cefrLevelIds = data.cefrLevelIds;
-  if (data.status !== undefined) lesson.status = data.status;
+  
+  if (data.status !== undefined) {
+    if (data.status === 'published' && lesson.status !== 'published') {
+      const segmentCount = await LessonSegment.countDocuments({ lessonId });
+      if (segmentCount === 0) {
+        throw new AppError(ADMIN.LESSON_NO_SEGMENT, 400);
+      }
+      lesson.status = 'published';
+      lesson.publishedAt = new Date();
+    } else {
+      lesson.status = data.status;
+    }
+  }
 
   if (data.sourceUrl !== undefined) {
     if (lesson.sourceUrl !== data.sourceUrl) {
       lesson.sourceUrl = data.sourceUrl;
       let durationMs;
       try {
-        durationMs = await getDurationMsViaYtdlp(data.sourceUrl);
+        durationMs = await getDurationMsFromYoutube(data.sourceUrl);
       } catch (err) {
         if (err.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
           throw new AppError(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK, 400);
@@ -271,25 +283,6 @@ export const deleteAdminLesson = async (lessonId) => {
   const lesson = await Lesson.findById(lessonId);
   if (!lesson) throw new AppError(LESSON.LESSON_NOT_FOUND, 404);
   lesson.status = 'archived';
-  await lesson.save();
-  return lesson;
-};
-
-export const publishAdminLesson = async (lessonId) => {
-  const lesson = await Lesson.findById(lessonId);
-  if (!lesson) throw new AppError(LESSON.LESSON_NOT_FOUND, 404);
-
-  if (lesson.status === 'published') {
-    throw new AppError(ADMIN.LESSON_ALREADY_PUBLISHED, 400);
-  }
-
-  const segmentCount = await LessonSegment.countDocuments({ lessonId });
-  if (segmentCount === 0) {
-    throw new AppError(ADMIN.LESSON_NO_SEGMENT, 400);
-  }
-
-  lesson.status = 'published';
-  lesson.publishedAt = new Date();
   await lesson.save();
   return lesson;
 };

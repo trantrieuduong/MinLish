@@ -1,92 +1,73 @@
-import { spawn } from 'child_process';
 import { ADMIN } from '../constants/codes/index.js';
 
 /**
- * Gọi yt-dlp (qua `python -m yt_dlp`) để lấy duration (ms) của 1 video YouTube.
+ * Lấy duration (ms) của 1 video YouTube dùng YouTube Data API v3.
  * Trả về Number (ms) hoặc null nếu thất bại.
  */
-export const getDurationMsViaYtdlp = async (
-  sourceUrl,
-  pythonBin = 'python'
-) => {
-  if (/youtube\.com|youtu\.be/.test(sourceUrl)) {
-    try {
-      const oembedRes = await fetch(
-        `https://www.youtube.com/oembed?url=${encodeURIComponent(sourceUrl)}&format=json`
-      );
-      if (
-        oembedRes.status === 401 ||
-        oembedRes.status === 403 ||
-        oembedRes.status === 404
-      ) {
-        // 401: Video chặn nhúng
-        // 403: Video private
-        // 404: Video bị xóa/không tồn tại
-        throw new Error(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK);
-      }
-    } catch (error) {
-      if (error.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
-        throw error;
-      }
-    }
+export const getDurationMsFromYoutube = async (sourceUrl) => {
+  if (!/youtube\.com|youtu\.be/.test(sourceUrl)) {
+    return null;
   }
 
-  const ytDlpDuration = await new Promise((resolve, reject) => {
-    const child = spawn(
-      pythonBin,
-      [
-        '-m',
-        'yt_dlp',
-        '--skip-download',
-        '--no-warnings',
-        '--remote-components',
-        'ejs:github',
-        '--print',
-        '%(duration)s',
-        sourceUrl,
-      ],
-      { timeout: 60_000 }
-    );
+  // Parse video ID from url
+  let videoId = null;
+  try {
+    const urlObj = new URL(sourceUrl);
+    if (urlObj.hostname.includes('youtube.com')) {
+      videoId = urlObj.searchParams.get('v');
+    } else if (urlObj.hostname.includes('youtu.be')) {
+      videoId = urlObj.pathname.substring(1);
+    }
+  } catch (err) {
+    //console.error(`[YouTube API error] Invalid URL: ${sourceUrl}`);
+    return null;
+  }
+  if (!videoId) {
+    return null;
+  }
 
-    let stdoutData = '';
-    let stderrData = '';
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) {
+    throw new Error(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK);
+  }
 
-    child.stdout.on('data', (data) => {
-      stdoutData += data.toString();
-    });
+  try {
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=contentDetails,status&key=${apiKey}`);
+    const data = await res.json();
+    if (data.error) {
+      //console.error(`[YouTube API error] ${data.error.message}`);
+      return null;
+    }
+    if (!data.items || data.items.length === 0) {
+      throw new Error(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK);
+    }
 
-    child.stderr.on('data', (data) => {
-      stderrData += data.toString();
-    });
+    const item = data.items[0];
+    
+    // Check if embeddable
+    if (!item.status.embeddable) {
+      throw new Error(ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK);
+    }
 
-    child.on('close', (code) => {
-      if (code !== 0) {
-        console.error(
-          `[yt-dlp error] ${sourceUrl} -> code ${code}: ${stderrData.trim()}`
-        );
-        return resolve(null);
-      }
-      const raw = stdoutData.trim();
-      if (!raw || raw === 'NA') {
-        console.error(
-          `[yt-dlp error] ${sourceUrl} -> no duration returned (NA)`
-        );
-        return resolve(null);
-      }
-      const seconds = Number(raw);
-      if (Number.isNaN(seconds)) {
-        console.error(
-          `[yt-dlp error] ${sourceUrl} -> invalid duration: ${raw}`
-        );
-        return resolve(null);
-      }
-      resolve(Math.round(seconds * 1000));
-    });
+    const durationIso = item.contentDetails.duration;
+    if (!durationIso) {
+      return null;
+    }
+    return parseIsoDurationToMs(durationIso);
+  } catch (error) {
+    if (error.message === ADMIN.LESSON_SOURCE_URL_DISABLED_PLAYBACK) {
+      throw error;
+    }
+    //console.error(`[YouTube API error] Fetch failed: ${error.message}`);
+    return null;
+  }
+};
 
-    child.on('error', (err) => {
-      console.error(`[yt-dlp spawn error] ${sourceUrl} -> ${err.message}`);
-      resolve(null);
-    });
-  });
-  return ytDlpDuration;
+const parseIsoDurationToMs = (duration) => {
+  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+  if (!match) return null;
+  const hours = (parseInt(match[1]) || 0);
+  const minutes = (parseInt(match[2]) || 0);
+  const seconds = (parseInt(match[3]) || 0);
+  return (hours * 3600 + minutes * 60 + seconds) * 1000;
 };

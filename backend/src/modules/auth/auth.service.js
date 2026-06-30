@@ -151,9 +151,6 @@ export const forgotPassword = async (email) => {
   if (!user) {
     throw new AppError(AUTH.ACCOUNT_NOT_FOUND, 404);
   }
-  if (!user.isVerified) {
-    throw new AppError(AUTH.ACCOUNT_NOT_VERIFIED_RESET, 403);
-  }
   if (!user.isActive) {
     throw new AppError(AUTH.ACCOUNT_BANNED, 403);
   }
@@ -192,6 +189,9 @@ export const resetPassword = async (email, otp, newPassword) => {
   }
 
   await redisClient.del(redisKey);
+  if (redisClient.isOpen) {
+    await redisClient.del(`user:auth:${user._id}`);
+  }
 };
 
 export const refreshTokens = async (refreshToken) => {
@@ -222,6 +222,15 @@ export const refreshTokens = async (refreshToken) => {
       [],
       user.banReason ? `Account has been locked: ${user.banReason}` : undefined
     );
+  }
+
+  if (
+    user.passwordChangedAt &&
+    decoded.iat < Math.floor(user.passwordChangedAt.getTime() / 1000)
+    //decoded.iat: iat là viết tắt của Issued At trong JWT -> thời điểm JWT token được tạo
+    // -> tạo trước khi đổi mật khẩu
+  ) {
+    throw new AppError(AUTH.INVALID_TOKEN, 401);
   }
 
   const accessToken = generateToken(

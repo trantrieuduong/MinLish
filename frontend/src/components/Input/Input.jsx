@@ -1,12 +1,19 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './Input.css'
 
-function Input({ label, type = 'text', placeholder, value, onChange, id, rightElement, error, ...props }) {
+function Input({ label, type = 'text', placeholder, value, onChange, id, rightElement, error, autoFocus, ...props }) {
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [autoFocus])
 
   return (
     <div className="input-group">
@@ -20,6 +27,7 @@ function Input({ label, type = 'text', placeholder, value, onChange, id, rightEl
       </div>
       <div className="input-wrapper-relative">
         <input
+          ref={inputRef}
           id={id}
           type={inputType}
           placeholder={placeholder}

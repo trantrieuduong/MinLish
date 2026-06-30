@@ -12,13 +12,14 @@ import {
 } from '../profileApi'
 import { getLessons } from '../../lessons/lessonsApi'
 import { getPresignedUrl } from '../../../utils/s3Upload'
+import { validateImageMagicBytes } from '../../../utils/imageValidation'
 import ChangePasswordModal from '../components/ChangePasswordModal/ChangePasswordModal'
 import HistoryModal from '../components/HistoryModal/HistoryModal'
 import './ProfilePage.css'
 
 function ProfilePage({ onNavigate }) {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const fileInputRef = useRef(null)
 
   // State
@@ -56,6 +57,15 @@ function ProfilePage({ onNavigate }) {
   useEffect(() => {
     loadProfileData()
   }, [])
+
+  useEffect(() => {
+    if (successMsg) {
+      const timer = setTimeout(() => {
+        setSuccessMsg('')
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMsg])
 
   const loadProfileData = async () => {
     setLoading(true)
@@ -120,6 +130,10 @@ function ProfilePage({ onNavigate }) {
       setNameError(t('profile.nameRequired'))
       return false
     }
+    if (name.trim().length > 50) {
+      setNameError(t('profile.nameTooLong'))
+      return false
+    }
     if (!/^[a-zA-Z0-9\sÀ-ỹ]+$/.test(name)) {
       setNameError(t('profile.nameInvalid'))
       return false
@@ -136,10 +150,7 @@ function ProfilePage({ onNavigate }) {
       const res = await updateProfileApi({ name: name.trim() })
       if (res.success) {
         setSuccessMsg(t('profile.savedSuccess'))
-        // Update user in localStorage
-        const savedUser = JSON.parse(localStorage.getItem('user') || '{}')
-        savedUser.name = name.trim()
-        localStorage.setItem('user', JSON.stringify(savedUser))
+        updateUser({ name: name.trim() })
       } else {
         setErrorMsg(res.message || t('common.error'))
       }
@@ -159,6 +170,13 @@ function ProfilePage({ onNavigate }) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
       setErrorMsg(t('admin.invalidImageFormat') || 'Invalid file format')
+      return
+    }
+
+    // Validate file content (magic bytes)
+    const isValidImage = await validateImageMagicBytes(file)
+    if (!isValidImage) {
+      setErrorMsg(t('admin.invalidImageFile') || 'Invalid image file')
       return
     }
 
@@ -201,10 +219,7 @@ function ProfilePage({ onNavigate }) {
       if (updateRes.success) {
         setAvatarUrl(url)
         setSuccessMsg(t('profile.avatarUploadSuccess'))
-        // Update localStorage
-        const savedUser = JSON.parse(localStorage.getItem('user') || '{}')
-        savedUser.avatarUrl = url
-        localStorage.setItem('user', JSON.stringify(savedUser))
+        updateUser({ avatarUrl: url })
       } else {
         setErrorMsg(updateRes.message || t('profile.avatarUploadFailed'))
       }
@@ -286,7 +301,6 @@ function ProfilePage({ onNavigate }) {
             </div>
             <h2 className="profile-user-name">{user?.name || 'User'}</h2>
             <p className="profile-user-email">{user?.email || ''}</p>
-            <p className="profile-user-joined">{t('profile.memberSince', { date: formatDate(user?.createdAt) })}</p>
             <button className="profile-change-password-btn" onClick={() => setShowChangePassword(true)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />

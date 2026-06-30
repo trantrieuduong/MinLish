@@ -190,7 +190,7 @@ export const createAdminDeck = async (payload) => {
   if (!payload.slug) slug = generateSlug(payload.title);
   const existing = await Deck.findOne({ slug });
   if (existing) {
-    throw new AppError(DECK.DECK_SLUG_EXISTS, 400);
+    throw new AppError(DECK.DECK_TITLE_EXISTS, 400);
   }
 
   const newDeck = new Deck({
@@ -227,7 +227,7 @@ export const updateAdminDeck = async (deckId, payload) => {
 
   const existing = await Deck.findOne({ slug, _id: { $ne: deckId } });
   if (existing) {
-    throw new AppError(DECK.DECK_SLUG_EXISTS, 400);
+    throw new AppError(DECK.DECK_TITLE_EXISTS, 400);
   }
 
   const oldStatus = deck.status;
@@ -342,6 +342,12 @@ export const deleteAdminDeckTopic = async (deckId, topicId) => {
     UserCardState.deleteMany({ cardId: { $in: cardIds } }),
   ]);
   await topic.deleteOne();
+
+  await Topic.updateMany(
+    { deckId, order: { $gt: topic.order } },
+    { $inc: { order: -1 } }
+  );
+
   await Deck.updateOne(
     { _id: deckId },
     { $inc: { topicCount: -1, cardCount: -cardIds.length } }
@@ -436,6 +442,78 @@ export const generateQuizOptions = async (
     [options[i], options[j]] = [options[j], options[i]];
   }
   return options;
+};
+
+export const generateQuizOptionsBatch = async (cardRequests) => {
+  if (!cardRequests || cardRequests.length === 0) return {};
+
+  const topicIds = [...new Set(cardRequests.map((c) => c.topicId.toString()))];
+
+  // 1. Lấy một pool từ vựng chung cho các topic này (1 query duy nhất)
+  const poolCards = await Card.aggregate([
+    {
+      $match: {
+        topicId: { $in: topicIds.map((id) => new mongoose.Types.ObjectId(id)) },
+      },
+    },
+    { $sample: { size: 100 } }, // Số lượng lớn để làm pool
+    { $project: { term: 1 } },
+  ]);
+
+  // Nếu không đủ từ trong các topic, lấy thêm từ ngẫu nhiên
+  let extraPool = [];
+  if (poolCards.length < 50) {
+    extraPool = await Card.aggregate([
+      { $sample: { size: 100 } },
+      { $project: { term: 1 } },
+    ]);
+  }
+
+  // Gộp tất cả các từ lại và loại bỏ trùng lặp
+  const allTerms = [
+    ...new Set([
+      ...poolCards.map((c) => c.term),
+      ...extraPool.map((c) => c.term),
+    ]),
+  ];
+
+  const results = {};
+
+  // 2. Tạo quiz options cho từng card trong memory (Không query DB)
+  for (const req of cardRequests) {
+    const { term, cardId } = req;
+    let availableTerms = allTerms.filter((t) => t !== term); // Lọc bỏ từ hiện tại
+
+    for (let i = availableTerms.length - 1; i > 0; i--) {
+      // Shuffle pool từ vựng còn lại
+      const j = Math.floor(Math.random() * (i + 1));
+      [availableTerms[i], availableTerms[j]] = [
+        availableTerms[j],
+        availableTerms[i],
+      ];
+    }
+
+    const selectedTerms = availableTerms.slice(0, 3); // Chọn 3 đáp án sai
+
+    const options = selectedTerms.map((t) => ({
+      word: t,
+      isCorrect: false,
+    }));
+
+    options.push({
+      // Thêm đáp án đúng
+      word: term,
+      isCorrect: true,
+    });
+
+    for (let i = options.length - 1; i > 0; i--) {
+      // Shuffle thứ tự đáp án
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+    results[cardId] = options;
+  }
+  return results;
 };
 
 export const listAdminDeckCards = async (deckId, filters) => {
@@ -556,6 +634,37 @@ export const updateAdminDeckCard = async (deckId, cardId, data) => {
   if (data.explanation !== undefined) set.explanation = data.explanation;
   if (data.examples !== undefined) set.examples = data.examples;
   if (data.imageUrl !== undefined) set.imageUrl = data.imageUrl;
+
+  const isTopicChanged = set.topicId && set.topicId.toString() !== card.topicId.toString();
+
+  if (isTopicChanged) {
+    await Card.updateMany(
+      { deckId, topicId: card.topicId, order: { $gt: card.order } },
+      { $inc: { order: -1 } }
+    );
+    
+    const newOrder = data.order !== undefined ? data.order : await Card.countDocuments({ deckId, topicId: set.topicId }) + 1;
+    await Card.updateMany(
+      { deckId, topicId: set.topicId, order: { $gte: newOrder } },
+      { $inc: { order: 1 } }
+    );
+    set.order = newOrder;
+  } else if (data.order !== undefined && data.order !== card.order) {
+    const newOrder = data.order;
+    const oldOrder = card.order;
+    if (newOrder > oldOrder) {
+      await Card.updateMany(
+        { deckId, topicId: card.topicId, order: { $gt: oldOrder, $lte: newOrder } },
+        { $inc: { order: -1 } }
+      );
+    } else if (newOrder < oldOrder) {
+      await Card.updateMany(
+        { deckId, topicId: card.topicId, order: { $gte: newOrder, $lt: oldOrder } },
+        { $inc: { order: 1 } }
+      );
+    }
+    set.order = newOrder;
+  }
 
   const updated = await Card.findOneAndUpdate(
     { _id: cardId, deckId },

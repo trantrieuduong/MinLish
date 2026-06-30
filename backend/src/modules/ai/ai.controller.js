@@ -5,15 +5,9 @@ import { COMMON, AI } from '../../constants/codes/index.js';
 
 export const responseQuestion = async (req, res, next) => {
   try {
-    const { question, mode = 'minlish' } = req.body; // default mode là minlish nếu không truyền mode
-
-    if (!question)
-      return res
-        .status(400)
-        .json({ success: false, message: 'Bắt buộc nhập câu hỏi' });
-
-    const data = await aiService.responseQuestionService(question, mode);
-    res.status(200).json({ success: true, data });
+    const { question, mode = 'minlish', language = 'vi' } = req.body; // default mode là minlish nếu không truyền mode
+    const data = await aiService.responseQuestionService(question, mode, language);
+    return res.status(200).json(successResponse(AI.AI_RESPONSE_SUCCESS, data));
   } catch (err) {
     next(err);
   }

@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import Card from '../../models/card.model.js';
 import Lesson from '../../models/lesson.model.js';
 import AppError from '../../utils/AppError.js';
+import { AI } from '../../constants/codes/index.js';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
@@ -29,31 +30,34 @@ const generateWithRetry = async (prompt, retries = 3) => {
   throw new AppError(lastError.message, 500);
 };
 
-export const responseQuestionService = async (question, mode) => {
+export const responseQuestionService = async (question, mode, language = 'vi') => {
+  if (!question)
+    throw new AppError(AI.QUESTION_REQUIRED, 400);
+  if(language !== 'en' && language !== 'vi')
+    throw new AppError(AI.INVALID_LANGUAGE, 400);
   if (mode === 'network') {
-    return await responseQuestionNetworkService(question);
+    const data = await responseQuestionNetworkService(question, language);
+    if(data.isValidQuestion)
+      return data;
+    else
+      throw new AppError(AI.INVALID_QUESTION, 400);
   } else {
     const keywordData = await extractKeywordsService(question);
     const keywords = keywordData.keywords || [];
 
-    if (keywords.length === 0) {
-      return {
-        isValidQuestion: false,
-        answer:
-          'Không tìm thấy từ khóa hợp lệ trong câu hỏi để tra cứu hệ thống.',
-      };
-    }
+    if (keywords.length === 0)
+      throw new AppError(AI.INVALID_KEYWORD_IN_QUESTION, 400);
 
     const foundItems = await queryMinLishDataForAI(keywords);
-    if (foundItems.length !== 0) {
-      return await responseQuestionMinLishService(question, foundItems);
-    } else {
-      return {
-        isValidQuestion: true,
-        answer:
-          'Hệ thống MinLish hiện tại chưa có dữ liệu nào khớp với câu hỏi của bạn. Hãy thử chuyển sang chế độ tìm kiếm trên mạng!',
-      };
+    if (foundItems.length !== 0){
+      const data = await responseQuestionMinLishService(question, foundItems, language);
+      if(data.isValidQuestion)
+        return data;
+      else
+        throw new AppError(AI.INVALID_QUESTION, 400);
     }
+    else
+      throw new AppError(AI.NO_DATA_MATCH, 400);
   }
 };
 
@@ -152,47 +156,74 @@ export const queryMinLishDataForAI = async (keywords) => {
   return contextData;
 };
 
-export const responseQuestionNetworkService = async (question) => {
+export const responseQuestionNetworkService = async (question, language = 'vi') => {
   // AI trả lời tự do
   try {
-    const prompt = `Trả lời câu hỏi "${question}" bằng tiếng Việt.
-  Vui lòng trả về kết quả dưới định dạng JSON bao gồm các trường:
-  - isValidQuestion: true hoặc false
-  - answer: câu trả lời
-  (Nếu câu hỏi ngoài phạm vi học tiếng Anh thì trả về isValidQuestion là false và answer là "Câu hỏi không hợp lệ")`;
+    const prompt = `
+    Bạn là hệ thống kiểm tra câu hỏi cho ứng dụng học tiếng Anh.
+    Kiểm tra câu hỏi: "${question}"
+    Quy tắc:
+    - isValidQuestion = true nếu câu hỏi liên quan đến học tiếng Anh:
+      + từ vựng
+      + ngữ pháp
+      + phát âm
+      + dịch thuật
+      + giải thích tiếng Anh
+    - isValidQuestion = false nếu câu hỏi không liên quan đến học tiếng Anh.
+      Ví dụ:
+      "What should we eat tonight?"
+      "What movie should I watch?"
+      "How is the weather today?"
+    Nếu isValidQuestion = true:
+    trả lời câu hỏi bằng tiếng ${language === 'en' ? 'Anh' : 'Việt'}
+    Chỉ trả về JSON:
+    {
+      "isValidQuestion": boolean,
+      "answer": string
+    }
+    `;
     const result = await generateWithRetry(prompt);
     return JSON.parse(result.response.text());
   } catch (error) {
-    if (error.message.includes('503')) {
-      return {
-        isValidQuestion: false,
-        answer: 'AI đang bận, vui lòng thử lại sau',
-      };
-    }
+    if (error.message.includes('503')) throw new AppError(AI.BUSY_TRY_AGAIN, 503);
     throw new AppError(error.message, 500);
   }
 };
 
-export const responseQuestionMinLishService = async (question, contextData) => {
+export const responseQuestionMinLishService = async (question, contextData, language = 'vi') => {
   try {
-    const prompt = `Dựa vào dữ liệu từ hệ thống MinLish sau đây:
-  ---
-  ${contextData}
-  ---
-  Hãy trả lời câu hỏi "${question}" bằng tiếng Việt.
-  Vui lòng trả về kết quả dưới định dạng JSON bao gồm các trường:
-  - isValidQuestion: true hoặc false
-  - answer: câu trả lời
-  (Nếu câu hỏi ngoài phạm vi học tiếng Anh hoặc dữ liệu không liên quan thì trả về isValidQuestion là false và answer là "Câu hỏi không hợp lệ")`;
+    const prompt = `
+    Dựa vào dữ liệu từ hệ thống MinLish sau đây:
+    ---
+    ${contextData}
+    ---
+
+    Bạn là trợ lý cho ứng dụng học tiếng Anh MinLish.
+    Trước tiên hãy kiểm tra câu hỏi "${question}".
+    Quy tắc:
+    - isValidQuestion = true nếu câu hỏi liên quan đến:
+      + học từ vựng tiếng Anh
+      + ngữ pháp tiếng Anh
+      + phát âm
+      + dịch thuật
+      + giải thích nghĩa/cách dùng tiếng Anh
+      + nội dung học tập từ dữ liệu MinLish
+    - isValidQuestion = false nếu:
+      + câu hỏi không liên quan đến học tiếng Anh
+      + dữ liệu MinLish không liên quan đến câu hỏi
+    Nếu isValidQuestion = true:
+    - Trả lời câu hỏi bằng tiếng ${language === 'en' ? 'Anh' : 'Việt'}
+    - Chỉ sử dụng dữ liệu MinLish nếu có liên quan
+    Chỉ trả về JSON hợp lệ:
+    {
+      "isValidQuestion": true hoặc false,
+      "answer": "câu trả lời"
+    }
+    `;
     const result = await generateWithRetry(prompt);
     return JSON.parse(result.response.text());
   } catch (error) {
-    if (error.message.includes('503')) {
-      return {
-        isValidQuestion: false,
-        answer: 'AI đang bận, vui lòng thử lại sau',
-      };
-    }
+    if (error.message.includes('503')) throw new AppError(AI.BUSY_TRY_AGAIN, 503);
     throw new AppError(error.message, 500);
   }
 };
@@ -213,12 +244,7 @@ export const generateCardDetailsFromAI = async (inputStr) => {
     const result = await generateWithRetry(prompt);
     return JSON.parse(result.response.text());
   } catch (error) {
-    if (error.message.includes('503')) {
-      return {
-        isValidQuestion: false,
-        answer: 'AI đang bận, vui lòng thử lại sau',
-      };
-    }
+    if (error.message.includes('503')) throw new AppError(AI.BUSY_TRY_AGAIN, 503);
     throw new AppError(error.message, 500);
   }
 };

@@ -47,7 +47,6 @@ router.post('/lessons', adminController.createLesson);
 router.get('/lessons/:lessonId', adminController.getLessonById);
 router.put('/lessons/:lessonId', adminController.updateLesson);
 router.delete('/lessons/:lessonId', adminController.deleteLesson);
-router.post('/lessons/:lessonId/publish', adminController.publishLesson);
 
 router.get('/lessons/:lessonId/segments', adminController.listLessonSegments);
 router.post('/lessons/:lessonId/segments', adminController.createLessonSegment);
@@ -67,7 +66,7 @@ router.delete(
 router.get('/users', adminController.listUsers);
 router.get('/users/:userId', adminController.getUserById);
 router.patch('/users/:userId', adminController.changeUserPassword);
-router.delete('/users/:userId', adminController.changeUserStatus);
+router.patch('/users/:userId/status', adminController.changeUserStatus);
 
 router.get(
   '/decks/:deckId/topics/:topicId/export',

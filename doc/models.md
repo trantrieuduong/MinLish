@@ -1,24 +1,25 @@
 users
 
-| Field          | Ý nghĩa                                |
-| :------------- | :------------------------------------- |
-| `_id`          | ID duy nhất của user trong MongoDB.    |
-| `email`        | Email đăng nhập, nên unique.           |
-| `passwordHash` | Mật khẩu đã băm, không lưu plain text. |
-| `name`         | Tên hiển thị của user.                 |
-| `avatarUrl`    | Ảnh đại diện.                          |
-| `role`         | Vai trò như `user`, `admin`            |
-| `createdAt`    | Ngày tạo tài khoản.                    |
-| `updatedAt`    | Ngày cập nhật gần nhất.                |
-| `isVerified`   | Check verify email                     |
-| `isActive`     | Ban/unban                              |
-| `banReason`    | Lý do khóa tài khoản                   |
+| Field              | Ý nghĩa                                |
+| :-------------     | :------------------------------------- |
+| `_id`              | ID duy nhất của user trong MongoDB.    |
+| `email`            | Email đăng nhập, nên unique.           |
+| `passwordHash`     | Mật khẩu đã băm, không lưu plain text. |
+| `name`             | Tên hiển thị của user.                 |
+| `avatarUrl`        | Ảnh đại diện.                          |
+| `role`             | Vai trò như `user`, `admin`            |
+| `createdAt`        | Ngày tạo tài khoản.                    |
+| `updatedAt`        | Ngày cập nhật gần nhất.                |
+| `isVerified`       | Check verify email                     |
+| `isActive`         | Ban/unban                              |
+| `banReason`        | Lý do khóa tài khoản                   |
+| `passwordChangedAt`| Thời điểm đổi mật khẩu gần nhất        |
 
-cerf_levels
+cefr_levels
 
 | Field   | Ý nghĩa                         |
 | :------ | :------------------------------ |
-| `_id`   | ID tag.                         |
+| `_id`   | ID level.                       |
 | `code`  | Mã ngắn, ví dụ `a1,a2` …        |
 | `label` | Tên hiển thị, ví dụ `A1`, `A2`. |
 
@@ -43,6 +44,7 @@ lessons
 | `modes`        | Những mode hỗ trợ, ví dụ `dictation`, `shadowing`. |
 | `status`       | Trạng thái như `draft`, `published`, `archived`.   |
 | `publishedAt`  | Ngày công khai bài học.                            |
+| `durationMs`   | Tổng thời lượng video (ms), mặc định 0.            |
 | `createdAt`    | Ngày tạo.                                          |
 | `updatedAt`    | Ngày cập nhật.                                     |
 | `sourceUrl`    | URL gốc để phát media.                             |
