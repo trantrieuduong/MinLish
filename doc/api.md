@@ -220,7 +220,7 @@ XP idempotent: gọi finalize nhiều lần không bị cộng trùng (`refId=ma
 
 ## **Decks management**
 
-- GET /api/v1/admin/decks — danh sách tất cả deck; hỗ trợ filter tagId, cefrLevelId, q, page, limit.
+- GET /api/v1/admin/decks — danh sách tất cả deck; hỗ trợ filter tagId, cefrLevelId, q, page, limit, status.
 - POST /api/v1/admin/decks — tạo deck mới.
 - GET /api/v1/admin/decks/{deckId} — chi tiết deck.
 - PUT /api/v1/admin/decks/{deckId} — cập nhật deck.
@@ -244,7 +244,7 @@ XP idempotent: gọi finalize nhiều lần không bị cộng trùng (`refId=ma
 - DELETE /api/v1/admin/decks/{deckId}/cards/{cardId} — xóa card.
 - PATCH /api/v1/admin/topics/{topicId}/cards/reorder — sắp xếp lại card theo order trong topic.
 - POST /api/v1/admin/decks/{deckId}/topics/{topicId}/import - Import cards vào một topic từ file Excel trên S3.
-- POST /api/v1/admin/decks/{deckId}/topics/{topicId}/export - Export cards từ một topic ra file Excel.
+- GET /api/v1/admin/decks/{deckId}/topics/{topicId}/export - Export cards từ một topic ra file Excel.
 
 ## **Admin API**
 - POST /api/v1/ai/cards/auto-fill - Dựa vào từ vựng hoặc nghĩa tiếng Việt để tự động sinh ra các trường dữ liệu còn thiếu cho thẻ từ vựng (phát âm, từ loại, giải thích, ví dụ...).

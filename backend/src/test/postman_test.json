@@ -2089,7 +2089,7 @@
           ]
         },
         {
-          "name": "post admin/cards/auto-fill",
+          "name": "post ai/cards/auto-fill",
           "request": {
             "auth": {
               "type": "bearer",
@@ -10015,7 +10015,7 @@
                     }
                   ]
                 },
-                "method": "POST",
+                "method": "GET",
                 "header": [],
                 "url": {
                   "raw": "{{API_V1}}/admin/decks/:deckId/topics/:topicId/export",
