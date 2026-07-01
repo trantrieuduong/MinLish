@@ -434,7 +434,7 @@ export default {
       status: {
         type: 'string',
         enum: ['draft', 'published', 'archived'],
-        example: 'published',
+        example: 'draft',
         description: 'Trạng thái bộ thẻ.',
       },
     },

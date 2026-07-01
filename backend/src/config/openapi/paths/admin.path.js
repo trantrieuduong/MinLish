@@ -121,7 +121,8 @@ const LessonTitleConflict = {
       example: {
         success: false,
         code: 'LESSON_TITLE_EXISTS',
-        message: 'The lesson title already exists in the system. Please adjust the title.',
+        message:
+          'The lesson title already exists in the system. Please adjust the title.',
       },
     },
   },
@@ -158,11 +159,13 @@ const LessonBadRequest = {
           },
         },
         DisabledPlaybackSourceUrlFields: {
-          summary: 'Video is unavailable. Video owner has disabled playback on other websites',
+          summary:
+            'Video is unavailable. Video owner has disabled playback on other websites',
           value: {
             success: false,
             code: 'LESSON_SOURCE_URL_DISABLED_PLAYBACK',
-            message: 'Video is unavailable. Video owner has disabled playback on other websites',
+            message:
+              'Video is unavailable. Video owner has disabled playback on other websites',
           },
         },
         InvalidStatus: {
@@ -185,7 +188,7 @@ const LessonOrSegmentNotFound = {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
       examples: {
         LessonNotFound: {
-          summary: 'Lỗi sai lesson ID',
+          summary: 'Lesson not found',
           value: {
             success: false,
             code: 'LESSON_NOT_FOUND',
@@ -193,7 +196,7 @@ const LessonOrSegmentNotFound = {
           },
         },
         SegmentNotFound: {
-          summary: 'Lỗi sai segment ID',
+          summary: 'Segment not found',
           value: {
             success: false,
             code: 'SEGMENT_NOT_FOUND',
@@ -227,54 +230,75 @@ const SegmentBadRequest = {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
       examples: {
-        MissingFields: {
-          summary: 'Data missing or invalid data',
+        SegmentTimeOverlaps: {
+          summary:
+            'The time allocated for this segment overlaps with that of other segments.',
           value: {
             success: false,
-            code: 'INVALID_DATA',
-            message: 'Invalid request data',
-            errors: [
-              {
-                field: 'startMs',
-                message:
-                  'The startMs field is mandatory, must be a number and >= 0',
-              },
-              {
-                field: 'endMs',
-                message: 'The endMs field is mandatory and must be a number.',
-              },
-              {
-                field: 'endMs',
-                message: 'The endMs field must be > 0.',
-              },
-              {
-                field: 'endMs',
-                message:
-                  'The endMs field must be larger than the startMs field.',
-              },
-              {
-                field: 'transcript.original',
-                message: 'The original field is required.',
-              },
-              {
-                field: 'transcript.normalized',
-                message: 'The normalized field is required.',
-              },
-              {
-                field: 'translation',
-                message: 'The translation field is required.',
-              },
-              {
-                field: 'endMs',
-                message:
-                  'The endMs field must not exceed the audio length of the lesson.',
-              },
-              {
-                field: 'startMs/endMs',
-                message:
-                  'The time allocated for this segment overlaps with that of other segments.',
-              },
-            ],
+            code: 'SEGMENT_TIME_OVERLAPS',
+            message:
+              'The time allocated for this segment overlaps with that of other segments.',
+          },
+        },
+        SegmentEndMsInvalid: {
+          summary: 'The endMs field is mandatory, must be a number and >= 1s.',
+          value: {
+            success: false,
+            code: 'SEGMENT_END_MS_INVALID',
+            message:
+              'The endMs field is mandatory, must be a number and >= 1s.',
+          },
+        },
+        SegmentStartMsInvalid: {
+          summary:
+            'The startMs field is mandatory, must be a number and >= 0s.',
+          value: {
+            success: false,
+            code: 'SEGMENT_START_MS_INVALID',
+            message:
+              'The startMs field is mandatory, must be a number and >= 0s.',
+          },
+        },
+        SegmentEndMsLessThanStartMs: {
+          summary: 'The endMs field must be larger than the startMs field.',
+          value: {
+            success: false,
+            code: 'SEGMENT_END_MS_LESS_THAN_START_MS',
+            message: 'The endMs field must be larger than the startMs field.',
+          },
+        },
+        SegmentEndMsExceedsDuration: {
+          summary:
+            'The endMs field must not exceed the audio length of the lesson.',
+          value: {
+            success: false,
+            code: 'SEGMENT_END_MS_EXCEEDS_DURATION',
+            message:
+              'The endMs field must not exceed the audio length of the lesson.',
+          },
+        },
+        SegmentTranscriptOriginalRequired: {
+          summary: 'The original field is required.',
+          value: {
+            success: false,
+            code: 'SEGMENT_TRANSCRIPT_ORIGINAL_REQUIRED',
+            message: 'The original field is required.',
+          },
+        },
+        SegmentTranscriptNormalizedRequired: {
+          summary: 'The normalized field is required.',
+          value: {
+            success: false,
+            code: 'SEGMENT_TRANSCRIPT_NORMALIZED_REQUIRED',
+            message: 'The normalized field is required.',
+          },
+        },
+        SegmentTranslationRequired: {
+          summary: 'The translation field is required.',
+          value: {
+            success: false,
+            code: 'SEGMENT_TRANSLATION_REQUIRED',
+            message: 'The translation field is required.',
           },
         },
       },
@@ -325,15 +349,11 @@ const DeckBadRequest = {
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        MissingFields: {
-          summary: 'Thiếu dữ liệu trường bắt buộc',
-          value: {
-            success: false,
-            code: 'INVALID_DATA',
-            message: 'Invalid request data',
-            errors: [{ field: 'title', message: 'Trường title là bắt buộc' }],
-          },
+      example: {
+        value: {
+          success: false,
+          code: 'DECK_TITLE_REQUIRED',
+          message: 'The title field is required',
         },
       },
     },
@@ -358,22 +378,11 @@ const DeckSlugConflict = {
   description: 'The deck title already exists',
   content: {
     'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        DuplicateSlug: {
-          summary: 'Trùng slug',
-          value: {
-            success: false,
-            code: 'ALREADY_EXISTS',
-            message: 'Resource already exists',
-            errors: [
-              {
-                field: 'slug',
-                message:
-                  'Slug của deck đã tồn tại trong hệ thống. Vui lòng thay đổi slug hoặc title',
-              },
-            ],
-          },
+      example: {
+        value: {
+          success: false,
+          code: 'DECK_TITLE_EXISTS',
+          message: 'Deck title already exists. Please change the title',
         },
       },
     },
@@ -1364,7 +1373,7 @@ export default {
       },
       responses: {
         201: {
-          description: 'Tạo segment thành công',
+          description: 'Segment created successfully',
           content: {
             'application/json': {
               schema: {
@@ -1375,7 +1384,7 @@ export default {
                     properties: {
                       message: {
                         type: 'string',
-                        example: 'Tạo segment thành công',
+                        example: 'Segment created successfully',
                       },
                     },
                   },
@@ -1416,7 +1425,7 @@ export default {
       ],
       responses: {
         200: {
-          description: 'Lấy thông tin segment thành công',
+          description: 'Segment detail retrieved successfully',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/SegmentResponse' },
@@ -1547,7 +1556,7 @@ export default {
       tags: ['Admin decks'],
       summary: 'Lấy danh sách decks',
       description:
-        'Lấy danh sách tất cả bộ thẻ (decks) dành cho Admin. Hỗ trợ phân trang và tìm kiếm.',
+        'Lấy danh sách tất cả bộ thẻ hệ thống (system decks - có "ownerId": null) dành cho Admin. Hỗ trợ phân trang và tìm kiếm.',
       security: [{ BearerAuth: [] }],
       parameters: [
         {
@@ -1570,6 +1579,12 @@ export default {
         },
         {
           in: 'query',
+          name: 'status',
+          schema: { type: 'string', enum: ['draft', 'published', 'archived'] },
+          description: 'Lọc theo trạng thái',
+        },
+        {
+          in: 'query',
           name: 'page',
           schema: { type: 'integer', default: 1 },
           description: 'Trang hiện tại',
@@ -1583,7 +1598,7 @@ export default {
       ],
       responses: {
         200: {
-          description: 'Lấy danh sách decks thành công',
+          description: 'Decks retrieved successfully',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/DeckListResponse' },
@@ -1610,7 +1625,7 @@ export default {
       },
       responses: {
         201: {
-          description: 'Tạo deck thành công',
+          description: 'Deck created successfully',
           content: {
             'application/json': {
               schema: {
@@ -1621,7 +1636,7 @@ export default {
                     properties: {
                       message: {
                         type: 'string',
-                        example: 'Tạo deck thành công',
+                        example: 'Deck created successfully',
                       },
                     },
                   },
