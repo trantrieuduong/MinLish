@@ -1,13 +1,14 @@
-import { USER, MESSAGES } from "../../../constants/codes/index.js";
+import { USER, MESSAGES } from '../../../constants/codes/index.js';
 
 const LessonNotFound = {
-  description: 'Không tìm thấy lesson',
+  description: 'Lesson not found',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
       example: {
         success: false,
-        message: 'Không tìm thấy lesson',
+        code: 'LESSON_NOT_FOUND',
+        message: 'Lesson not found',
       },
     },
   },
@@ -26,53 +27,78 @@ const SegmentNotFound = {
   },
 };
 
-const LessonOrSegmentNotFound = {
-  description: 'Không tìm thấy tài nguyên (Lesson hoặc Segment)',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        LessonError: {
-          summary: 'Lỗi không tìm thấy Lesson',
-          value: LessonNotFound.content['application/json'].example,
-        },
-        SegmentError: {
-          summary: 'Lỗi không tìm thấy Segment',
-          value: SegmentNotFound.content['application/json'].example,
-        },
-      },
-    },
-  },
-};
-
 const ProgressBadRequest = {
-  description: 'Dữ liệu đầu vào không hợp lệ',
+  description: 'Invalid request data',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
       examples: {
-        InvalidStatus: {
-          summary: 'Trạng thái không hợp lệ',
+        InvalidDictationAttemptCount: {
+          summary: 'Invalid dictation attemptCount',
           value: {
             success: false,
-            message: 'Dữ liệu không hợp lệ',
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
             errors: [
               {
-                field: 'status',
-                message: 'Trạng thái phải là in_progress hoặc completed',
+                field: 'body.dictation.attemptCount',
+                message: 'Number must be greater than or equal to 1',
               },
             ],
           },
         },
-        InvalidMode: {
-          summary: 'Chế độ không hợp lệ',
+        InvalidDictationHintUsedCount: {
+          summary: 'Invalid dictation hintUsedCount',
           value: {
             success: false,
-            message: 'Dữ liệu không hợp lệ',
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
             errors: [
               {
-                field: 'selectedMode',
-                message: 'Chế độ học phải là dictation hoặc shadowing',
+                field: 'body.dictation.hintUsedCount',
+                message: 'Number must be greater than or equal to 0',
+              },
+            ],
+          },
+        },
+        InvalidShadowingAttemptCount: {
+          summary: 'Invalid shadowing attemptCount',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'body.shadowing.attemptCount',
+                message: 'Number must be greater than or equal to 1',
+              },
+            ],
+          },
+        },
+        InvalidShadowingLatestAudioUrl: {
+          summary: 'Invalid shadowing latestAudioUrl',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'body.shadowing.latestAudioUrl',
+                message: 'String must contain at least 1 character(s)',
+              },
+            ],
+          },
+        },
+        MissingDictationOrShadowing: {
+          summary: 'Missing both dictation and shadowing',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'body.',
+                message: 'There should be at least dictation or shadowing.',
               },
             ],
           },
@@ -83,7 +109,7 @@ const ProgressBadRequest = {
 };
 
 const CardStateNotFound = {
-  description: 'Không tìm thấy user card state',
+  description: 'User card state not found',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
@@ -96,41 +122,6 @@ const CardStateNotFound = {
   },
 };
 
-const CardStateBadRequest = {
-  description: 'Dữ liệu đầu vào không hợp lệ',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        MissingFields: {
-          summary: 'Thiếu dữ liệu trường bắt buộc',
-          value: {
-            success: false,
-            message: 'Dữ liệu không hợp lệ',
-            errors: [
-              { field: 'deckId', message: 'Trường deckId là bắt buộc' },
-              { field: 'topicId', message: 'Trường topicId là bắt buộc' },
-            ],
-          },
-        },
-        InvalidGrade: {
-          summary: 'Điểm đánh giá không hợp lệ',
-          value: {
-            success: false,
-            message: 'Dữ liệu không hợp lệ',
-            errors: [
-              {
-                field: 'srs.lastGrade',
-                message: 'Trường lastGrade phải là số nguyên từ 0 đến 3',
-              },
-            ],
-          },
-        },
-      },
-    },
-  },
-};
-
 const CardStatePatchBadRequest = {
   description: 'Dữ liệu đầu vào không hợp lệ hoặc thiếu dữ liệu khi tạo mới',
   content: {
@@ -138,7 +129,7 @@ const CardStatePatchBadRequest = {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
       examples: {
         MissingFields: {
-          summary: 'Thiếu deckId và topicId khi tạo mới',
+          summary: 'Missing deckId and topicId when creation.',
           value: {
             success: false,
             code: 'CARD_STATE_CREATE_MISSING_DATA',
@@ -147,33 +138,6 @@ const CardStatePatchBadRequest = {
             errors: [],
           },
         },
-        InvalidGrade: {
-          summary: 'Điểm đánh giá không hợp lệ',
-          value: {
-            success: false,
-            message: 'Dữ liệu không hợp lệ',
-            errors: [
-              {
-                field: 'srs.lastGrade',
-                message: 'Trường lastGrade phải là số nguyên từ 0 đến 3',
-              },
-            ],
-          },
-        },
-      },
-    },
-  },
-};
-
-const UserNotFound = {
-  description: 'User not found',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      example: {
-        success: false,
-        code: 'NOT_FOUND',
-        message: 'User not found',
       },
     },
   },
@@ -239,6 +203,48 @@ const ProfileUpdateBadRequest = {
             ],
           },
         },
+        EmptyName: {
+          summary: 'Display name cannot be empty',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'name',
+                message: 'Display name cannot be empty',
+              },
+            ],
+          },
+        },
+        NameTooLong: {
+          summary: 'Display name must be at most 50 characters',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'name',
+                message: 'Display name must be at most 50 characters',
+              },
+            ],
+          },
+        },
+        PasswordTooShort: {
+          summary: 'Password must be at least 6 characters',
+          value: {
+            success: false,
+            code: 'INVALID_DATA',
+            message: 'Invalid request data',
+            errors: [
+              {
+                field: 'newPassword',
+                message: 'Password must be at least 6 characters',
+              },
+            ],
+          },
+        },
       },
     },
   },
@@ -269,7 +275,7 @@ export default {
       ],
       responses: {
         200: {
-          description: 'Lấy danh sách segment progress của lesson thành công',
+          description: 'Successfully retrieved lesson segments progress',
           content: {
             'application/json': {
               schema: {
@@ -313,7 +319,7 @@ export default {
       ],
       responses: {
         200: {
-          description: 'Lấy chi tiết segment progress trong lesson thành công',
+          description: 'Successfully retrieved segment progress details',
           content: {
             'application/json': {
               schema: {
@@ -322,7 +328,19 @@ export default {
             },
           },
         },
-        404: LessonOrSegmentNotFound,
+        404: {
+          description: 'Segment not found',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ErrorResponse' },
+              example: {
+                success: false,
+                code: 'SEGMENT_PROGRESS_NOT_FOUND',
+                message: 'Segment progress not found',
+              },
+            },
+          },
+        },
         401: { $ref: '#/components/responses/Unauthorized' },
         500: { $ref: '#/components/responses/ServerError' },
       },
@@ -362,7 +380,7 @@ export default {
       },
       responses: {
         200: {
-          description: 'Cập nhật một phần segment progress thành công',
+          description: 'Successfully updated segment progress',
           content: {
             'application/json': {
               schema: {
@@ -389,7 +407,19 @@ export default {
           },
         },
         400: ProgressBadRequest,
-        404: LessonOrSegmentNotFound,
+        404: {
+          description: 'Segment not found in this lesson',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ErrorResponse' },
+              example: {
+                success: false,
+                code: 'SEGMENT_NOT_FOUND_IN_LESSON',
+                message: 'Segment not found in this lesson',
+              },
+            },
+          },
+        },
         401: { $ref: '#/components/responses/Unauthorized' },
         500: { $ref: '#/components/responses/ServerError' },
       },
@@ -400,7 +430,7 @@ export default {
       tags: ['User Card States'],
       summary: 'Lấy danh sách user card states',
       description:
-        'Lấy danh sách các user card states (trạng thái học thẻ từ) của người dùng đang đăng nhập. Hỗ trợ lọc theo deckId, topicId, due, starred, phân trang.',
+        'Lấy danh sách các user card states (trạng thái học thẻ từ) của người dùng đang đăng nhập. Hỗ trợ lọc theo deckId, topicId, due, starred, hidden, phân trang.',
       security: [{ BearerAuth: [] }],
       parameters: [
         {
@@ -451,7 +481,7 @@ export default {
       ],
       responses: {
         200: {
-          description: 'Lấy danh sách user card states thành công',
+          description: 'Successfully retrieved user card states',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/CardStatesResponse' },
@@ -481,7 +511,7 @@ export default {
       ],
       responses: {
         200: {
-          description: 'Lấy state của user card thành công',
+          description: 'Successfully retrieved user card state details',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/CardStateResponse' },
@@ -518,7 +548,7 @@ export default {
       },
       responses: {
         200: {
-          description: 'Cập nhật card state thành công',
+          description: 'Successfully created/updated card state',
           content: {
             'application/json': {
               schema: {
@@ -543,7 +573,6 @@ export default {
           },
         },
         400: CardStatePatchBadRequest,
-        404: CardStateNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
         500: { $ref: '#/components/responses/ServerError' },
@@ -575,7 +604,6 @@ export default {
           },
         },
         400: ProfileUpdateBadRequest,
-        404: UserNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         500: { $ref: '#/components/responses/ServerError' },
       },
@@ -585,11 +613,12 @@ export default {
     get: {
       tags: ['User Profile'],
       summary: 'Lấy số liệu thống kê của user',
-      description: 'Lấy tổng số lesson đã học và tổng số card đã review của user hiện tại để hiển thị trên profile.',
+      description:
+        'Lấy tổng số lesson đã học và tổng số card đã review của user hiện tại để hiển thị trên profile.',
       security: [{ BearerAuth: [] }],
       responses: {
         200: {
-          description: 'Lấy số liệu thống kê của user thành công',
+          description: 'Get current user stats successfully',
           content: {
             'application/json': {
               schema: {
@@ -597,7 +626,10 @@ export default {
                 properties: {
                   success: { type: 'boolean', example: true },
                   code: { type: 'string', example: USER.STATS_GET_SUCCESS },
-                  message: { type: 'string', example: MESSAGES[USER.STATS_GET_SUCCESS] },
+                  message: {
+                    type: 'string',
+                    example: MESSAGES[USER.STATS_GET_SUCCESS],
+                  },
                   data: {
                     type: 'object',
                     properties: {

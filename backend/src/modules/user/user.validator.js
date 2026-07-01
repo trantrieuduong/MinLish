@@ -93,7 +93,7 @@ export const updateProfileSchema = z
       .min(1, 'Display name cannot be empty')
       .max(50, 'Display name must be at most 50 characters')
       .regex(
-        /^[a-zA-Z0-9\sÀ-ỹ]+$/,
+        /^[a-zA-Z0-9\sÀ-ỹ]*$/,
         'Display name must not contain special characters'
       )
       .optional(),

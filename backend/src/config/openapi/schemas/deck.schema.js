@@ -39,7 +39,7 @@ export default {
       status: {
         type: 'string',
         enum: ['draft', 'published', 'archived'],
-        example: 'published',
+        example: 'draft',
       },
       ownerType: {
         type: 'string',

@@ -324,6 +324,15 @@ const validateSegmentData = (data) => {
   }
 };
 
+const normalizeText = (text) => {
+    if (!text) return "";
+    return text
+      .toLowerCase()
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "") // Loại bỏ dấu câu
+      .replace(/\s{2,}/g, " ") // Đưa nhiều dấu cách liên tiếp về 1 dấu cách
+      .trim();
+};
+
 export const createAdminLessonSegment = async (lessonId, data) => {
   const lesson = await Lesson.findById(lessonId);
   if (!lesson) throw new AppError(LESSON.LESSON_NOT_FOUND, 404);
@@ -351,7 +360,7 @@ export const createAdminLessonSegment = async (lessonId, data) => {
     endMs: data.endMs,
     transcript: {
       original: data.transcript.original,
-      normalized: data.transcript.normalized,
+      normalized: normalizeText(data.transcript.normalized),
     },
     translation: data.translation,
   });
@@ -394,7 +403,7 @@ export const updateAdminLessonSegment = async (lessonId, segmentId, data) => {
   segment.endMs = data.endMs;
   segment.transcript = {
     original: data.transcript.original,
-    normalized: data.transcript.normalized,
+    normalized: normalizeText(data.transcript.normalized),
   };
   segment.translation = data.translation;
   await segment.save();

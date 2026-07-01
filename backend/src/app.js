@@ -33,7 +33,9 @@ app.use(cookieParser());
 app.use(requestLogger);
 
 // Routes
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
+}
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/lessons', lessonRouter);
 app.use('/api/v1/decks', deckRouter);
