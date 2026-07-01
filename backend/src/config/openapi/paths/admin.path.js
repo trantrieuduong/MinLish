@@ -1,17 +1,3 @@
-const CefrNotFound = {
-  description: 'Không tìm thấy CEFR level',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      example: {
-        success: false,
-        code: 'CEFR_LEVEL_NOT_FOUND',
-        message: 'CEFR level not found',
-      },
-    },
-  },
-};
-
 const UserNotFound = {
   description: 'User not found',
   content: {
@@ -306,28 +292,6 @@ const SegmentBadRequest = {
   },
 };
 
-const CefrConflict = {
-  description: 'Dữ liệu CEFR Level đã tồn tại',
-  content: {
-    'application/json': {
-      schema: { $ref: '#/components/schemas/ErrorResponse' },
-      examples: {
-        DuplicateLabel: {
-          summary: 'Trùng label',
-          value: {
-            success: false,
-            code: 'ALREADY_EXISTS',
-            message: 'Resource already exists',
-            errors: [
-              { field: 'label', message: 'Label CEFR level này đã tồn tại' },
-            ],
-          },
-        },
-      },
-    },
-  },
-};
-
 const TagConflict = {
   description: 'This tag label already exists',
   content: {
@@ -389,40 +353,40 @@ const DeckSlugConflict = {
   },
 };
 
-// const DeckOrTopicNotFound = {
-//   description: 'Deck or topic not found',
-//   content: {
-//     'application/json': {
-//       schema: { $ref: '#/components/schemas/ErrorResponse' },
-//       examples: {
-//         DeckNotFound: {
-//           summary: 'Deck not found',
-//           value: {
-//             success: false,
-//             code: 'DECK_NOT_FOUND',
-//             message: 'Deck not found',
-//           },
-//         },
-//         TopicNotFound: {
-//           summary: 'Không tìm thấy topic',
-//           value: {
-//             success: false,
-//             code: 'TOPIC_NOT_FOUND',
-//             message: 'Topic not found',
-//           },
-//         },
-//         TopicNotInDeck: {
-//           summary: 'Topic không thuộc deck',
-//           value: {
-//             success: false,
-//             code: 'INVALID_DATA',
-//             message: 'Topic is not belong to the selected deck',
-//           },
-//         },
-//       },
-//     },
-//   },
-// };
+const DeckOrTopicNotFoundDistinct = {
+  description: 'Deck or topic not found',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      examples: {
+        DeckNotFound: {
+          summary: 'Deck not found',
+          value: {
+            success: false,
+            code: 'DECK_NOT_FOUND',
+            message: 'Deck not found',
+          },
+        },
+        TopicNotFound: {
+          summary: 'Topic not found',
+          value: {
+            success: false,
+            code: 'TOPIC_NOT_FOUND',
+            message: 'Topic not found',
+          },
+        },
+        // TopicNotInDeck: {
+        //   summary: 'Topic does not belong to this deck',
+        //   value: {
+        //     success: false,
+        //     code: 'INVALID_DATA',
+        //     message: 'Topic is not belong to the selected deck',
+        //   },
+        // },
+      },
+    },
+  },
+};
 
 const DeckOrTopicNotFound = {
   description: 'Deck or topic not found',
@@ -556,7 +520,7 @@ const TopicNotFound = {
 };
 
 const DeckOrCardNotFound = {
-  description: 'Deck not found hoặc card',
+  description: 'Deck or card not found',
   content: {
     'application/json': {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
@@ -569,6 +533,20 @@ const DeckOrCardNotFound = {
   },
 };
 
+const CardNotFound = {
+  description: 'Card not found',
+  content: {
+    'application/json': {
+      schema: { $ref: '#/components/schemas/ErrorResponse' },
+      example: {
+        success: false,
+        code: 'CARD_NOT_FOUND',
+        message: 'Card not found',
+      },
+    },
+  },
+};
+
 const CardBadRequest = {
   description: 'Invalid input data',
   content: {
@@ -576,24 +554,24 @@ const CardBadRequest = {
       schema: { $ref: '#/components/schemas/ErrorResponse' },
       examples: {
         MissingFields: {
-          summary: 'Thiếu dữ liệu trường bắt buộc',
+          summary: 'Missing require field',
           value: {
             success: false,
             code: 'INVALID_DATA',
             message: 'Invalid request data',
             errors: [
-              { field: 'topicId', message: 'Trường topicId là bắt buộc' },
-              { field: 'term', message: 'Trường term là bắt buộc' },
-              { field: 'pos', message: 'Trường pos là bắt buộc' },
+              { field: 'topicId', message: 'The topicId field is required' },
+              { field: 'term', message: 'The term field is required' },
+              { field: 'pos', message: 'The pos field is required' },
               {
                 field: 'translation',
-                message: 'Trường translation là bắt buộc',
+                message: 'The translation field is required',
               },
             ],
           },
         },
         InvalidTopicInDeck: {
-          summary: 'Topic không thuộc Deck',
+          summary: 'Topic does not belong to this deck',
           value: {
             success: false,
             code: 'INVALID_DATA',
@@ -601,7 +579,7 @@ const CardBadRequest = {
             errors: [
               {
                 field: 'topicId',
-                message: 'Topic này không thuộc về deck hiện tại',
+                message: 'Topic does not belong to this deck',
               },
             ],
           },
@@ -655,7 +633,7 @@ const CardReorderBadRequest = {
           },
         },
         InvalidTopicInDeck: {
-          summary: 'Topic không thuộc Deck',
+          summary: 'Topic does not belong to this deck',
           value: {
             success: false,
             code: 'INVALID_DATA',
@@ -663,7 +641,7 @@ const CardReorderBadRequest = {
             errors: [
               {
                 field: 'topics[0].topicId',
-                message: 'Topic này không thuộc về deck hiện tại',
+                message: 'Topic does not belong to this deck',
               },
             ],
           },
@@ -2155,7 +2133,7 @@ export default {
       },
       responses: {
         201: {
-          description: 'Tạo card thành công',
+          description: 'Card created successfully',
           content: {
             'application/json': {
               schema: {
@@ -2166,7 +2144,7 @@ export default {
                     properties: {
                       message: {
                         type: 'string',
-                        example: 'Tạo card thành công',
+                        example: 'Card created successfully',
                       },
                     },
                   },
@@ -2176,7 +2154,7 @@ export default {
           },
         },
         400: CardBadRequest,
-        404: DeckNotFound,
+        404: DeckOrTopicNotFoundDistinct,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
         500: { $ref: '#/components/responses/ServerError' },
@@ -2207,14 +2185,14 @@ export default {
       ],
       responses: {
         200: {
-          description: 'Lấy chi tiết card thành công',
+          description: 'Card detail retrieved successfully',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/CardResponse' },
             },
           },
         },
-        404: DeckOrCardNotFound,
+        404: CardNotFound,
         401: { $ref: '#/components/responses/Unauthorized' },
         403: { $ref: '#/components/responses/Forbidden' },
         500: { $ref: '#/components/responses/ServerError' },
@@ -2252,7 +2230,7 @@ export default {
       },
       responses: {
         200: {
-          description: 'Cập nhật card thành công',
+          description: 'Card updated successfully',
           content: {
             'application/json': {
               schema: {
@@ -2263,7 +2241,7 @@ export default {
                     properties: {
                       message: {
                         type: 'string',
-                        example: 'Cập nhật card thành công',
+                        example: 'Card updated successfully',
                       },
                     },
                   },

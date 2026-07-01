@@ -320,7 +320,7 @@ export default {
           description: 'Xuất file thành công. Trả về file .xlsx',
         },
         400: {
-          description: 'Lỗi xác thực (Topic không thuộc Deck)',
+          description: 'Lỗi xác thực (Topic does not belong to this deck)',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/ErrorResponse' },
