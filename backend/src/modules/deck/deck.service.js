@@ -34,6 +34,7 @@ export const getDeckTopics = async (deckId, userId) => {
       $match: {
         userId: new mongoose.Types.ObjectId(userId),
         deckId: new mongoose.Types.ObjectId(deckId),
+        'srs.nextReviewAt': { $ne: null }
       },
     },
     { $group: { _id: '$topicId', learnedCardCount: { $sum: 1 } } },
